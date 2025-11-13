@@ -1,0 +1,65 @@
+import React, { useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDossiers, mockDocuments } from '../../data/mock/dashboard';
+import { DossierMemoire, Document } from '../../types/dossier';
+import DossiersList from './dossiers/DossiersList';
+import DossierDetail from './dossiers/DossierDetail';
+
+const Dossiers: React.FC = () => {
+  const { user } = useAuth();
+  const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+
+  // Récupérer tous les dossiers
+  const tousLesDossiers = useMemo(() => {
+    // Trier par date de modification (plus récent en premier)
+    return [...mockDossiers].sort((a, b) => 
+      b.dateModification.getTime() - a.dateModification.getTime()
+    );
+  }, []);
+
+  // Récupérer le dossier sélectionné
+  const dossier = useMemo(() => {
+    if (id) {
+      return tousLesDossiers.find(d => d.idDossierMemoire.toString() === id);
+    }
+    return null;
+  }, [id, tousLesDossiers]);
+
+  // Documents du dossier sélectionné
+  const documentsDossier = useMemo(() => {
+    if (!dossier) return [];
+    // Si le dossier a déjà des documents liés, les utiliser
+    if (dossier.documents && dossier.documents.length > 0) {
+      return dossier.documents;
+    }
+    // Sinon, filtrer les documents liés à ce dossier
+    const documentsLies = mockDocuments.filter(doc => 
+      doc.dossierMemoire?.idDossierMemoire === dossier.idDossierMemoire
+    );
+    // Si aucun document lié, retourner un document par défaut pour le dossier en cours
+    if (documentsLies.length === 0 && dossier.idDossierMemoire === 0) {
+      return [mockDocuments.find(doc => doc.idDocument === 0)].filter(Boolean) as Document[];
+    }
+    return documentsLies;
+  }, [dossier]);
+
+  const handleDossierClick = (dossierId: number) => {
+    navigate(`/etudiant/dossiers/${dossierId}`);
+  };
+
+  const handleBack = () => {
+    navigate('/etudiant/dossiers');
+  };
+
+  // Si un dossier est sélectionné, afficher le détail
+  if (dossier) {
+    return <DossierDetail dossier={dossier} documents={documentsDossier} onBack={handleBack} />;
+  }
+
+  // Sinon, afficher la liste
+  return <DossiersList dossiers={tousLesDossiers} onDossierClick={handleDossierClick} />;
+};
+
+export default Dossiers;
