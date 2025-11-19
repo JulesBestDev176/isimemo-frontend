@@ -59,3 +59,6 @@ grep -r "[\u{1F300}-\u{1F9FF}]" src/ || echo "Aucun emoji trouvé"
 ```
 
 
+
+
+

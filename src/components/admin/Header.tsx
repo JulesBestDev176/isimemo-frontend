@@ -8,7 +8,6 @@ import {
   Search, 
   Settings, 
   LogOut, 
-  HelpCircle,
   ChevronDown,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -233,10 +232,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
                     <Link to="/etudiant/profil" className="dropdown-item" onClick={() => setShowProfileMenu(false)}>
                       <User className="mr-3 h-5 w-5 text-gray-400" />
                       <span>Mon Profil</span>
-                    </Link>
-                    <Link to="/etudiant/aide" className="dropdown-item" onClick={() => setShowProfileMenu(false)}>
-                      <HelpCircle className="mr-3 h-5 w-5 text-gray-400" />
-                      <span>Aide & Support</span>
                     </Link>
                   </div>
                   

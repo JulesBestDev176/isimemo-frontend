@@ -32,7 +32,8 @@ const RessourcesSauvegardees = lazy(() => import("./pages/etudiant/RessourcesSau
 const Mediatheque = lazy(() => import("./pages/etudiant/Mediatheque"));
 const AssistantIA = lazy(() => import("./pages/etudiant/AssistantIA"));
 const NotificationsEtudiant = lazy(() => import("./pages/etudiant/Notifications"));
-const Aide = lazy(() => import("./pages/etudiant/Aide"));
+const Encadrement = lazy(() => import("./pages/candidat/Encadrement"));
+const Sujets = lazy(() => import("./pages/professeur/Sujets"));
 
 // Composants non-lazy (utilisés partout)
 import Navbar from "./components/Navbar";
@@ -172,12 +173,26 @@ const AnimatedRoutes = () => {
                 </Suspense>
               } 
             />
+            
+            {/* Routes candidat */}
             <Route 
-              path="/etudiant/aide" 
+              path="/candidat/encadrement" 
               element={
                 <Suspense fallback={<PageLoader />}>
                   <MainLayout>
-                    <Aide />
+                    <Encadrement />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            
+            {/* Routes professeur */}
+            <Route 
+              path="/sujets-professeurs" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Sujets />
                   </MainLayout>
                 </Suspense>
               } 

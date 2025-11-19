@@ -31,7 +31,6 @@ import {
   Info,
   TrendingUp,
   Bell,
-  HelpCircle,
   LogOut,
   Save,
   Archive,
@@ -42,7 +41,8 @@ import {
   History,
   CheckCircle,
   XCircle,
-  FileCheck
+  FileCheck,
+  Target
 } from 'lucide-react';
 import Logo from './Logo';
 import { User } from '../../contexts/AuthContext';
@@ -68,6 +68,8 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     const menus: { [cle: string]: boolean } = {
       'Ressources': path.startsWith('/etudiant/ressources'),
       'Assistant IA': path.startsWith('/etudiant/chatbot'),
+      'Chatbot': path.startsWith('/etudiant/chatbot'),
+      'Encadrement': path.startsWith('/candidat/encadrement'),
       'Gestion des classes': false,
       'Gestion des cours': false,
       'Gestion des étudiants': false,
@@ -76,11 +78,9 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       'Gestion des mémoires': false,
       'Gestion des jurys': false,
       'Gestion des soutenances': false,
-      'Médiathèque': false,
       'Notifications': false,
       'Espace Jury': path.startsWith('/jurie'),
       'Espace Commission': path.startsWith('/commission'),
-      'Espace Professeur': path.startsWith('/professeur'),
     };
     return menus;
   }, [emplacement.pathname]);
@@ -102,6 +102,14 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       nom: 'Mes Dossiers', 
       icone: <FileText className="mr-2 h-5 w-5" />, 
       chemin: '/etudiant/dossiers'
+    },
+    
+    // ========== MENUS POUR CANDIDAT ==========
+    // Encadrement pour les candidats
+    {
+      nom: 'Encadrement',
+      icone: <Target className="mr-2 h-5 w-5" />,
+      chemin: '/candidat/encadrement'
     },
     
     // 2. Planification (lié aux dossiers et soutenances)
@@ -134,7 +142,6 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     
     // 6. Paramètres personnels (en bas)
     { nom: 'Mon Profil', icone: <UserIcon className="mr-2 h-5 w-5" />, chemin: '/etudiant/profil' },
-    { nom: 'Aide & Support', icone: <HelpCircle className="mr-2 h-5 w-5" />, chemin: '/etudiant/aide' },
     
     // Menus pour Professeur
     { nom: 'Sujets', icone: <BookOpen className="mr-2 h-5 w-5" />, chemin: '/sujets-professeurs' },
@@ -145,10 +152,6 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     { nom: 'Espace Commission', icone: <Settings className="mr-2 h-5 w-5" />, sousmenu: [
       { nom: 'Gestion des commissions', icone: <List className="mr-2 h-4 w-4" />, chemin: '/commission/gestion' },
     ] },
-    { nom: 'Espace Professeur', icone: <UserIcon className="mr-2 h-5 w-5" />, sousmenu: [
-      { nom: 'Mes cours', icone: <BookOpen className="mr-2 h-4 w-4" />, chemin: '/professeur/courses' },
-      { nom: 'Mes étudiants', icone: <Users className="mr-2 h-4 w-4" />, chemin: '/professeur/students' },
-    ] },
     
     // Menus pour Chef de Département / Assistant
     { nom: 'Classes', icone: <Grid className="mr-2 h-5 w-5" />, chemin: '/classes' },
@@ -157,8 +160,8 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     { nom: 'Cours', icone: <BookOpen className="mr-2 h-5 w-5" />, chemin: '/courses' },
     { nom: 'Jury', icone: <Gavel className="mr-2 h-5 w-5" />, chemin: '/departement/jury' },
     { nom: 'Soutenances', icone: <Video className="mr-2 h-5 w-5" />, chemin: '/departement/soutenance' },
-    { nom: 'Médiathèque', icone: <BookMarked className="mr-2 h-5 w-5" />, chemin: '/memoires' },
-    { nom: 'Chatbot', icone: <MessageSquare className="mr-2 h-5 w-5" />, chemin: '/chatbot' },
+    { nom: 'Médiathèque', icone: <BookMarked className="mr-2 h-5 w-5" />, chemin: '/etudiant/ressources/mediatheque' },
+    { nom: 'Chatbot', icone: <MessageSquare className="mr-2 h-5 w-5" />, chemin: '/etudiant/chatbot' },
   ];
 
   const basculerMenu = useCallback((nomMenu: string) => {
@@ -201,23 +204,36 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     
     // Menus selon le type d'acteur principal
     if (user.type === 'etudiant') {
-      // Ordre logique : activité principale → planification → ressources → aide → infos → paramètres
-      menus = [
-        'Tableau de bord',
-        'Mes Dossiers',        // 1. Activité principale
-        'Calendrier',          // 2. Planification
-        'Ressources',      // 3. Ressources de travail
-        'Assistant IA',        // 4. Assistant et aide
-        'Notifications',       // 5. Informations
-        'Mon Profil',          // 6. Paramètres personnels
-        'Aide & Support'       // 6. Paramètres personnels
-      ];
+      if (user.estCandidat) {
+        // Menus spécifiques pour les candidats
+        menus = [
+          'Tableau de bord',
+          'Mes Dossiers',        // 1. Activité principale
+          'Encadrement',         // Encadrement candidat
+          'Calendrier',          // 2. Planification
+          'Ressources',          // 3. Ressources de travail
+          'Assistant IA',        // 4. Assistant et aide
+          'Notifications',       // 5. Informations
+          'Mon Profil'          // 6. Paramètres personnels
+        ];
+      } else {
+        // Ordre logique : activité principale → planification → ressources → aide → infos → paramètres
+        menus = [
+          'Tableau de bord',
+          'Mes Dossiers',        // 1. Activité principale
+          'Calendrier',          // 2. Planification
+          'Ressources',      // 3. Ressources de travail
+          'Assistant IA',        // 4. Assistant et aide
+          'Notifications',       // 5. Informations
+          'Mon Profil'          // 6. Paramètres personnels
+        ];
+      }
     } else if (user.type === 'professeur') {
       // Menus de base pour tous les professeurs
       menus = [
         'Tableau de bord',
         'Calendrier',
-        'Médiathèque',
+        'Ressources',
         'Sujets',
         'Notifications',
         'Chatbot'
@@ -237,9 +253,6 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       }
       if (user.estCommission) {
         menus.push('Espace Commission');
-      }
-      if (!user.estChef) {
-        menus.push('Espace Professeur');
       }
     } else if (user.type === 'assistant') {
       menus = [
@@ -335,27 +348,40 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
                         transition={{ duration: 0.3 }}
                         className="pl-6 mt-1 space-y-1"
                       >
-                        {item.sousmenu.map((sousItem, sousIndex) => {
-                          const sousItemActif = estActif(sousItem.chemin);
-                          return (
-                            <li key={sousIndex}>
-                              <Link
-                                to={sousItem.chemin || '#'}
-                                className={`flex items-center p-2 text-sm rounded-md transition-colors duration-200 ${
-                                  sousItemActif
-                                    ? 'bg-primary text-white font-medium shadow-sm'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                              >
-                                {sousItem.icone}
-                                <span>{sousItem.nom}</span>
-                                {sousItemActif && (
-                                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
-                                )}
-                              </Link>
-                            </li>
-                          );
-                        })}
+                        {item.sousmenu
+                          .filter(sousItem => {
+                            // Filtrer les sous-menus selon le type d'utilisateur
+                            if (item.nom === 'Ressources') {
+                              // Pour les professeurs, afficher seulement Médiathèque
+                              if (user?.type === 'professeur') {
+                                return sousItem.nom === 'Médiathèque';
+                              }
+                              // Pour les étudiants, afficher tous les sous-menus
+                              return true;
+                            }
+                            return true;
+                          })
+                          .map((sousItem, sousIndex) => {
+                            const sousItemActif = estActif(sousItem.chemin);
+                            return (
+                              <li key={sousIndex}>
+                                <Link
+                                  to={sousItem.chemin || '#'}
+                                  className={`flex items-center p-2 text-sm rounded-md transition-colors duration-200 ${
+                                    sousItemActif
+                                      ? 'bg-primary text-white font-medium shadow-sm'
+                                      : 'text-gray-700 hover:bg-gray-100'
+                                  }`}
+                                >
+                                  {sousItem.icone}
+                                  <span>{sousItem.nom}</span>
+                                  {sousItemActif && (
+                                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
+                                  )}
+                                </Link>
+                              </li>
+                            );
+                          })}
                       </motion.ul>
                     )}
                   </AnimatePresence>
