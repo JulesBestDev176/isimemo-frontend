@@ -11,7 +11,7 @@ import {
   Clock,
   Scale
 } from 'lucide-react';
-import { DossierMemoire, Document, StatutDossierMemoire, EtapeDossier } from '../../../types/dossier';
+import { DossierMemoire, Document, StatutDossierMemoire, EtapeDossier } from '../../../models/dossier';
 import { Badge } from '../../../components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
@@ -19,7 +19,7 @@ import DossierInformations from './DossierInformations';
 import DossierDocuments from './DossierDocuments';
 import ProcessusPipeline from './ProcessusPipeline';
 import DossierProcessVerbal from './DossierProcessVerbal';
-import { mockProcessVerbaux } from '../../../data/mock/dashboard';
+import { mockProcessVerbaux } from '../../../models/soutenance/ProcessVerbal';
 
 interface DossierDetailProps {
   dossier: DossierMemoire;

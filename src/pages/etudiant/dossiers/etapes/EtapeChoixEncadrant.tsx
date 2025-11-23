@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { UserCheck, Search, ArrowRight, Mail, GraduationCap, Users, AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { DossierMemoire } from '../../../../types/dossier';
-import { EncadrantOption, DemandeEncadrant } from '../../../../types/pipeline';
+import { DossierMemoire } from '../../../../models/dossier';
+import { EncadrantOption, DemandeEncadrant } from '../../../../models/pipeline';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';

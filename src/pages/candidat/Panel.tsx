@@ -323,7 +323,7 @@ const Panel: React.FC = () => {
       className="space-y-6"
     >
       {/* Résumé du projet */}
-      <div className="bg-white border rounded-lg p-6">
+      <div className="bg-white border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Mon projet de mémoire</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -350,7 +350,7 @@ const Panel: React.FC = () => {
       </div>
 
       {/* File de discussion unifiée */}
-      <div className="bg-white border rounded-lg p-6">
+      <div className="bg-white border border-gray-200 p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Discussion avec votre encadrant</h3>
           <div className="flex items-center space-x-3">
@@ -390,158 +390,151 @@ const Panel: React.FC = () => {
               }
 
               return (
-                <div key={item.id} className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-navy text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                      {getInitials(encadrant.nom, encadrant.prenom)}
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-semibold text-gray-900 text-sm">
+                <div key={item.id} className="flex items-start justify-start">
+                  <div className="max-w-[70%] p-4 border border-gray-200 bg-gray-100 text-gray-900">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">
                         Prof. {encadrant.prenom} {encadrant.nom}
                       </span>
                       <span className="text-xs text-gray-500">{item.date}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 mb-2">
+                      {item.type === 'notification' && item.notificationType && (
+                        <span className={`px-2 py-1 text-xs rounded-full border flex items-center gap-1 ${getTypeNotificationColor(item.notificationType)}`}>
+                          {item.notificationType === 'Meet' && <Video className="h-3 w-3" />}
+                          {item.notificationType === 'Pré-soutenance' && <MapPin className="h-3 w-3" />}
+                          {item.notificationType === 'Document' && <FileText className="h-3 w-3" />}
+                          {item.notificationType}
+                        </span>
+                      )}
+                      {item.type === 'message' && item.messageType && (
+                        <span className={`px-2 py-1 text-xs rounded-full border flex items-center gap-1 ${getTypeMessageColor(item.messageType)}`}>
+                          {item.messageType === 'reunion-meet' && <Video className="h-3 w-3" />}
+                          {item.messageType === 'presentiel' && <MapPin className="h-3 w-3" />}
+                          {item.messageType === 'document' && <FileText className="h-3 w-3" />}
+                          {item.messageType === 'texte' && <MessageSquare className="h-3 w-3" />}
+                          {item.messageType === 'reunion-meet' ? 'Réunion Meet' : 
+                           item.messageType === 'presentiel' ? 'Présentiel' :
+                           item.messageType === 'document' ? 'Document PDF' : 'Texte'}
+                        </span>
+                      )}
+                      {item.urgent && (
+                        <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                          Urgent
+                        </span>
+                      )}
                       {!item.lu && (
-                        <div className="w-2 h-2 bg-navy rounded-full"></div>
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
                       )}
                     </div>
-                    
-                    <div className={`rounded-lg p-4 mb-2 ${
-                      item.lu 
-                        ? 'bg-gray-50 border border-gray-200' 
-                        : 'bg-navy-50 border border-navy-200'
-                    }`}>
-                      <div className="flex items-center space-x-2 mb-2">
-                        {item.type === 'notification' && item.notificationType && (
-                          <span className={`px-2 py-1 text-xs rounded-full ${getTypeNotificationColor(item.notificationType)}`}>
-                            {item.notificationType}
-                          </span>
-                        )}
-                        {item.type === 'message' && item.messageType && (
-                          <span className={`px-2 py-1 text-xs rounded-full border ${getTypeMessageColor(item.messageType)}`}>
-                            {item.messageType === 'reunion-meet' ? 'Réunion Meet' : 
-                             item.messageType === 'presentiel' ? 'Présentiel' :
-                             item.messageType === 'document' ? 'Document PDF' : 'Texte'}
-                          </span>
-                        )}
-                        {item.urgent && (
-                          <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-                            Urgent
-                          </span>
-                        )}
-                      </div>
+
+                    {item.titre && (
+                      <h4 className="font-semibold text-gray-900 mb-2">{item.titre}</h4>
+                    )}
+                    <p className="text-sm mb-3">{item.contenu}</p>
                       
-                      {item.titre && (
-                        <h4 className="font-semibold text-gray-900 mb-2">{item.titre}</h4>
-                      )}
-                      <p className="text-gray-700 text-sm mb-3">{item.contenu}</p>
-                      
-                      {item.lienMeet && (
-                        <div className="bg-white border border-gray-200 rounded-lg p-3 mt-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Video className="h-4 w-4 text-navy" />
-                            <h5 className="font-medium text-gray-900 text-sm">Détails de la réunion</h5>
-                          </div>
-                          <div className="space-y-2 text-xs text-gray-700">
-                            {item.dateRendezVous && (
-                              <p>
-                                <span className="font-medium">Date:</span> {item.dateRendezVous}
-                                {item.heureRendezVous && ` à ${item.heureRendezVous}`}
-                              </p>
-                            )}
-                            <div className="pt-2 border-t border-gray-200">
-                              <p className="font-medium mb-2">Lien de la réunion:</p>
-                              <div className="flex items-center space-x-2 flex-wrap">
-                                <a 
-                                  href={item.lienMeet} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-navy hover:text-navy-dark underline font-medium break-all flex-1 min-w-0"
-                                >
-                                  {item.lienMeet}
-                                </a>
-                                <button 
-                                  onClick={() => copierLien(item.lienMeet || '', item.id)}
-                                  className={`px-3 py-1.5 text-xs rounded flex-shrink-0 transition-colors flex items-center space-x-1 ${
-                                    lienCopie === item.id
-                                      ? 'bg-green-600 text-white'
-                                      : 'bg-navy text-white hover:bg-navy-dark'
-                                  }`}
-                                  title="Copier le lien"
-                                >
-                                  {lienCopie === item.id ? (
-                                    <>
-                                      <Check className="h-3 w-3" />
-                                      <span>Copié!</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span>Copier</span>
-                                    </>
-                                  )}
-                                </button>
-                              </div>
+                    {item.lienMeet && (
+                      <div className={`${item.lu ? 'bg-white' : 'bg-white/90'} border border-gray-200 p-3 mt-3 rounded`}>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Video className="h-4 w-4 text-primary" />
+                          <h5 className="font-medium text-gray-900 text-sm">Détails de la réunion</h5>
+                        </div>
+                        <div className="space-y-2 text-xs">
+                          {item.dateRendezVous && (
+                            <p className="text-gray-700">
+                              <span className="font-medium">Date:</span> {item.dateRendezVous}
+                              {item.heureRendezVous && ` à ${item.heureRendezVous}`}
+                            </p>
+                          )}
+                          <div className="pt-2 border-t border-gray-200">
+                            <p className="font-medium mb-2 text-gray-900">Lien de la réunion:</p>
+                            <div className="flex items-center space-x-2 flex-wrap">
                               <a 
                                 href={item.lienMeet} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center space-x-2 mt-2 px-3 py-2 bg-navy text-white rounded-lg hover:bg-navy-dark transition-colors text-sm font-medium"
+                                className="text-primary hover:text-primary-700 underline break-all flex-1 min-w-0"
                               >
-                                <Video className="h-4 w-4" />
-                                <span>Rejoindre la réunion</span>
+                                {item.lienMeet}
                               </a>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {item.lieu && !item.lienMeet && (
-                        <div className="bg-white border border-gray-200 rounded-lg p-3 mt-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <MapPin className="h-4 w-4 text-navy" />
-                            <h5 className="font-medium text-gray-900 text-sm">Détails du rendez-vous</h5>
-                          </div>
-                          <div className="space-y-1 text-xs text-gray-700">
-                            {item.dateRendezVous && (
-                              <p>
-                                <span className="font-medium">Date:</span> {item.dateRendezVous}
-                                {item.heureRendezVous && ` à ${item.heureRendezVous}`}
-                              </p>
-                            )}
-                            <p>
-                              <span className="font-medium">Lieu:</span> {item.lieu}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {item.nomDocument && (
-                        <div className="bg-white border border-gray-200 rounded-lg p-3 mt-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-navy rounded-lg flex items-center justify-center">
-                                <FileText className="h-5 w-5 text-white" />
-                              </div>
-                              <div>
-                                <h5 className="font-medium text-gray-900 text-sm">{item.nomDocument}</h5>
-                                {item.tailleDocument && (
-                                  <p className="text-xs text-gray-600">{item.tailleDocument}</p>
+                              <button 
+                                onClick={() => copierLien(item.lienMeet || '', item.id)}
+                                className={`px-2 py-1 text-xs rounded flex-shrink-0 transition-colors flex items-center space-x-1 ${
+                                  lienCopie === item.id
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-primary text-white hover:bg-primary-700'
+                                }`}
+                                title="Copier le lien"
+                              >
+                                {lienCopie === item.id ? (
+                                  <>
+                                    <Check className="h-3 w-3" />
+                                    <span>Copié!</span>
+                                  </>
+                                ) : (
+                                  <span>Copier</span>
                                 )}
-                              </div>
+                              </button>
                             </div>
-                            <button 
-                              onClick={() => window.open(item.cheminDocument, '_blank')}
-                              className="px-3 py-2 bg-navy text-white rounded-lg hover:bg-navy-dark transition-colors flex items-center space-x-2 text-sm"
+                            <a 
+                              href={item.lienMeet} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center space-x-2 mt-2 px-3 py-2 bg-primary text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
                             >
-                              <Download className="h-4 w-4" />
-                              <span>Télécharger</span>
-                            </button>
+                              <Video className="h-4 w-4" />
+                              <span>Rejoindre la réunion</span>
+                            </a>
                           </div>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
+
+                    {item.lieu && !item.lienMeet && (
+                      <div className={`${item.lu ? 'bg-white' : 'bg-white/90'} border border-gray-200 p-3 mt-3 rounded`}>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          <h5 className="font-medium text-gray-900 text-sm">Détails du rendez-vous</h5>
+                        </div>
+                        <div className="space-y-1 text-xs text-gray-700">
+                          {item.dateRendezVous && (
+                            <p>
+                              <span className="font-medium">Date:</span> {item.dateRendezVous}
+                              {item.heureRendezVous && ` à ${item.heureRendezVous}`}
+                            </p>
+                          )}
+                          <p>
+                            <span className="font-medium">Lieu:</span> {item.lieu}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {item.nomDocument && (
+                      <div className={`${item.lu ? 'bg-white' : 'bg-white/90'} border border-gray-200 p-3 mt-3 rounded`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                              <FileText className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <h5 className="font-medium text-gray-900 text-sm">{item.nomDocument}</h5>
+                              {item.tailleDocument && (
+                                <p className="text-xs text-gray-600">{item.tailleDocument}</p>
+                              )}
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => window.open(item.cheminDocument, '_blank')}
+                            className="px-2 py-1.5 bg-primary text-white rounded hover:bg-primary-700 transition-colors flex items-center space-x-2 text-xs"
+                          >
+                            <Download className="h-3 w-3" />
+                            <span>Télécharger</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

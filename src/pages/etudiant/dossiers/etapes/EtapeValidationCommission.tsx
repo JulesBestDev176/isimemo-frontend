@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Scale, CheckCircle, XCircle, AlertCircle, Clock, ArrowRight } from 'lucide-react';
-import { DossierMemoire } from '../../../../types/dossier';
-import { ValidationCommission } from '../../../../types/pipeline';
+import { DossierMemoire } from '../../../../models/dossier';
+import { ValidationCommission } from '../../../../models/pipeline';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
 import { Badge } from '../../../../components/ui/badge';
 import { Button } from '../../../../components/ui/button';

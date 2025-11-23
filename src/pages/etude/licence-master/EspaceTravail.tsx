@@ -567,7 +567,7 @@ const EspaceTravail: React.FC = () => {
           {colonnes.map(colonne => (
             <div
               key={colonne.id}
-              className={`flex-1 min-w-[280px] max-w-xs bg-white border rounded-lg shadow-sm flex flex-col h-[80vh] md:h-[calc(100dvh-180px)]`}
+              className={`flex-1 min-w-[280px] max-w-xs bg-white border border-gray-200 shadow-sm flex flex-col h-[80vh] md:h-[calc(100dvh-180px)]`}
             >
               <div className={`p-4 rounded-t-xl border-b ${colonne.couleur}`}>
                 <div className="flex justify-between items-center">
@@ -600,7 +600,7 @@ const EspaceTravail: React.FC = () => {
                       onDragStart={(e) => handleDragStart(e as any, tache.id)}
                       onDragEnd={handleDragEnd}
                       onClick={() => setTacheSelectionnee(tache)}
-                      className={`p-4 bg-white border border-slate-200 rounded-lg cursor-pointer hover:shadow-md hover:border-slate-300 transition-all group ${
+                      className={`p-4 bg-white border border-slate-200 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all group ${
                         draggedTask === tache.id ? 'opacity-50' : ''
                       }`}
                     >
@@ -860,7 +860,7 @@ const EspaceTravail: React.FC = () => {
                 .filter(tache => tache.dateEcheance)
                 .sort((a, b) => new Date(a.dateEcheance!).getTime() - new Date(b.dateEcheance!).getTime())
                 .map(tache => (
-                  <div key={tache.id} className="p-4 bg-white border border-slate-200 rounded-lg cursor-pointer hover:shadow-md hover:border-slate-300 transition-all"
+                  <div key={tache.id} className="p-4 bg-white border border-slate-200 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all"
                     onClick={() => setTacheSelectionnee(tache)}>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">

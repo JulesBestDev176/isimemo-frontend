@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle, XCircle, AlertCircle, Mail } from 'lucide-react';
-import { DossierMemoire } from '../../../../types/dossier';
-import { DemandeEncadrant } from '../../../../types/pipeline';
+import { DossierMemoire } from '../../../../models/dossier';
+import { DemandeEncadrant } from '../../../../models/pipeline';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
 import { Badge } from '../../../../components/ui/badge';
 

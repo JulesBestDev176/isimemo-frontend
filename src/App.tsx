@@ -11,29 +11,37 @@ import { AuthProvider } from "./contexts/AuthContext";
 const MainLayout = lazy(() => import("./layouts/MainLayout"));
 
 // Pages publiques - Lazy loaded
-const Index = lazy(() => import("./pages/Index"));
-const Memoires = lazy(() => import("./pages/Memoires"));
-const Login = lazy(() => import("./pages/Login"));
-const About = lazy(() => import("./pages/About"));
-const Contact = lazy(() => import("./pages/Contact"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const CGU = lazy(() => import("./pages/CGU"));
-const PolitiqueConfidentialite = lazy(() => import("./pages/PolitiqueConfidentialite"));
-const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
-const ISIMemoHub = lazy(() => import("./pages/ISIMemoHub"));
+// Pages publiques - Lazy loaded
+const Index = lazy(() => import("./pages/public/Index"));
+const Memoires = lazy(() => import("./pages/public/Memoires"));
+const Login = lazy(() => import("./pages/public/Login"));
+const About = lazy(() => import("./pages/public/About"));
+const Contact = lazy(() => import("./pages/public/Contact"));
+const NotFound = lazy(() => import("./pages/public/NotFound"));
+const CGU = lazy(() => import("./pages/public/CGU"));
+const PolitiqueConfidentialite = lazy(() => import("./pages/public/PolitiqueConfidentialite"));
+const MentionsLegales = lazy(() => import("./pages/public/MentionsLegales"));
+const ISIMemoHub = lazy(() => import("./pages/public/ISIMemoHub"));
 
 // Pages protégées - Lazy loaded
-const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
+// Pages protégées - Lazy loaded
+const Dashboard = lazy(() => import("./pages/common/Dashboard"));
 const Dossiers = lazy(() => import("./pages/etudiant/Dossiers"));
-const Profil = lazy(() => import("./pages/etudiant/Profil"));
-const Calendrier = lazy(() => import("./pages/etudiant/Calendrier"));
+const Profil = lazy(() => import("./pages/common/Profil"));
+const Calendrier = lazy(() => import("./pages/common/Calendrier"));
 const RessourcesPersonnelles = lazy(() => import("./pages/etudiant/RessourcesPersonnelles"));
-const RessourcesSauvegardees = lazy(() => import("./pages/etudiant/RessourcesSauvegardees"));
-const Mediatheque = lazy(() => import("./pages/etudiant/Mediatheque"));
-const AssistantIA = lazy(() => import("./pages/etudiant/AssistantIA"));
-const NotificationsEtudiant = lazy(() => import("./pages/etudiant/Notifications"));
+const RessourcesSauvegardees = lazy(() => import("./pages/common/RessourcesSauvegardees"));
+const Mediatheque = lazy(() => import("./pages/common/Mediatheque"));
+const AssistantIA = lazy(() => import("./pages/common/AssistantIA"));
+const NotificationsEtudiant = lazy(() => import("./pages/common/Notifications"));
 const Encadrement = lazy(() => import("./pages/candidat/Encadrement"));
+const Tickets = lazy(() => import("./pages/candidat/Tickets"));
 const Sujets = lazy(() => import("./pages/professeur/Sujets"));
+const Encadrements = lazy(() => import("./pages/professeur/Encadrements"));
+const EncadrementDetail = lazy(() => import("./pages/professeur/EncadrementDetail"));
+const PanelEncadrant = lazy(() => import("./pages/professeur/PanelEncadrant"));
+const DossierEtudiantDetail = lazy(() => import("./pages/professeur/DossierEtudiantDetail"));
+const Disponibilites = lazy(() => import("./pages/professeur/Disponibilites"));
 
 // Composants non-lazy (utilisés partout)
 import Navbar from "./components/Navbar";
@@ -185,6 +193,16 @@ const AnimatedRoutes = () => {
                 </Suspense>
               } 
             />
+            <Route 
+              path="/candidat/tickets" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Tickets />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
             
             {/* Routes professeur */}
             <Route 
@@ -193,6 +211,86 @@ const AnimatedRoutes = () => {
                 <Suspense fallback={<PageLoader />}>
                   <MainLayout>
                     <Sujets />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professeur/encadrements" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Encadrements />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professeur/encadrements/:id" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <EncadrementDetail />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professeur/encadrements/:id/panel" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <PanelEncadrant />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professeur/encadrements/:id/dossier/:dossierId" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <DossierEtudiantDetail />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professeur/disponibilites" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Disponibilites />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professeur/ressources/personnelles" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <RessourcesPersonnelles />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professeur/ressources/sauvegardees" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <RessourcesSauvegardees />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professeur/ressources/mediatheque" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Mediatheque />
                   </MainLayout>
                 </Suspense>
               } 

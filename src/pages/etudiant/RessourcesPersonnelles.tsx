@@ -14,20 +14,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { mockDossiers, mockEncadrant } from '../../data/mock/dashboard';
-import { DossierMemoire } from '../../types/dossier';
+import { mockDossiers, mockEncadrant } from '../../models';
+import { DossierMemoire, RessourcePersonnelle, getRessourcesPersonnellesProfesseur } from '../../models';
 
-// Interface pour les ressources (mémoires finaux)
-interface RessourcePersonnelle {
-  id: number;
-  titre: string;
-  description: string;
-  dateCreation: Date;
-  dateModification: Date;
-  anneeAcademique?: string;
-  cheminFichier: string;
-  dossierId: number;
-}
 
 // Badge Component
 const Badge: React.FC<{
@@ -78,11 +67,20 @@ const RessourcesPersonnelles: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRessource, setSelectedRessource] = useState<RessourcePersonnelle | null>(null);
 
-  // Récupérer les ressources depuis les dossiers terminés
+  // Récupérer les ressources selon le type d'utilisateur
   const ressources = useMemo(() => {
+    if (!user?.id) return [];
+    
+    // Pour les professeurs : récupérer leurs ressources personnelles (documents créés)
+    if (user.type === 'professeur') {
+      const idProfesseur = parseInt(user.id);
+      return getRessourcesPersonnellesProfesseur(idProfesseur);
+    }
+    
+    // Pour les étudiants : récupérer les ressources depuis les dossiers terminés
     // TODO: Remplacer par un appel API pour récupérer les mémoires finaux de l'étudiant
     return getRessourcesFromDossiers(mockDossiers);
-  }, []);
+  }, [user]);
 
   // Filtrage des ressources par recherche
   const filteredRessources = useMemo(() => {
@@ -104,22 +102,25 @@ const RessourcesPersonnelles: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* En-tête */}
-        <div className="bg-white border border-gray-200 p-6 mb-6 rounded-lg">
+        <div className="bg-white border border-gray-200 p-6 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Mes Ressources Personnelles</h1>
             <p className="text-sm text-gray-600">
-              Consultez vos mémoires finaux (documents finaux de vos dossiers terminés)
+              {user?.type === 'professeur' 
+                ? 'Consultez vos documents personnels (guides, modèles, etc.)'
+                : 'Consultez vos mémoires finaux (documents finaux de vos dossiers terminés)'
+              }
             </p>
           </div>
         </div>
 
         {/* Recherche */}
-        <div className="bg-white border border-gray-200 p-4 mb-6 rounded-lg">
+        <div className="bg-white border border-gray-200 p-4 mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher un mémoire..."
+              placeholder={user?.type === 'professeur' ? "Rechercher un document..." : "Rechercher un mémoire..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -128,7 +129,7 @@ const RessourcesPersonnelles: React.FC = () => {
         </div>
 
         {/* Liste des ressources */}
-        <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="bg-white border border-gray-200">
           {filteredRessources.length > 0 ? (
             <div className="divide-y divide-gray-200">
               {filteredRessources.map((ressource, index) => (
@@ -159,10 +160,17 @@ const RessourcesPersonnelles: React.FC = () => {
                           {ressource.anneeAcademique && (
                             <Badge variant="info">{ressource.anneeAcademique}</Badge>
                           )}
+                          {user?.type === 'professeur' ? (
+                            <Badge variant="primary">
+                              <FileCheck className="h-3 w-3 mr-1" />
+                              Document personnel
+                            </Badge>
+                          ) : (
                           <Badge variant="success">
                             <FileCheck className="h-3 w-3 mr-1" />
                             Mémoire final
                           </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -188,10 +196,14 @@ const RessourcesPersonnelles: React.FC = () => {
           ) : (
             <div className="text-center py-12">
               <Folder className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">Aucun mémoire trouvé</p>
+              <p className="text-gray-600 mb-2">
+                {user?.type === 'professeur' ? 'Aucun document trouvé' : 'Aucun mémoire trouvé'}
+              </p>
               <p className="text-sm text-gray-500">
                 {searchQuery 
                   ? 'Essayez de modifier vos critères de recherche'
+                  : user?.type === 'professeur'
+                    ? 'Vous n\'avez pas encore de documents personnels. Les documents que vous créez ou téléchargez apparaîtront ici.'
                   : 'Vous n\'avez pas encore de mémoires finaux. Les mémoires finaux de vos dossiers terminés apparaîtront ici.'
                 }
               </p>
@@ -201,13 +213,15 @@ const RessourcesPersonnelles: React.FC = () => {
 
         {/* Statistiques */}
         <div className="mt-6">
-          <div className="bg-white border border-gray-200 p-4 rounded-lg max-w-xs">
+          <div className="bg-white border border-gray-200 p-4 max-w-xs">
             <div className="flex items-center">
               <div className="bg-primary-100 p-3 rounded-lg mr-4">
                 <Folder className="h-5 w-5 text-primary-700" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Mémoires finaux</p>
+                <p className="text-sm text-gray-600">
+                  {user?.type === 'professeur' ? 'Documents personnels' : 'Mémoires finaux'}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">{ressources.length}</p>
               </div>
             </div>
@@ -239,7 +253,9 @@ const RessourcesPersonnelles: React.FC = () => {
                     </div>
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">{selectedRessource.titre}</h2>
-                      <p className="text-sm text-gray-600 mt-1">Mémoire final</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {user?.type === 'professeur' ? 'Document personnel' : 'Mémoire final'}
+                      </p>
                     </div>
                   </div>
                   <button
@@ -284,7 +300,7 @@ const RessourcesPersonnelles: React.FC = () => {
                           <p className="text-gray-900">{selectedRessource.anneeAcademique}</p>
                         </div>
                       )}
-                      {dossierDetails && mockEncadrant && (
+                      {user?.type !== 'professeur' && dossierDetails && mockEncadrant && (
                         <div className="bg-gray-50 p-4 rounded-lg">
                           <div className="flex items-center mb-2">
                             <User className="h-4 w-4 text-gray-500 mr-2" />
@@ -301,7 +317,10 @@ const RessourcesPersonnelles: React.FC = () => {
                       <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 text-center">
                         <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                         <p className="text-gray-600 mb-4">
-                          Le document final du mémoire est disponible en téléchargement.
+                          {user?.type === 'professeur' 
+                            ? 'Le document est disponible en téléchargement.'
+                            : 'Le document final du mémoire est disponible en téléchargement.'
+                          }
                         </p>
                         <div className="flex justify-center gap-3">
                           <button
@@ -312,7 +331,7 @@ const RessourcesPersonnelles: React.FC = () => {
                             }}
                           >
                             <Download className="h-4 w-4 mr-2" />
-                            Télécharger le mémoire
+                            {user?.type === 'professeur' ? 'Télécharger le document' : 'Télécharger le mémoire'}
                           </button>
                           <button
                             className="btn-outline flex items-center"

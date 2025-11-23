@@ -134,7 +134,7 @@ const EncadrantDetail: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white border border-gray-200 rounded-lg p-12 text-center"
+          className="bg-white border border-gray-200 p-12 text-center"
         >
           <FiUsers className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-600 mb-2">Encadrant introuvable</h2>

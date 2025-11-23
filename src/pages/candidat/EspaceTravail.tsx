@@ -554,7 +554,7 @@ const EspaceTravail: React.FC = () => {
           {colonnes.map(colonne => (
             <div
               key={colonne.id}
-              className={`flex-1 min-w-[280px] max-w-xs bg-white border rounded-lg shadow-sm flex flex-col h-[70vh] ${colonne.couleur}`}
+              className={`flex-1 min-w-[280px] max-w-xs bg-white border border-gray-200 shadow-sm flex flex-col h-[70vh] ${colonne.couleur}`}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, colonne.id)}
             >
@@ -583,7 +583,7 @@ const EspaceTravail: React.FC = () => {
                         setTacheSelectionnee(tache);
                         setFichierLivrable(null);
                       }}
-                      className={`p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:shadow-md hover:border-gray-300 transition-all ${
+                      className={`p-4 bg-white border border-gray-200 cursor-pointer hover:shadow-md hover:border-gray-300 transition-all ${
                         draggedTask === tache.id ? 'opacity-50' : ''
                       }`}
                     >

@@ -6,8 +6,7 @@ import Logo from '../../components/Logo';
 import { useAuth } from '../../contexts/AuthContext';
 import { Lock, AlertCircle } from 'lucide-react';
 import { User as UserIcon } from 'lucide-react';
-import { mockUsers } from '../../contexts/AuthContext';
-import type { User } from '../../contexts/AuthContext';
+import { mockUsers, User } from '../../../models/auth';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Users, Search, UserPlus, ArrowRight, X, CheckCircle, XCircle, Bell, Clock, Send, UserCheck, UserX, AlertCircle, BookOpen } from 'lucide-react';
-import { DossierMemoire } from '../../../../types/dossier';
-import { BinomeOption, PropositionBinome, DemandeBinome } from '../../../../types/pipeline';
+import { DossierMemoire } from '../../../../models/dossier';
+import { BinomeOption, PropositionBinome, DemandeBinome } from '../../../../models/pipeline';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';

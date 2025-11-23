@@ -1,8 +1,12 @@
 import React, { useMemo } from 'react';
-import { Clock, UserCheck, Calendar, CheckCircle } from 'lucide-react';
-import { DossierMemoire, StatutDossierMemoire, EtapeDossier } from '../../../types/dossier';
+import { Clock, UserCheck, Calendar, CheckCircle, FileCheck, AlertCircle, XCircle } from 'lucide-react';
+import { DossierMemoire, StatutDossierMemoire, EtapeDossier } from '../../../models/dossier';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { mockSoutenances } from '../../../data/mock/dashboard';
+import { Badge } from '../../../components/ui/badge';
+import { mockSoutenances } from '../../../models/soutenance/Soutenance';
+import { useAuth } from '../../../contexts/AuthContext';
+import { getEncadrementActifByCandidat } from '../../../models/dossier/Encadrement';
+import { getTicketsByDossier, PhaseTicket } from '../../../models/dossier/Ticket';
 
 interface DossierInformationsProps {
   dossier: DossierMemoire;
@@ -30,6 +34,8 @@ const formatDate = (date: Date) => {
 };
 
 const DossierInformations: React.FC<DossierInformationsProps> = ({ dossier }) => {
+  const { user } = useAuth();
+  
   const isDossierTermine = useMemo(() => {
     return dossier.statut === StatutDossierMemoire.SOUTENU || 
            dossier.statut === StatutDossierMemoire.DEPOSE ||
@@ -44,6 +50,48 @@ const DossierInformations: React.FC<DossierInformationsProps> = ({ dossier }) =>
     );
     return soutenance?.dateSoutenance || null;
   }, [isDossierTermine, dossier.idDossierMemoire]);
+
+  // Récupérer les tickets du dossier
+  const ticketsDossier = useMemo(() => {
+    return getTicketsByDossier(dossier.idDossierMemoire);
+  }, [dossier.idDossierMemoire]);
+
+  // Vérifier si toutes les tâches sont terminées (prérequis pour pré-lecture)
+  const toutesTachesTerminees = useMemo(() => {
+    if (ticketsDossier.length === 0) return false;
+    return ticketsDossier.every(t => t.phase === PhaseTicket.TERMINE);
+  }, [ticketsDossier]);
+
+  // Statut de pré-lecture
+  const statutPrelecture = useMemo(() => {
+    if (!toutesTachesTerminees) {
+      return { statut: 'non_eligible', message: 'Toutes les tâches doivent être terminées pour la pré-lecture' };
+    }
+    if (dossier.autorisePrelecture === false || dossier.autorisePrelecture === undefined) {
+      return { statut: 'en_attente', message: 'En attente d\'autorisation de pré-lecture par l\'encadrant' };
+    }
+    if (dossier.autorisePrelecture === true && dossier.prelectureEffectuee === false) {
+      return { statut: 'autorisee', message: 'Pré-lecture autorisée - En attente de validation' };
+    }
+    if (dossier.prelectureEffectuee === true) {
+      return { statut: 'validee', message: 'Pré-lecture validée' };
+    }
+    return { statut: 'inconnu', message: 'Statut inconnu' };
+  }, [dossier.autorisePrelecture, dossier.prelectureEffectuee, toutesTachesTerminees]);
+
+  // Statut d'autorisation de soutenance
+  const statutSoutenance = useMemo(() => {
+    if (statutPrelecture.statut !== 'validee') {
+      return { statut: 'non_eligible', message: 'La pré-lecture doit être validée avant l\'autorisation de soutenance' };
+    }
+    if (dossier.autoriseSoutenance === false || dossier.autoriseSoutenance === undefined) {
+      return { statut: 'en_attente', message: 'En attente d\'autorisation de soutenance par l\'encadrant' };
+    }
+    if (dossier.autoriseSoutenance === true) {
+      return { statut: 'autorisee', message: 'Autorisé à soutenir' };
+    }
+    return { statut: 'inconnu', message: 'Statut inconnu' };
+  }, [dossier.autoriseSoutenance, statutPrelecture.statut]);
 
   return (
     <div className="space-y-6">
@@ -174,6 +222,125 @@ const DossierInformations: React.FC<DossierInformationsProps> = ({ dossier }) =>
                   {dossier.encadrant.departement && (
                     <p className="text-xs text-gray-500">{dossier.encadrant.departement}</p>
                   )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Statut de pré-lecture */}
+      {!isDossierTermine && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Pré-lecture</h3>
+          <Card className={
+            statutPrelecture.statut === 'validee' 
+              ? 'border-green-200 bg-green-50' 
+              : statutPrelecture.statut === 'autorisee'
+              ? 'border-blue-200 bg-blue-50'
+              : statutPrelecture.statut === 'en_attente'
+              ? 'border-amber-200 bg-amber-50'
+              : 'border-gray-200 bg-gray-50'
+          }>
+            <CardContent className="p-4">
+              <div className="flex items-start">
+                <div className={`p-3 rounded-lg mr-4 ${
+                  statutPrelecture.statut === 'validee' 
+                    ? 'bg-green-100' 
+                    : statutPrelecture.statut === 'autorisee'
+                    ? 'bg-blue-100'
+                    : statutPrelecture.statut === 'en_attente'
+                    ? 'bg-amber-100'
+                    : 'bg-gray-100'
+                }`}>
+                  {statutPrelecture.statut === 'validee' ? (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  ) : statutPrelecture.statut === 'autorisee' ? (
+                    <FileCheck className="h-5 w-5 text-blue-600" />
+                  ) : statutPrelecture.statut === 'en_attente' || statutPrelecture.statut === 'non_eligible' ? (
+                    <Clock className="h-5 w-5 text-amber-600" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-gray-600" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="font-semibold text-gray-900">Statut de pré-lecture</p>
+                    <Badge variant={
+                      statutPrelecture.statut === 'validee' 
+                        ? 'default' 
+                        : statutPrelecture.statut === 'autorisee'
+                        ? 'default'
+                        : 'secondary'
+                    }>
+                      {statutPrelecture.statut === 'validee' 
+                        ? 'Validée' 
+                        : statutPrelecture.statut === 'autorisee'
+                        ? 'Autorisée'
+                        : statutPrelecture.statut === 'en_attente'
+                        ? 'En attente'
+                        : 'Non éligible'}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">{statutPrelecture.message}</p>
+                  {!toutesTachesTerminees && ticketsDossier.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Tâches terminées : {ticketsDossier.filter(t => t.phase === PhaseTicket.TERMINE).length} / {ticketsDossier.length}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Statut d'autorisation de soutenance */}
+      {!isDossierTermine && statutPrelecture.statut === 'validee' && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Autorisation de soutenance</h3>
+          <Card className={
+            statutSoutenance.statut === 'autorisee' 
+              ? 'border-green-200 bg-green-50' 
+              : statutSoutenance.statut === 'en_attente'
+              ? 'border-amber-200 bg-amber-50'
+              : 'border-gray-200 bg-gray-50'
+          }>
+            <CardContent className="p-4">
+              <div className="flex items-start">
+                <div className={`p-3 rounded-lg mr-4 ${
+                  statutSoutenance.statut === 'autorisee' 
+                    ? 'bg-green-100' 
+                    : statutSoutenance.statut === 'en_attente'
+                    ? 'bg-amber-100'
+                    : 'bg-gray-100'
+                }`}>
+                  {statutSoutenance.statut === 'autorisee' ? (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  ) : statutSoutenance.statut === 'en_attente' ? (
+                    <Clock className="h-5 w-5 text-amber-600" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-gray-600" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="font-semibold text-gray-900">Autorisation de soutenance</p>
+                    <Badge variant={
+                      statutSoutenance.statut === 'autorisee' 
+                        ? 'default' 
+                        : statutSoutenance.statut === 'en_attente'
+                        ? 'secondary'
+                        : 'outline'
+                    }>
+                      {statutSoutenance.statut === 'autorisee' 
+                        ? 'Autorisé' 
+                        : statutSoutenance.statut === 'en_attente'
+                        ? 'En attente'
+                        : 'Non éligible'}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">{statutSoutenance.message}</p>
                 </div>
               </div>
             </CardContent>

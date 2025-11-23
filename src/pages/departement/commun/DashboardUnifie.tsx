@@ -44,6 +44,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import { getEncadrementsActifs } from '../../models/dossier/Encadrement';
+import { getDemandesEncadrementEnAttente } from '../../models/dossier/DemandeEncadrement';
 
 // Badge Component
 const Badge: React.FC<{
@@ -279,61 +281,40 @@ const DashboardUnifie: React.FC = () => {
       delay += 0.1;
     }
 
-    // Cartes pour Professeur
-    if (user?.estProfesseur) {
-      cards.push(
-        <DashboardCard 
-          key="cours"
-          title="Cours enseignés" 
-          value="6" 
-          icon={<BookOpen className="h-6 w-6" />} 
-          iconColor="bg-green-100 text-green-600"
-          trend={{ value: "+1", up: true }}
-          delay={delay}
-        />
-      );
-      delay += 0.1;
+    // Cartes pour Professeur (pas de cours, seulement publications si nécessaire)
+    // Les cours ne sont plus affichés car on n'a plus de cours
 
-      cards.push(
-        <DashboardCard 
-          key="publications"
-          title="Publications" 
-          value="24" 
-          icon={<BookMarked className="h-6 w-6" />} 
-          iconColor="bg-indigo-100 text-indigo-600"
-          trend={{ value: "+4", up: true }}
-          delay={delay}
-        />
-      );
-      delay += 0.1;
-    }
-
-    // Cartes pour Encadrant
+    // Cartes pour Encadrant - Afficher uniquement si le professeur a des encadrements actifs
     if (user?.estEncadrant) {
-      cards.push(
-        <DashboardCard 
-          key="etudiants-encadres"
-          title="Étudiants encadrés" 
-          value="12" 
-          icon={<UserCheck className="h-6 w-6" />} 
-          iconColor="bg-emerald-100 text-emerald-600"
-          trend={{ value: "+3", up: true }}
-          delay={delay}
-        />
-      );
-      delay += 0.1;
+      const idProfesseur = user?.id ? parseInt(user.id) : 0;
+      const encadrementsActifs = idProfesseur > 0 ? getEncadrementsActifs(idProfesseur) : [];
+      
+      if (encadrementsActifs.length > 0) {
+        cards.push(
+          <DashboardCard 
+            key="etudiants-encadres"
+            title="Étudiants encadrés" 
+            value={encadrementsActifs.length.toString()} 
+            icon={<UserCheck className="h-6 w-6" />} 
+            iconColor="bg-emerald-100 text-emerald-600"
+            trend={{ value: "+3", up: true }}
+            delay={delay}
+          />
+        );
+        delay += 0.1;
 
-      cards.push(
-        <DashboardCard 
-          key="memoires-cours"
-          title="Mémoires en cours" 
-          value="8" 
-          icon={<FileText className="h-6 w-6" />} 
-          iconColor="bg-cyan-100 text-cyan-600"
-          delay={delay}
-        />
-      );
-      delay += 0.1;
+        cards.push(
+          <DashboardCard 
+            key="memoires-cours"
+            title="Mémoires en cours" 
+            value={encadrementsActifs.length.toString()} 
+            icon={<FileText className="h-6 w-6" />} 
+            iconColor="bg-cyan-100 text-cyan-600"
+            delay={delay}
+          />
+        );
+        delay += 0.1;
+      }
     }
 
     // Cartes pour Jury
@@ -472,7 +453,7 @@ const DashboardUnifie: React.FC = () => {
         <QuickActionCard
           key="mediatheque"
           title="Médiathèque"
-          description="Publier des cours et documents"
+          description="Publier des documents et ressources"
           icon={<BookMarked className="h-5 w-5" />}
           iconColor="bg-green-100 text-green-600"
         />,
@@ -507,7 +488,7 @@ const DashboardUnifie: React.FC = () => {
         <QuickActionCard
           key="organiser-evenement"
           title="Organiser un événement"
-          description="Planifier pré-soutenances et meetings"
+          description="Planifier pré-lectures et meetings"
           icon={<CalendarDays className="h-5 w-5" />}
           iconColor="bg-teal-100 text-teal-600"
         />
@@ -613,14 +594,6 @@ const DashboardUnifie: React.FC = () => {
 
     if (user?.estProfesseur) {
       activities.push(
-        <ActivityItem
-          key="nouveau-cours"
-          icon={<BookOpen className="h-5 w-5" />}
-          iconColor="bg-green-100 text-green-600"
-          title="Nouveau cours publié"
-          description="Votre cours sur l'intelligence artificielle est en ligne"
-          time="Il y a 1 heure"
-        />,
         <ActivityItem
           key="message-etudiant"
           icon={<MessageSquare className="h-5 w-5" />}
@@ -731,7 +704,7 @@ const DashboardUnifie: React.FC = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white border border-gray-200 p-6 mb-6 rounded-lg">
+        <div className="bg-white border border-gray-200 p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{getPageTitle()}</h1>
@@ -767,7 +740,7 @@ const DashboardUnifie: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="bg-white border border-gray-200 p-6 mb-6 rounded-lg"
+            className="bg-white border border-gray-200 p-6 mb-6"
           >
             <h2 className="text-xl font-bold text-gray-900 mb-6">Actions rapides</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -784,7 +757,7 @@ const DashboardUnifie: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="bg-white border border-gray-200 p-6 rounded-lg"
+              className="bg-white border border-gray-200 p-6"
             >
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Activités récentes</h2>
@@ -802,7 +775,7 @@ const DashboardUnifie: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.7 }}
-            className="bg-white border border-gray-200 p-6 rounded-lg"
+            className="bg-white border border-gray-200 p-6"
           >
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900">Messages récents</h2>
@@ -825,7 +798,7 @@ const DashboardUnifie: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
-          className="bg-white border border-gray-200 p-6 rounded-lg"
+          className="bg-white border border-gray-200 p-6"
         >
           <h2 className="text-xl font-bold text-gray-900 mb-6">Calendrier - Janvier 2025</h2>
           
@@ -888,21 +861,12 @@ const DashboardUnifie: React.FC = () => {
                   </div>
                 )}
                 
-                {user?.estProfesseur && (
-                  <div className="flex items-center p-3 bg-green-50 border border-green-200 rounded">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                    <div>
-                      <p className="text-sm font-medium text-green-900">Cours d'algorithmes - Master 1</p>
-                      <p className="text-xs text-green-700">27 janvier, 9:00 - 11:00 - Salle 201</p>
-                    </div>
-                  </div>
-                )}
                 
                 {user?.estEncadrant && (
                   <div className="flex items-center p-3 bg-emerald-50 border border-emerald-200 rounded">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
                     <div>
-                      <p className="text-sm font-medium text-emerald-900">Pré-soutenance - Amadou Diallo</p>
+                      <p className="text-sm font-medium text-emerald-900">Pré-lecture - Amadou Diallo</p>
                       <p className="text-xs text-emerald-700">27 janvier, 14:00 - Salle 102</p>
                     </div>
                   </div>

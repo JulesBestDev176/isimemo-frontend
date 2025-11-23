@@ -820,7 +820,7 @@ const DepotDossier = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {sujetsFiltres.map(sujet => (
-                    <div key={sujet.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all">
+                    <div key={sujet.id} className="bg-white border border-gray-200 p-6 hover:shadow-md transition-all">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-3">

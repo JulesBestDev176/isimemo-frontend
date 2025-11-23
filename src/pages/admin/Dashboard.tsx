@@ -14,7 +14,7 @@ const DashboardCard: React.FC<{
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="card p-6 flex items-center"
+      className="bg-white border border-gray-200 p-6 flex items-center"
     >
       <div className={`rounded-full p-4 ${color} text-white mr-4`}>
         {icon}
@@ -80,7 +80,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="card p-6"
+          className="bg-white border border-gray-200 p-6"
         >
           <h2 className="text-xl font-bold mb-4">Statistiques</h2>
           <div className="space-y-6">
@@ -138,7 +138,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="card p-6"
+          className="bg-white border border-gray-200 p-6"
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Activités récentes</h2>
@@ -185,7 +185,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="card p-6"
+          className="bg-white border border-gray-200 p-6"
         >
           <h2 className="text-xl font-bold mb-4">Messages récents</h2>
           <div className="space-y-4">
@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
               </div>
             ))}
           </div>
-          <button className="mt-4 w-full py-2 text-center text-sm text-primary hover:bg-gray-50 rounded-md transition-colors duration-200">
+          <button className="mt-4 w-full py-2 text-center text-sm text-primary hover:bg-gray-50 transition-colors duration-200">
             Voir tous les messages
           </button>
         </motion.div>
@@ -235,7 +235,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="card p-6"
+          className="bg-white border border-gray-200 p-6"
         >
           <h2 className="text-xl font-bold mb-4">Calendrier</h2>
           
@@ -285,7 +285,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-xs text-gray-500">15 mai, 10:00 - 11:30</p>
               </div>
             </div>
-            <div className="flex items-center p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center p-3 bg-green-50">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
               <div>
                 <p className="text-sm font-medium">Date limite - Soumission des mémoires</p>

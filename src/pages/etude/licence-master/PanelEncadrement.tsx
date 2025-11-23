@@ -330,7 +330,7 @@ const PanelEncadrement: React.FC = () => {
                 className="space-y-6"
               >
                 {/* Résumé du projet */}
-                <div className="bg-white border rounded-lg p-6">
+                <div className="bg-white border border-gray-200 p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Mon projet de mémoire</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -386,7 +386,7 @@ const PanelEncadrement: React.FC = () => {
                 </div>
 
                 {/* Dernières notifications */}
-                <div className="bg-white border rounded-lg p-6">
+                <div className="bg-white border border-gray-200 p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Dernières notifications</h3>
                   <div className="space-y-3">
                     {notifications.slice(0, 3).map(notification => (
@@ -585,7 +585,7 @@ const PanelEncadrement: React.FC = () => {
 
                 <div className="space-y-4">
                   {taches.map(tache => (
-                    <div key={tache.id} className="bg-white border rounded-lg p-6">
+                    <div key={tache.id} className="bg-white border border-gray-200 p-6">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900 mb-2">{tache.titre}</h4>
@@ -636,7 +636,7 @@ const PanelEncadrement: React.FC = () => {
               >
                 <h3 className="text-lg font-semibold text-gray-900">Suivi de mon dossier</h3>
 
-                <div className="bg-white border rounded-lg p-6">
+                <div className="bg-white border border-gray-200 p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2">{dossier.titre}</h4>
@@ -671,7 +671,7 @@ const PanelEncadrement: React.FC = () => {
                 </div>
 
                 {/* Historique des versions */}
-                <div className="bg-white border rounded-lg p-6">
+                <div className="bg-white border border-gray-200 p-6">
                   <h4 className="font-semibold text-gray-900 mb-4">Historique des versions</h4>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
@@ -725,7 +725,7 @@ const PanelEncadrement: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="bg-white border rounded-lg p-6 h-96 flex flex-col">
+                <div className="bg-white border border-gray-200 p-6 h-96 flex flex-col">
                   <div className="flex-1 space-y-4 overflow-y-auto mb-4">
                     {messages.map(message => (
                       <div key={message.id} className={`flex ${message.expediteur === 'etudiant' ? 'justify-end' : 'justify-start'}`}>

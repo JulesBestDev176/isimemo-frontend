@@ -8,7 +8,7 @@ const Settings: React.FC = () => {
   return (
               <div>
       <h1 className="text-2xl font-bold mb-6">Paramètres</h1>
-      <div className="max-w-2xl mx-auto bg-white border border-gray-200 rounded-lg p-6 space-y-8">
+      <div className="max-w-2xl mx-auto bg-white border border-gray-200 p-6 space-y-8">
         <section>
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Préférences générales</h2>
           <div className="flex items-center justify-between mb-4">

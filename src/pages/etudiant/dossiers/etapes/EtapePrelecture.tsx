@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, ArrowRight, Clock, CheckCircle, FileText } from 'lucide-react';
-import { DossierMemoire } from '../../../../types/dossier';
+import { DossierMemoire } from '../../../../models/dossier';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
 import { Button } from '../../../../components/ui/button';
 import { Badge } from '../../../../components/ui/badge';

@@ -15,7 +15,6 @@ import {
   AlertCircle,
   UserCheck,
   Settings,
-  User as UserIcon,
   Image,
   FileText,
   Clock,
@@ -42,16 +41,18 @@ import {
   CheckCircle,
   XCircle,
   FileCheck,
-  Target
+  Target,
+  Inbox,
+  CalendarCheck
 } from 'lucide-react';
 import Logo from './Logo';
-import { User } from '../../contexts/AuthContext';
+import { User } from '../../models/auth';
 
 interface ElementMenu {
   nom: string;
   chemin?: string;
   icone: React.ReactNode;
-  sousmenu?: ElementMenu[];
+  sousmenu?: (ElementMenu & { cheminProfesseur?: string })[];
 }
 
 interface PropsSidebar {
@@ -66,9 +67,8 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
   const getInitialMenusOuverts = useCallback(() => {
     const path = emplacement.pathname;
     const menus: { [cle: string]: boolean } = {
-      'Ressources': path.startsWith('/etudiant/ressources'),
+      'Ressources': path.startsWith('/etudiant/ressources') || path.startsWith('/professeur/ressources'),
       'Assistant IA': path.startsWith('/etudiant/chatbot'),
-      'Chatbot': path.startsWith('/etudiant/chatbot'),
       'Encadrement': path.startsWith('/candidat/encadrement'),
       'Gestion des classes': false,
       'Gestion des cours': false,
@@ -119,14 +119,15 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       chemin: '/etudiant/calendrier'
     },
     
-    // 3. Ressources de travail
+    // 3. Ressources de travail (commun pour étudiants et professeurs)
     { 
       nom: 'Ressources', 
       icone: <Folder className="mr-2 h-5 w-5" />, 
       sousmenu: [
-        { nom: 'Personnelles', icone: <Folder className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/personnelles' },
-        { nom: 'Sauvegardées', icone: <Star className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/sauvegardees' },
-        { nom: 'Médiathèque', icone: <Library className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/mediatheque' },
+        // Les sous-menus seront filtrés dynamiquement selon le type d'utilisateur
+        { nom: 'Personnelles', icone: <Folder className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/personnelles', cheminProfesseur: '/professeur/ressources/personnelles' },
+        { nom: 'Sauvegardées', icone: <Star className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/sauvegardees', cheminProfesseur: '/professeur/ressources/sauvegardees' },
+        { nom: 'Bibliothèque numérique', icone: <Library className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/mediatheque', cheminProfesseur: '/professeur/ressources/mediatheque' },
       ]
     },
     
@@ -140,12 +141,10 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     // 5. Informations et communications
     { nom: 'Notifications', icone: <Bell className="mr-2 h-5 w-5" />, chemin: '/etudiant/notifications' },
     
-    // 6. Paramètres personnels (en bas)
-    { nom: 'Mon Profil', icone: <UserIcon className="mr-2 h-5 w-5" />, chemin: '/etudiant/profil' },
-    
     // Menus pour Professeur
     { nom: 'Sujets', icone: <BookOpen className="mr-2 h-5 w-5" />, chemin: '/sujets-professeurs' },
-    { nom: 'Espace Encadrant', icone: <UserIcon className="mr-2 h-5 w-5" />, chemin: '/espace-encadrant' },
+    { nom: 'Encadrements', icone: <Users className="mr-2 h-5 w-5" />, chemin: '/professeur/encadrements' },
+    { nom: 'Disponibilités', icone: <CalendarCheck className="mr-2 h-5 w-5" />, chemin: '/professeur/disponibilites' },
     { nom: 'Espace Jury', icone: <Gavel className="mr-2 h-5 w-5" />, sousmenu: [
       { nom: 'Soutenances à évaluer', icone: <Video className="mr-2 h-4 w-4" />, chemin: '/jurie/soutenances' },
     ] },
@@ -160,8 +159,8 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     { nom: 'Cours', icone: <BookOpen className="mr-2 h-5 w-5" />, chemin: '/courses' },
     { nom: 'Jury', icone: <Gavel className="mr-2 h-5 w-5" />, chemin: '/departement/jury' },
     { nom: 'Soutenances', icone: <Video className="mr-2 h-5 w-5" />, chemin: '/departement/soutenance' },
-    { nom: 'Médiathèque', icone: <BookMarked className="mr-2 h-5 w-5" />, chemin: '/etudiant/ressources/mediatheque' },
-    { nom: 'Chatbot', icone: <MessageSquare className="mr-2 h-5 w-5" />, chemin: '/etudiant/chatbot' },
+    { nom: 'Bibliothèque numérique', icone: <Library className="mr-2 h-5 w-5" />, chemin: '/etudiant/ressources/mediatheque' },
+    { nom: 'Assistant IA', icone: <MessageSquare className="mr-2 h-5 w-5" />, chemin: '/etudiant/chatbot' },
   ];
 
   const basculerMenu = useCallback((nomMenu: string) => {
@@ -213,19 +212,17 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
           'Calendrier',          // 2. Planification
           'Ressources',          // 3. Ressources de travail
           'Assistant IA',        // 4. Assistant et aide
-          'Notifications',       // 5. Informations
-          'Mon Profil'          // 6. Paramètres personnels
+          'Notifications'       // 5. Informations
         ];
       } else {
-        // Ordre logique : activité principale → planification → ressources → aide → infos → paramètres
+        // Ordre logique : activité principale → planification → ressources → aide → infos
         menus = [
           'Tableau de bord',
           'Mes Dossiers',        // 1. Activité principale
           'Calendrier',          // 2. Planification
           'Ressources',      // 3. Ressources de travail
           'Assistant IA',        // 4. Assistant et aide
-          'Notifications',       // 5. Informations
-          'Mon Profil'          // 6. Paramètres personnels
+          'Notifications'       // 5. Informations
         ];
       }
     } else if (user.type === 'professeur') {
@@ -235,8 +232,10 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
         'Calendrier',
         'Ressources',
         'Sujets',
+        'Encadrements',
+        'Disponibilités',
         'Notifications',
-        'Chatbot'
+        'Assistant IA'
       ];
       
       // Ajouter menus selon les rôles
@@ -244,9 +243,6 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
         menus = menus.concat([
           'Classes', 'Cours', 'Étudiants', 'Professeurs', 'Jury', 'Soutenances'
         ]);
-      }
-      if (user.estEncadrant) {
-        menus.push('Espace Encadrant');
       }
       if (user.estJurie) {
         menus.push('Espace Jury');
@@ -261,11 +257,11 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
         'Cours',
         'Étudiants',
         'Professeurs',
-        'Médiathèque',
+        'Bibliothèque numérique',
         'Jury',
         'Soutenances',
         'Notifications',
-        'Chatbot'
+        'Assistant IA'
       ];
     }
     
@@ -352,21 +348,22 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
                           .filter(sousItem => {
                             // Filtrer les sous-menus selon le type d'utilisateur
                             if (item.nom === 'Ressources') {
-                              // Pour les professeurs, afficher seulement Médiathèque
-                              if (user?.type === 'professeur') {
-                                return sousItem.nom === 'Médiathèque';
-                              }
+                              // Pour les professeurs, afficher tous les sous-menus (Personnelles, Sauvegardées, Médiathèque)
                               // Pour les étudiants, afficher tous les sous-menus
                               return true;
                             }
                             return true;
                           })
                           .map((sousItem, sousIndex) => {
-                            const sousItemActif = estActif(sousItem.chemin);
+                            // Utiliser le chemin approprié selon le type d'utilisateur
+                            const cheminFinal = (user?.type === 'professeur' && sousItem.cheminProfesseur) 
+                              ? sousItem.cheminProfesseur 
+                              : sousItem.chemin;
+                            const sousItemActif = estActif(cheminFinal);
                             return (
                               <li key={sousIndex}>
                                 <Link
-                                  to={sousItem.chemin || '#'}
+                                  to={cheminFinal || '#'}
                                   className={`flex items-center p-2 text-sm rounded-md transition-colors duration-200 ${
                                     sousItemActif
                                       ? 'bg-primary text-white font-medium shadow-sm'

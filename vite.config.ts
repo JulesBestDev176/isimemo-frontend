@@ -55,6 +55,7 @@ export default defineConfig({
   },
   // Optimisations de dev
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', '@radix-ui/react-tabs'],
+    exclude: ['jspdf'], // Exclure jspdf de l'optimisation (chargé dynamiquement)
   },
 });

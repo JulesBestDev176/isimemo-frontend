@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Circle, ChevronRight, ArrowRight, FileText, Upload, GraduationCap, Edit, Lock } from 'lucide-react';
-import { DossierMemoire, EtapeDossier } from '../../../types/dossier';
-import { EtapePipeline } from '../../../types/pipeline';
+import { DossierMemoire, EtapeDossier } from '../../../models/dossier';
+import { EtapePipeline } from '../../../models/pipeline';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../components/ui/tabs';

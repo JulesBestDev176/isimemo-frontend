@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Download, Eye, FileCheck, FileX, FileClock, X, Clock } from 'lucide-react';
-import { Document, StatutDocument, TypeDocument } from '../../../types/dossier';
+import { Document, StatutDocument, TypeDocument } from '../../../models/dossier';
 import { Badge } from '../../../components/ui/badge';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';

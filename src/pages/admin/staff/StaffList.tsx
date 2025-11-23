@@ -251,7 +251,7 @@ const StaffList: React.FC<StaffListProps> = ({ role }) => {
       </div>
       
       {/* Filtres et recherche */}
-      <div className="card p-4 mb-6">
+      <div className="bg-white border border-gray-200 p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <input

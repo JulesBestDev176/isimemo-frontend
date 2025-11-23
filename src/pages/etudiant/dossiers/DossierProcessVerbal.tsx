@@ -1,10 +1,10 @@
 import React from 'react';
 import { FileText, Calendar, Award, CheckCircle, Users, Download, UserCheck, AlertCircle } from 'lucide-react';
-import { ProcessVerbal, Mention, RoleJury } from '../../../types/dossier';
+import { ProcessVerbal, Mention } from '../../../models/soutenance/ProcessVerbal';
+import { RoleJury } from '../../../models/soutenance/MembreJury';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
-import jsPDF from 'jspdf';
 
 interface DossierProcessVerbalProps {
   processVerbal: ProcessVerbal;
@@ -64,7 +64,9 @@ const getRoleJuryLabel = (role: RoleJury) => {
 };
 
 // Fonction pour générer et télécharger le PDF du procès-verbal
-const generatePDF = (processVerbal: ProcessVerbal) => {
+const generatePDF = async (processVerbal: ProcessVerbal) => {
+  // Import dynamique de jsPDF pour éviter les problèmes de chargement
+  const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -432,7 +434,9 @@ const DossierProcessVerbal: React.FC<DossierProcessVerbalProps> = ({ processVerb
             <Button 
               variant="outline" 
               className="gap-2"
-              onClick={() => generatePDF(processVerbal)}
+              onClick={() => {
+                generatePDF(processVerbal).catch(console.error);
+              }}
             >
               <Download className="h-4 w-4" />
               Télécharger le PDF

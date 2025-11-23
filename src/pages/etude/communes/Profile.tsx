@@ -103,7 +103,7 @@ const Profile: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Mon Profil</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <div className="p-6 text-center bg-white border border-gray-200 rounded-lg">
+          <div className="p-6 text-center bg-white border border-gray-200">
             <div className="relative mx-auto mb-4">
               <div className="h-24 w-24 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center mx-auto overflow-hidden">
                 {(editing ? tempPhoto : profileData.photo) ? (
@@ -171,7 +171,7 @@ const Profile: React.FC = () => {
           </div>
         </div>
         <div className="lg:col-span-2">
-          <div className="p-6 bg-white border border-gray-200 rounded-lg">
+          <div className="p-6 bg-white border border-gray-200">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800">Informations personnelles</h2>
               {!editing ? (
@@ -263,7 +263,7 @@ const Profile: React.FC = () => {
               )}
             </form>
           </div>
-          <div className="p-6 bg-white border border-gray-200 rounded-lg mt-6">
+          <div className="p-6 bg-white border border-gray-200 mt-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <FiLock className="mr-2" /> Changer le mot de passe
             </h2>

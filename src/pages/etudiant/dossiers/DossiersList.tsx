@@ -10,7 +10,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { DossierMemoire, StatutDossierMemoire, EtapeDossier } from '../../../types/dossier';
+import { DossierMemoire, StatutDossierMemoire, EtapeDossier } from '../../../models';
 import { Badge } from '../../../components/ui/badge';
 import { Input } from '../../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';

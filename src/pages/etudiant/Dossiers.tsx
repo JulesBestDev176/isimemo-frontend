@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { mockDossiers, mockDocuments } from '../../data/mock/dashboard';
-import { DossierMemoire, Document } from '../../types/dossier';
+import { DossierMemoire, Document, mockDossiers, mockDocuments, getDossiersByCandidat } from '../../models';
+import { getCandidatIdByEmail } from '../../models/acteurs/Candidat';
 import DossiersList from './dossiers/DossiersList';
 import DossierDetail from './dossiers/DossierDetail';
 
@@ -11,21 +11,45 @@ const Dossiers: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
 
-  // Récupérer tous les dossiers
+  // Récupérer l'ID du candidat connecté
+  const idCandidat = useMemo(() => {
+    if (user?.estCandidat && user?.email) {
+      return getCandidatIdByEmail(user.email);
+    }
+    return undefined;
+  }, [user]);
+
+  // Récupérer les dossiers du candidat connecté
+  // Règle métier : Un candidat ne peut avoir qu'un seul dossier en cours
   const tousLesDossiers = useMemo(() => {
-    // Trier par date de modification (plus récent en premier)
+    if (idCandidat) {
+      // Filtrer les dossiers du candidat connecté
+      const dossiersCandidat = getDossiersByCandidat(idCandidat);
+      // Trier par date de modification (plus récent en premier)
+      return dossiersCandidat.sort((a, b) => 
+        b.dateModification.getTime() - a.dateModification.getTime()
+      );
+    }
+    // Si ce n'est pas un candidat, retourner tous les dossiers (pour les étudiants normaux)
     return [...mockDossiers].sort((a, b) => 
       b.dateModification.getTime() - a.dateModification.getTime()
     );
-  }, []);
+  }, [idCandidat]);
 
   // Récupérer le dossier sélectionné
+  // Vérifier que le dossier appartient bien au candidat connecté
   const dossier = useMemo(() => {
     if (id) {
-      return tousLesDossiers.find(d => d.idDossierMemoire.toString() === id);
+      const dossierTrouve = tousLesDossiers.find(d => d.idDossierMemoire.toString() === id);
+      // Si c'est un candidat, vérifier que le dossier lui appartient
+      if (dossierTrouve && idCandidat) {
+        const appartientAuCandidat = dossierTrouve.candidats?.some(c => c.idCandidat === idCandidat);
+        return appartientAuCandidat ? dossierTrouve : null;
+      }
+      return dossierTrouve;
     }
     return null;
-  }, [id, tousLesDossiers]);
+  }, [id, tousLesDossiers, idCandidat]);
 
   // Documents du dossier sélectionné
   const documentsDossier = useMemo(() => {
