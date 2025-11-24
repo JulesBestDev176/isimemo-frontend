@@ -28,6 +28,7 @@ import {
   getEncadrementsByProfesseur,
   getEncadrementsActifs
 } from '../../models';
+import { getAnneeAcademiqueCourante, isAnneeAcademiqueTerminee } from '../../utils/anneeAcademique';
 
 // Badge Component - Palette simplifiée (3 couleurs)
 const Badge: React.FC<{
@@ -232,15 +233,23 @@ const Encadrements: React.FC = () => {
     }
   };
 
-  // Vérifier que l'utilisateur est un encadrant
-  if (!user?.estEncadrant) {
+  // Vérifier que l'utilisateur est un encadrant ET que l'année académique en cours n'est pas terminée
+  // Exception : le chef de département garde toujours son rôle
+  const anneeCourante = getAnneeAcademiqueCourante();
+  const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
+  const estChef = user?.estChef;
+  const hasRoleEncadrantActif = user?.estEncadrant && (!anneeTerminee || estChef);
+  
+  if (!hasRoleEncadrantActif) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Accès restreint</h2>
           <p className="text-gray-600 mb-4">
-            Cette page est réservée aux encadrants. Vous devez être encadrant pour accéder à cette fonctionnalité.
+            {anneeTerminee 
+              ? 'L\'année académique est terminée. Vous n\'avez plus accès aux encadrements pour cette session.'
+              : 'Cette page est réservée aux encadrants. Vous devez être encadrant pour accéder à cette fonctionnalité.'}
           </p>
           <button
             onClick={() => navigate('/professeur/dashboard')}

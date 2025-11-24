@@ -1,6 +1,9 @@
 import React, { useState, memo, useMemo, useCallback, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getAnneeAcademiqueCourante, isAnneeAcademiqueTerminee } from '../../utils/anneeAcademique';
+import { getProfesseurIdByEmail } from '../../models/acteurs/Professeur';
+import { hasSoutenancesAssignees } from '../../models/soutenance/Soutenance';
 import { 
   Users, 
   Grid, 
@@ -23,6 +26,7 @@ import {
   MapPin,
   Presentation,
   Gavel,
+  Building2,
   BookMarked,
   Folder,
   Star,
@@ -71,7 +75,6 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       'Assistant IA': path.startsWith('/etudiant/chatbot'),
       'Encadrement': path.startsWith('/candidat/encadrement'),
       'Gestion des classes': false,
-      'Gestion des cours': false,
       'Gestion des étudiants': false,
       'Gestion des professeurs': false,
       'Gestion du calendrier': false,
@@ -131,12 +134,12 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       ]
     },
     
-          // 4. Assistant et aide
-          { 
-            nom: 'Assistant IA', 
-            icone: <MessageSquare className="mr-2 h-5 w-5" />, 
-            chemin: '/etudiant/chatbot'
-          },
+    // 4. Assistant et aide
+    { 
+      nom: 'Assistant IA', 
+      icone: <MessageSquare className="mr-2 h-5 w-5" />, 
+      chemin: '/etudiant/chatbot'
+    },
     
     // 5. Informations et communications
     { nom: 'Notifications', icone: <Bell className="mr-2 h-5 w-5" />, chemin: '/etudiant/notifications' },
@@ -145,22 +148,17 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     { nom: 'Sujets', icone: <BookOpen className="mr-2 h-5 w-5" />, chemin: '/sujets-professeurs' },
     { nom: 'Encadrements', icone: <Users className="mr-2 h-5 w-5" />, chemin: '/professeur/encadrements' },
     { nom: 'Disponibilités', icone: <CalendarCheck className="mr-2 h-5 w-5" />, chemin: '/professeur/disponibilites' },
-    { nom: 'Espace Jury', icone: <Gavel className="mr-2 h-5 w-5" />, sousmenu: [
-      { nom: 'Soutenances à évaluer', icone: <Video className="mr-2 h-4 w-4" />, chemin: '/jurie/soutenances' },
-    ] },
-    { nom: 'Espace Commission', icone: <Settings className="mr-2 h-5 w-5" />, sousmenu: [
-      { nom: 'Gestion des commissions', icone: <List className="mr-2 h-4 w-4" />, chemin: '/commission/gestion' },
-    ] },
+    { nom: 'Espace Jury', icone: <Gavel className="mr-2 h-5 w-5" />, chemin: '/jurie/soutenances' },
+    { nom: 'Espace Commission', icone: <FileCheck className="mr-2 h-5 w-5" />, chemin: '/commission' },
     
     // Menus pour Chef de Département / Assistant
     { nom: 'Classes', icone: <Grid className="mr-2 h-5 w-5" />, chemin: '/classes' },
     { nom: 'Étudiants', icone: <Users className="mr-2 h-5 w-5" />, chemin: '/students' },
     { nom: 'Professeurs', icone: <UserCheck className="mr-2 h-5 w-5" />, chemin: '/professors' },
-    { nom: 'Cours', icone: <BookOpen className="mr-2 h-5 w-5" />, chemin: '/courses' },
+    { nom: 'Salles', icone: <Building2 className="mr-2 h-5 w-5" />, chemin: '/departement/salles' },
     { nom: 'Jury', icone: <Gavel className="mr-2 h-5 w-5" />, chemin: '/departement/jury' },
     { nom: 'Soutenances', icone: <Video className="mr-2 h-5 w-5" />, chemin: '/departement/soutenance' },
     { nom: 'Bibliothèque numérique', icone: <Library className="mr-2 h-5 w-5" />, chemin: '/etudiant/ressources/mediatheque' },
-    { nom: 'Assistant IA', icone: <MessageSquare className="mr-2 h-5 w-5" />, chemin: '/etudiant/chatbot' },
   ];
 
   const basculerMenu = useCallback((nomMenu: string) => {
@@ -196,8 +194,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
   }, [estActif, sousmenuEstActif]);
 
   // Définir les menus par type d'acteur et rôles - Mémorisé pour éviter les recalculs
-  const getMenusForUser = useMemo(() => {
-    return (user: User | null): string[] => {
+  const menusForUser = useMemo(() => {
     if (!user) return [];
     let menus: string[] = [];
     
@@ -229,25 +226,81 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       // Menus de base pour tous les professeurs
       menus = [
         'Tableau de bord',
-        'Calendrier',
         'Ressources',
         'Sujets',
-        'Encadrements',
-        'Disponibilités',
         'Notifications',
         'Assistant IA'
       ];
       
-      // Ajouter menus selon les rôles
+      // Vérifier si l'année académique en cours est terminée
+      const anneeCourante = getAnneeAcademiqueCourante();
+      const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
+      
+      // Le chef de département garde toujours ses rôles
+      const estChef = user.estChef;
+      
+      // Vérifier si le professeur a des soutenances assignées pour l'année en cours
+      // Un professeur n'est membre du jury actif que s'il a des soutenances assignées
+      const idProfesseur = user.email ? getProfesseurIdByEmail(user.email) : undefined;
+      const aSoutenancesAssignees = idProfesseur ? hasSoutenancesAssignees(idProfesseur) : false;
+      
+      // Debug: pour diagnostiquer le problème d'Omar Gueye
+      if (user.email === 'jurie@isimemo.edu.sn') {
+        console.log('=== SIDEBAR DEBUG OMAR GUEYE ===');
+        console.log('user.email:', user.email);
+        console.log('idProfesseur:', idProfesseur);
+        console.log('anneeCourante:', anneeCourante);
+        console.log('anneeTerminee:', anneeTerminee);
+        console.log('estChef:', estChef);
+        console.log('user.estJurie:', user.estJurie);
+        console.log('user.estEncadrant:', user.estEncadrant);
+        console.log('aSoutenancesAssignees:', aSoutenancesAssignees);
+        
+        // Vérifier les conditions
+        const conditionJury = user.estJurie && aSoutenancesAssignees && (!anneeTerminee || estChef);
+        const conditionEncadrant = user.estEncadrant && (!anneeTerminee || estChef);
+        
+        console.log('Condition Jury (estJurie && aSoutenancesAssignees && (!anneeTerminee || estChef)):', conditionJury);
+        console.log('  - estJurie:', user.estJurie);
+        console.log('  - aSoutenancesAssignees:', aSoutenancesAssignees);
+        console.log('  - (!anneeTerminee || estChef):', (!anneeTerminee || estChef));
+        console.log('Condition Encadrant (estEncadrant && (!anneeTerminee || estChef)):', conditionEncadrant);
+        console.log('  - estEncadrant:', user.estEncadrant);
+        console.log('  - (!anneeTerminee || estChef):', (!anneeTerminee || estChef));
+        console.log('================================');
+      }
+      
+      // Si jury ET a des soutenances assignées ET année académique en cours (pas terminée) : voir Calendrier et Espace Jury
+      // Si année terminée, le professeur perd son rôle de jury (sauf chef)
+      // Si pas de soutenances assignées, le professeur n'est pas membre du jury actif
+      if (user.estJurie && aSoutenancesAssignees && (!anneeTerminee || estChef)) {
+        menus.push('Calendrier');
+        menus.push('Espace Jury');
+      } else {
+        // Si pas jury, pas de soutenances assignées ou année terminée : voir Disponibilités et Calendrier normal
+        menus.push('Calendrier');
+        menus.push('Disponibilités');
+      }
+      
+      // Si encadrant ET année académique en cours (pas terminée) : voir Encadrements
+      // Si année terminée, le professeur perd son rôle d'encadrant (sauf chef)
+      if (user.estEncadrant && (!anneeTerminee || estChef)) {
+        menus.push('Encadrements');
+      }
+      
+      // Debug final pour Omar Gueye
+      if (user.email === 'jurie@isimemo.edu.sn') {
+        console.log('Menus finaux pour Omar Gueye:', menus);
+      }
+      
+      // Ajouter menus selon les rôles (chef garde toujours ses rôles)
       if (user.estChef) {
         menus = menus.concat([
-          'Classes', 'Cours', 'Étudiants', 'Professeurs', 'Jury', 'Soutenances'
+          'Classes', 'Étudiants', 'Professeurs', 'Salles', 'Jury', 'Soutenances'
         ]);
       }
-      if (user.estJurie) {
-        menus.push('Espace Jury');
-      }
-      if (user.estCommission) {
+      // Commission : seulement si année académique en cours (pas terminée) ou chef
+      if (user.estCommission && (!anneeTerminee || estChef)) {
         menus.push('Espace Commission');
       }
     } else if (user.type === 'assistant') {
@@ -257,6 +310,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
         'Cours',
         'Étudiants',
         'Professeurs',
+        'Salles',
         'Bibliothèque numérique',
         'Jury',
         'Soutenances',
@@ -265,12 +319,9 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       ];
     }
     
-      // Supprimer les doublons
-      return Array.from(new Set(menus));
-    };
-  }, []);
-
-  const menusForUser = useMemo(() => getMenusForUser(user), [user, getMenusForUser]);
+    // Supprimer les doublons
+    return Array.from(new Set(menus));
+  }, [user]);
 
   if (!estVisible) return null;
 
@@ -279,19 +330,6 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       <div className="p-2 border-b border-gray-200">
         <div className="flex items-center justify-center">
           <Logo />
-        </div>
-        <div className="mt-[9px] text-xs text-center text-gray-600">
-          {user?.type === 'etudiant' 
-            ? (user?.estCandidat ? 'Étudiant Candidat' : 'Étudiant')
-            : user?.type === 'professeur'
-            ? (user?.estChef ? 'Chef de département' :
-               user?.estEncadrant ? 'Encadrant' :
-               user?.estJurie ? 'Membre du Jury' :
-               user?.estCommission ? 'Membre de la Commission' :
-               'Professeur')
-            : user?.type === 'assistant'
-            ? 'Assistant'
-            : 'Utilisateur'}
         </div>
       </div>
 

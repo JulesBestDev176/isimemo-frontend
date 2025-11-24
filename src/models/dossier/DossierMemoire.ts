@@ -51,6 +51,8 @@ export interface DossierMemoire {
 // ============================================================================
 
 import { mockCandidats } from '../acteurs/Candidat';
+import { mockProfesseurs } from '../acteurs/Professeur';
+import { mockBinomes } from './Binome';
 
 export const mockDossiers: DossierMemoire[] = [
   // Dossier en création pour le candidat connecté (idCandidat: 1 correspond à l'utilisateur candidat@isimemo.edu.sn)
@@ -170,6 +172,148 @@ export const mockDossiers: DossierMemoire[] = [
     etape: EtapeDossier.DEPOT_FINAL,
     anneeAcademique: '2024-2025',
     candidats: [mockCandidats[4]] // Moussa Kane - Pré-lecture effectuée
+  },
+  // Dossier pour Omar Gueye (encadrant et membre jury)
+  {
+    idDossierMemoire: 106,
+    titre: 'Système de gestion de projets collaboratifs',
+    description: 'Développement d\'une plateforme web pour la gestion collaborative de projets avec suivi en temps réel',
+    dateCreation: new Date('2024-09-10'),
+    dateModification: new Date('2025-01-15'),
+    statut: StatutDossierMemoire.EN_COURS,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.EN_COURS_REDACTION,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[5]] // Moussa Diop (idCandidat: 6)
+  },
+  // Dossiers en attente de validation de sujet par la commission
+  {
+    idDossierMemoire: 200,
+    titre: 'Intelligence Artificielle pour la Détection de Fraudes',
+    description: 'Développement d\'un système de détection de fraudes utilisant des algorithmes d\'apprentissage automatique et de deep learning.',
+    dateCreation: new Date('2025-01-20'),
+    dateModification: new Date('2025-01-20'),
+    statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.VALIDATION_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[3]], // Aissatou Sarr
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 4) // Mamadou Sarr
+  },
+  {
+    idDossierMemoire: 201,
+    titre: 'Application Mobile de Gestion de Bibliothèque',
+    description: 'Conception et développement d\'une application mobile cross-platform pour la gestion automatisée d\'une bibliothèque universitaire.',
+    dateCreation: new Date('2025-01-18'),
+    dateModification: new Date('2025-01-18'),
+    statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.VALIDATION_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[4]], // Moussa Kane
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 5) // Fatou Diallo
+  },
+  {
+    idDossierMemoire: 202,
+    titre: 'Blockchain pour la Traçabilité Alimentaire',
+    description: 'Conception d\'une solution blockchain pour assurer la traçabilité des produits alimentaires de la production à la consommation.',
+    dateCreation: new Date('2025-01-22'),
+    dateModification: new Date('2025-01-22'),
+    statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.VALIDATION_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[1]], // Fatou Ndiaye
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 4) // Mamadou Sarr
+  },
+  {
+    idDossierMemoire: 203,
+    titre: 'Système de Recommandation Intelligent pour E-commerce',
+    description: 'Développement d\'un système de recommandation basé sur l\'intelligence artificielle pour améliorer l\'expérience d\'achat en ligne.',
+    dateCreation: new Date('2025-01-19'),
+    dateModification: new Date('2025-01-19'),
+    statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.VALIDATION_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[2]], // Ibrahima Ba
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 5) // Fatou Diallo
+  },
+  {
+    idDossierMemoire: 204,
+    titre: 'Plateforme de E-learning avec Réalité Virtuelle',
+    description: 'Développement d\'une plateforme d\'apprentissage en ligne intégrant la réalité virtuelle pour une expérience immersive.',
+    dateCreation: new Date('2025-01-21'),
+    dateModification: new Date('2025-01-21'),
+    statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.VALIDATION_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[5]], // Moussa Diop
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 1) // Jean Pierre
+  },
+  {
+    idDossierMemoire: 205,
+    titre: 'Analyse de Données Massives avec Apache Spark',
+    description: 'Étude et implémentation d\'une solution d\'analyse de big data utilisant Apache Spark pour le traitement distribué.',
+    dateCreation: new Date('2025-01-17'),
+    dateModification: new Date('2025-01-17'),
+    statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.VALIDATION_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[0]], // Amadou Diallo
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 2) // Ibrahima Ndiaye
+  },
+  // Dépôt en binôme
+  {
+    idDossierMemoire: 206,
+    titre: 'Système de Gestion de Projets Collaboratifs avec IA',
+    description: 'Développement d\'une plateforme collaborative de gestion de projets intégrant l\'intelligence artificielle pour l\'optimisation des ressources et la prédiction des risques.',
+    dateCreation: new Date('2025-01-23'),
+    dateModification: new Date('2025-01-23'),
+    statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.VALIDATION_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[1]], // Fatou Ndiaye (candidat principal)
+    binome: {
+      idBinome: 1,
+      dateDemande: new Date('2025-01-15'),
+      dateFormation: new Date('2025-01-16'),
+      statut: 'ACCEPTE' as any,
+      candidats: [mockCandidats[1], mockCandidats[2]] // Fatou Ndiaye + Ibrahima Ba
+    },
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 4) // Mamadou Sarr
+  },
+  {
+    idDossierMemoire: 207,
+    titre: 'Plateforme de E-commerce avec Paiement Mobile',
+    description: 'Conception et développement d\'une plateforme e-commerce sécurisée avec intégration de solutions de paiement mobile adaptées au contexte africain.',
+    dateCreation: new Date('2025-01-24'),
+    dateModification: new Date('2025-01-24'),
+    statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.VALIDATION_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats[3]], // Aissatou Sarr (candidat principal)
+    binome: {
+      idBinome: 2,
+      dateDemande: new Date('2025-01-18'),
+      dateFormation: new Date('2025-01-19'),
+      statut: 'ACCEPTE' as any,
+      candidats: [mockCandidats[3], mockCandidats[4]] // Aissatou Sarr + Moussa Kane
+    },
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 5) // Fatou Diallo
   }
 ];
 

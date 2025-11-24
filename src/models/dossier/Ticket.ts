@@ -528,3 +528,36 @@ export const getTicketsByDossier = (idDossierMemoire: number): Ticket[] => {
       return (phaseOrder[a.phase] || 99) - (phaseOrder[b.phase] || 99);
     });
 };
+
+/**
+ * Crée un nouveau ticket spécifique pour un étudiant (dossier)
+ */
+export const createTicketForDossier = (
+  encadrement: Encadrement,
+  dossierMemoire: DossierMemoire,
+  titre: string,
+  description: string,
+  priorite: Priorite = Priorite.MOYENNE,
+  consigne?: string,
+  sousTaches?: SousTache[]
+): Ticket => {
+  const maxId = mockTickets.length > 0 ? Math.max(...mockTickets.map(t => t.idTicket)) : 0;
+  const newTicket: Ticket = {
+    idTicket: maxId + 1,
+    titre,
+    description,
+    priorite,
+    dateCreation: new Date(),
+    statut: StatutTicket.A_FAIRE,
+    phase: PhaseTicket.A_FAIRE,
+    progression: sousTaches && sousTaches.length > 0 
+      ? Math.round((sousTaches.filter(st => st.terminee).length / sousTaches.length) * 100)
+      : 0,
+    consigne,
+    sousTaches: sousTaches || [],
+    encadrement,
+    dossierMemoire
+  };
+  mockTickets.push(newTicket);
+  return newTicket;
+};

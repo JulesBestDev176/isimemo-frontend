@@ -61,6 +61,15 @@ export const mockCandidats: Candidat[] = [
     numeroMatricule: 'ETU2024005',
     niveau: 'Licence 3',
     filiere: 'Multimedia'
+  },
+  {
+    idCandidat: 6,
+    nom: 'Diop',
+    prenom: 'Moussa',
+    email: 'moussa.diop@isi.edu.sn',
+    numeroMatricule: 'ETU2024006',
+    niveau: 'Licence 3',
+    filiere: 'GL'
   }
 ];
 

@@ -7,3 +7,4 @@ export * from './Message';
 export * from './Ticket';
 export * from './Livrable';
 export * from './NoteSuivi';
+export * from './DemandePrelecture';

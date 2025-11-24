@@ -139,10 +139,11 @@ const Mediatheque: React.FC = () => {
     return savedResources.map(rs => rs.idRessource);
   }, [user, refreshKey]);
 
-  // Récupérer toutes les ressources de la médiathèque
+  // Récupérer toutes les ressources de la médiathèque (uniquement les actives)
   const ressourcesMediatheque = useMemo(() => {
-    // TODO: Remplacer par un appel API pour récupérer toutes les ressources de la médiathèque
-    return mockRessourcesMediatheque;
+    // Filtrer uniquement les ressources actives (estActif !== false)
+    // Par défaut, les ressources sans estActif sont considérées comme actives (rétrocompatibilité)
+    return mockRessourcesMediatheque.filter(r => r.estActif !== false);
   }, []);
 
   // Compter les ressources par catégorie

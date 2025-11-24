@@ -75,7 +75,7 @@ export const mockUsers: (User & { password: string })[] = [
     estEncadrant: true,
     estProfesseur: true,
   },
-  // Jurie
+  // Jurie et Encadrant
   {
     id: '6',
     name: 'Omar Gueye',
@@ -83,6 +83,7 @@ export const mockUsers: (User & { password: string })[] = [
     password: 'password123',
     type: 'professeur',
     department: 'Management',
+    estEncadrant: true,
     estJurie: true,
     estProfesseur: true,
   },

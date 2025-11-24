@@ -42,6 +42,9 @@ const EncadrementDetail = lazy(() => import("./pages/professeur/EncadrementDetai
 const PanelEncadrant = lazy(() => import("./pages/professeur/PanelEncadrant"));
 const DossierEtudiantDetail = lazy(() => import("./pages/professeur/DossierEtudiantDetail"));
 const Disponibilites = lazy(() => import("./pages/professeur/Disponibilites"));
+const EspaceJury = lazy(() => import("./pages/jurie/EspaceJury"));
+const DossierCandidatJury = lazy(() => import("./pages/jurie/DossierCandidatJury"));
+const EspaceCommission = lazy(() => import("./pages/commission/EspaceCommission"));
 
 // Composants non-lazy (utilisés partout)
 import Navbar from "./components/Navbar";
@@ -291,6 +294,40 @@ const AnimatedRoutes = () => {
                 <Suspense fallback={<PageLoader />}>
                   <MainLayout>
                     <Mediatheque />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            
+            {/* Routes jury */}
+            <Route 
+              path="/jurie/soutenances" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <EspaceJury />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/jurie/soutenances/:soutenanceId/dossier/:dossierId/candidat/:candidatId" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <DossierCandidatJury />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            
+            {/* Routes commission */}
+            <Route 
+              path="/commission" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <EspaceCommission />
                   </MainLayout>
                 </Suspense>
               } 

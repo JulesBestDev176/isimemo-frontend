@@ -4,8 +4,9 @@
 
 import type { Professeur } from '../acteurs/Professeur';
 import type { DossierMemoire } from './DossierMemoire';
-import { StatutDossierMemoire, EtapeDossier } from './DossierMemoire';
+import { StatutDossierMemoire, EtapeDossier, mockDossiers } from './DossierMemoire';
 import { mockCandidats } from '../acteurs/Candidat';
+import { mockProfesseurs } from '../acteurs/Professeur';
 
 // Type declarations to avoid circular dependencies
 // The full Message and Ticket types are defined in their respective files
@@ -72,6 +73,7 @@ export const mockEncadrements: Encadrement[] = [
     dateDebut: new Date('2024-09-01'),
     statut: StatutEncadrement.ACTIF,
     anneeAcademique: '2024-2025',
+    professeur: mockProfesseurs.find(p => p.idProfesseur === 4), // Mamadou Sarr (encadrant principal)
     dossierMemoire: {
       idDossierMemoire: 10,
       titre: 'Mémoire de fin d\'études - Encadrement actif',
@@ -97,6 +99,15 @@ export const mockEncadrements: Encadrement[] = [
     dateDebut: new Date('2024-09-01'),
     statut: StatutEncadrement.ACTIF,
     anneeAcademique: '2024-2025'
+  },
+  // Encadrement actif pour Omar Gueye (ID 9) - encadrant et membre jury
+  {
+    idEncadrement: 6,
+    dateDebut: new Date('2024-09-01'),
+    statut: StatutEncadrement.ACTIF,
+    anneeAcademique: '2024-2025',
+    professeur: mockProfesseurs.find(p => p.idProfesseur === 9), // Omar Gueye
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 106) // Dossier 106 pour Moussa Diop
   }
 ];
 
@@ -112,6 +123,14 @@ export const getEncadrementsByProfesseur = (idProfesseur: number): Encadrement[]
   // Pour le professeur ID 3 (Pierre Durand), retourner uniquement les encadrements 1, 2, 3 (tous terminés)
   if (idProfesseur === 3) {
     return mockEncadrements.filter(e => [1, 2, 3].includes(e.idEncadrement));
+  }
+  // Pour le professeur ID 5 (Fatou Diallo - encadrant connecté), retourner l'encadrement 4 (actif)
+  if (idProfesseur === 5) {
+    return mockEncadrements.filter(e => e.idEncadrement === 4);
+  }
+  // Pour le professeur ID 9 (Omar Gueye - encadrant et membre jury), retourner l'encadrement 6 (actif)
+  if (idProfesseur === 9) {
+    return mockEncadrements.filter(e => e.idEncadrement === 6);
   }
   // Pour les autres professeurs, retourner tous les encadrements
   return mockEncadrements;
@@ -146,5 +165,14 @@ export const getEncadrementActifByCandidat = (idCandidat: number): Encadrement |
 export const getEncadrementsByAnnee = (idProfesseur: number, anneeAcademique: string): Encadrement[] => {
   return getEncadrementsByProfesseur(idProfesseur).filter(
     e => e.anneeAcademique === anneeAcademique
+  );
+};
+
+/**
+ * Récupère les encadrements associés à un dossier
+ */
+export const getEncadrementsByDossier = (idDossierMemoire: number): Encadrement[] => {
+  return mockEncadrements.filter(
+    e => e.dossierMemoire?.idDossierMemoire === idDossierMemoire
   );
 };

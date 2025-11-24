@@ -22,6 +22,7 @@ export interface RessourceMediatheque {
   vues: number;
   niveau?: 'licence' | 'master' | 'autres' | 'all';
   estImportant?: boolean;
+  estActif?: boolean; // Par défaut false (inactif) jusqu'à validation après soutenance
 }
 
 // ============================================================================
@@ -29,7 +30,7 @@ export interface RessourceMediatheque {
 // ============================================================================
 
 export const mockRessourcesMediatheque: RessourceMediatheque[] = [
-  // Mémoires
+  // Mémoires (actifs - déjà validés)
   {
     idRessource: 4,
     titre: 'Système de gestion de bibliothèque numérique',
@@ -45,7 +46,8 @@ export const mockRessourcesMediatheque: RessourceMediatheque[] = [
     likes: 98,
     commentaires: 15,
     vues: 1234,
-    niveau: 'master'
+    niveau: 'master',
+    estActif: true // Actif car déjà validé
   },
   {
     idRessource: 5,
@@ -62,7 +64,8 @@ export const mockRessourcesMediatheque: RessourceMediatheque[] = [
     likes: 145,
     commentaires: 22,
     vues: 1678,
-    niveau: 'master'
+    niveau: 'master',
+    estActif: true // Actif car déjà validé
   },
   // Canevas (un seul canevas dans la bibliothèque numérique)
   {
@@ -81,7 +84,8 @@ export const mockRessourcesMediatheque: RessourceMediatheque[] = [
     commentaires: 56,
     vues: 4567,
     niveau: 'all',
-    estImportant: true
+    estImportant: true,
+    estActif: true // Canevas toujours actif
   }
 ];
 
@@ -94,9 +98,64 @@ export const getRessourceById = (id: number): RessourceMediatheque | undefined =
 };
 
 export const getRessourcesParCategorie = (categorie: TypeCategorieRessource): RessourceMediatheque[] => {
-  return mockRessourcesMediatheque.filter(r => r.categorie === categorie);
+  return mockRessourcesMediatheque.filter(r => r.categorie === categorie && r.estActif !== false);
 };
 
 export const getRessourcesImportantes = (): RessourceMediatheque[] => {
-  return mockRessourcesMediatheque.filter(r => r.estImportant);
+  return mockRessourcesMediatheque.filter(r => r.estImportant && r.estActif !== false);
+};
+
+/**
+ * Active une ressource dans la bibliothèque numérique (après validation par la commission)
+ */
+export const activerRessource = (idRessource: number): boolean => {
+  const ressource = mockRessourcesMediatheque.find(r => r.idRessource === idRessource);
+  if (!ressource) return false;
+  ressource.estActif = true;
+  return true;
+};
+
+/**
+ * Récupère les ressources inactives (en attente de validation)
+ */
+export const getRessourcesInactives = (): RessourceMediatheque[] => {
+  return mockRessourcesMediatheque.filter(r => r.estActif === false);
+};
+
+/**
+ * Ajoute un document à la bibliothèque numérique
+ */
+export const ajouterRessourceMediatheque = (
+  document: import('../dossier/Document').Document,
+  dossier: import('../dossier/DossierMemoire').DossierMemoire,
+  candidat: import('../acteurs/Candidat').Candidat,
+  estActif: boolean = false
+): RessourceMediatheque => {
+  const maxId = mockRessourcesMediatheque.length > 0 
+    ? Math.max(...mockRessourcesMediatheque.map(r => r.idRessource)) 
+    : 0;
+  
+  const candidatNom = `${candidat.prenom} ${candidat.nom}`;
+  
+  const nouvelleRessource: RessourceMediatheque = {
+    idRessource: maxId + 1,
+    titre: dossier.titre,
+    description: dossier.description || `Mémoire de ${candidatNom}`,
+    auteur: candidatNom,
+    datePublication: new Date(),
+    dateCreation: new Date(),
+    dateModification: new Date(),
+    categorie: 'memoires',
+    typeRessource: 'document',
+    cheminFichier: document.cheminFichier,
+    tags: [dossier.titre.split(' ')[0], 'mémoire', 'soutenance'],
+    likes: 0,
+    commentaires: 0,
+    vues: 0,
+    niveau: candidat?.niveau === 'Licence 3' ? 'licence' : 'master',
+    estActif: estActif
+  };
+  
+  mockRessourcesMediatheque.push(nouvelleRessource);
+  return nouvelleRessource;
 };

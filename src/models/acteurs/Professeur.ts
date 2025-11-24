@@ -130,6 +130,20 @@ export const mockProfesseurs: Professeur[] = [
     estDisponible: true,
     departement: 'Département Informatique',
     estJurie: true
+  },
+  {
+    idProfesseur: 9,
+    nom: 'Gueye',
+    prenom: 'Omar',
+    email: 'jurie@isimemo.edu.sn',
+    grade: 'Professeur',
+    specialite: 'Management',
+    estDisponible: true,
+    departement: 'Département Management',
+    estEncadrant: true,
+    estJurie: true,
+    capaciteEncadrement: 8,
+    nombreEncadrementsActuels: 1
   }
 ];
 
@@ -146,4 +160,13 @@ export const getProfesseurById = (id: number): Professeur | undefined => {
 
 export const getProfesseursDisponibles = (): Professeur[] => {
   return mockProfesseurs.filter(p => p.estDisponible);
+};
+
+/**
+ * Récupère l'ID du professeur basé sur l'email de l'utilisateur
+ * Mapping : email utilisateur -> idProfesseur
+ */
+export const getProfesseurIdByEmail = (email: string): number | undefined => {
+  const professeur = mockProfesseurs.find(p => p.email === email);
+  return professeur ? professeur.idProfesseur : undefined;
 };

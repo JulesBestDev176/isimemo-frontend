@@ -17,25 +17,48 @@ import { MessageList, Message } from '../../components/panel-encadrant/MessageLi
 import { TacheCommuneList, TacheCommune } from '../../components/panel-encadrant/TacheCommuneList';
 import { DossierEtudiantList, DossierEtudiant } from '../../components/panel-encadrant/DossierEtudiantList';
 import { AddTacheModal, NewTache } from '../../components/panel-encadrant/AddTacheModal';
+import { PrelectureList } from '../../components/panel-encadrant/PrelectureList';
+import { PrelectureDetail } from '../../components/panel-encadrant/PrelectureDetail';
+import {
+  getDemandesPrelectureByPrelecteur,
+  getDemandesPrelectureRejetees,
+  validerPrelecture,
+  rejeterPrelecture,
+  StatutDemandePrelecture
+} from '../../models/dossier/DemandePrelecture';
+import { createTicketForDossier, Priorite } from '../../models/dossier/Ticket';
+import { getDossierById } from '../../models/dossier/DossierMemoire';
+import { getAnneeAcademiqueCourante, isAnneeAcademiqueTerminee } from '../../utils/anneeAcademique';
 
 const PanelEncadrant: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'messages' | 'taches' | 'dossiers'>('messages');
+  const [activeTab, setActiveTab] = useState<'messages' | 'taches' | 'dossiers' | 'prelecture'>('messages');
   const [showTacheModal, setShowTacheModal] = useState(false);
+  const [selectedPrelecture, setSelectedPrelecture] = useState<number | null>(null);
 
   // Récupérer l'encadrement
   const encadrement = id ? getEncadrementById(parseInt(id)) : null;
 
-  // Vérifier que l'utilisateur est un encadrant
-  if (!user?.estEncadrant) {
+  // Vérifier que l'utilisateur est un encadrant ET que l'année académique en cours n'est pas terminée
+  // Exception : le chef de département garde toujours son rôle
+  const anneeCourante = getAnneeAcademiqueCourante();
+  const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
+  const estChef = user?.estChef;
+  const hasRoleEncadrantActif = user?.estEncadrant && (!anneeTerminee || estChef);
+  
+  if (!hasRoleEncadrantActif) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Accès restreint</h2>
-          <p className="text-gray-600 mb-4">Cette page est réservée aux encadrants.</p>
+          <p className="text-gray-600 mb-4">
+            {anneeTerminee 
+              ? 'L\'année académique est terminée. Vous n\'avez plus accès au panel encadrant pour cette session.'
+              : 'Cette page est réservée aux encadrants.'}
+          </p>
           <button
             onClick={() => navigate('/professeur/encadrements')}
             className="px-4 py-2 bg-primary text-white hover:bg-primary-700 transition-colors"
@@ -290,8 +313,66 @@ const PanelEncadrant: React.FC = () => {
     // TODO: Appel API
   };
 
+  // Récupérer les demandes de pré-lecture pour l'encadrant connecté (en tant que pré-lecteur)
+  const demandesPrelecture = useMemo(() => {
+    if (!user?.id) return [];
+    const idProfesseur = parseInt(user.id);
+    return getDemandesPrelectureByPrelecteur(idProfesseur);
+  }, [user?.id]);
+
+  // Récupérer les demandes de pré-lecture rejetées pour l'encadrant principal
+  const demandesPrelectureRejetees = useMemo(() => {
+    if (!user?.id || !isOwner) return [];
+    const idProfesseur = parseInt(user.id);
+    return getDemandesPrelectureRejetees(idProfesseur);
+  }, [user?.id, isOwner]);
+
+  // Calculer le nombre de demandes en attente
+  const prelectureCount = useMemo(() => {
+    return demandesPrelecture.filter(d => d.statut === StatutDemandePrelecture.EN_ATTENTE).length;
+  }, [demandesPrelecture]);
+
   // Calculs pour les badges
   const unreadMessagesCount = 0; // L'étudiant ne peut pas envoyer de messages, donc pas de messages non lus
+
+  // Handlers pour la pré-lecture
+  const handleConsultPrelecture = (demande: typeof demandesPrelecture[0]) => {
+    setSelectedPrelecture(demande.idDemandePrelecture);
+  };
+
+  const handleValiderPrelecture = (idDemande: number, commentaire?: string) => {
+    validerPrelecture(idDemande, commentaire);
+    setSelectedPrelecture(null);
+    // TODO: Appel API
+  };
+
+  const handleRejeterPrelecture = (idDemande: number, commentaire: string, corrections: string[]) => {
+    const demande = demandesPrelecture.find(d => d.idDemandePrelecture === idDemande);
+    if (!demande) return;
+
+    rejeterPrelecture(idDemande, commentaire, corrections);
+    
+    // Si l'encadrant connecté est l'encadrant principal, créer des tickets spécifiques pour les corrections
+    if (isOwner && demande.encadrantPrincipal?.idProfesseur === parseInt(user.id)) {
+      const dossier = getDossierById(demande.dossierMemoire.idDossierMemoire);
+      if (dossier && encadrement) {
+        corrections.forEach((correction, index) => {
+          createTicketForDossier(
+            encadrement,
+            dossier,
+            `Correction pré-lecture ${index + 1}: ${correction.substring(0, 50)}...`,
+            correction,
+            Priorite.HAUTE,
+            `Correction demandée suite au rejet de la pré-lecture. ${commentaire}`,
+            []
+          );
+        });
+      }
+    }
+    
+    setSelectedPrelecture(null);
+    // TODO: Appel API
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -306,6 +387,7 @@ const PanelEncadrant: React.FC = () => {
             unreadMessagesCount={unreadMessagesCount}
             tachesCount={tachesCommunes.length}
             dossiersCount={dossiersEtudiants.length}
+            prelectureCount={prelectureCount}
           />
 
           {/* Contenu des onglets */}
@@ -330,8 +412,25 @@ const PanelEncadrant: React.FC = () => {
                 encadrementId={id || ''}
               />
             )}
+
+            {activeTab === 'prelecture' && (
+              <PrelectureList
+                demandes={demandesPrelecture}
+                onConsult={handleConsultPrelecture}
+              />
+            )}
           </div>
         </div>
+
+        {/* Modal de détail de pré-lecture */}
+        {selectedPrelecture && demandesPrelecture.find(d => d.idDemandePrelecture === selectedPrelecture) && (
+          <PrelectureDetail
+            demande={demandesPrelecture.find(d => d.idDemandePrelecture === selectedPrelecture)!}
+            onClose={() => setSelectedPrelecture(null)}
+            onValider={handleValiderPrelecture}
+            onRejeter={handleRejeterPrelecture}
+          />
+        )}
 
         {/* Modals */}
         <AddTacheModal

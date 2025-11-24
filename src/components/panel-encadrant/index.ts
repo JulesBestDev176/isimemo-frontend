@@ -11,5 +11,7 @@ export { LivrableList } from './LivrableList';
 export { LivrableItem, type LivrableEtudiant, type LivrableEtudiantType } from './LivrableItem';
 export { AddTacheModal, type NewTache } from './AddTacheModal';
 export { ValidationLivrableModal } from './ValidationLivrableModal';
+export { PrelectureList, type PrelectureItem } from './PrelectureList';
+export { PrelectureDetail } from './PrelectureDetail';
 export * from './utils';
 

@@ -70,6 +70,7 @@ import {
   getNotesSuiviByDossier,
   addNoteSuivi
 } from '../../models';
+import { getAnneeAcademiqueCourante, isAnneeAcademiqueTerminee } from '../../utils/anneeAcademique';
 
 interface TabButtonProps {
   children: React.ReactNode;
@@ -191,13 +192,23 @@ const DossierEtudiantDetail: React.FC = () => {
   // Récupérer l'encadrement
   const encadrement = id ? getEncadrementById(parseInt(id)) : null;
 
-  // Vérifier que l'utilisateur est un encadrant
-  if (!user?.estEncadrant) {
+  // Vérifier que l'utilisateur est un encadrant ET que l'année académique en cours n'est pas terminée
+  // Exception : le chef de département garde toujours son rôle
+  const anneeCourante = getAnneeAcademiqueCourante();
+  const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
+  const estChef = user?.estChef;
+  const hasRoleEncadrantActif = user?.estEncadrant && (!anneeTerminee || estChef);
+  
+  if (!hasRoleEncadrantActif) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Accès non autorisé</h2>
-          <p className="text-gray-600">Vous devez être un encadrant pour accéder à cette page.</p>
+          <p className="text-gray-600">
+            {anneeTerminee 
+              ? 'L\'année académique est terminée. Vous n\'avez plus accès aux dossiers étudiants pour cette session.'
+              : 'Vous devez être un encadrant pour accéder à cette page.'}
+          </p>
         </div>
       </div>
     );

@@ -43,6 +43,15 @@ export const mockSalles: Salle[] = [
     capacite: 40,
     estDisponible: false,
     estArchive: false
+  },
+  {
+    idSalle: 4,
+    nom: 'A32',
+    batiment: 'Bâtiment A',
+    etage: 3,
+    capacite: 100,
+    estDisponible: true,
+    estArchive: false
   }
 ];
 

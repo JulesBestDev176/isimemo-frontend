@@ -48,6 +48,11 @@ import { getEncadrementsActifs, getEncadrementsByProfesseur } from '../../models
 import { getDemandesEncadrementEnAttente } from '../../models/dossier/DemandeEncadrement';
 import { PhaseTicket, getTicketsByEncadrement } from '../../models/dossier/Ticket';
 import { StatutDossierMemoire } from '../../models';
+import { getDashboardProfesseurBaseCards } from '../../components/dashboard/DashboardProfesseurBase';
+import { getDashboardEncadrantCards } from '../../components/dashboard/DashboardEncadrant';
+import { getDashboardJuryCards } from '../../components/dashboard/DashboardJury';
+import { getDashboardCommissionCards } from '../../components/dashboard/DashboardCommission';
+import { getAnneeAcademiqueCourante, isAnneeAcademiqueTerminee } from '../../utils/anneeAcademique';
 
 // Badge Component
 const Badge: React.FC<{
@@ -357,75 +362,38 @@ const Dashboard: React.FC = () => {
       delay += 0.1;
     }
 
-    // Cartes pour Professeur (Encadrant + Jury + Commission)
+    // Cartes pour Professeur - Composants modulaires selon les rôles
     if (user?.type === 'professeur') {
       const idProfesseur = user?.id ? parseInt(user.id) : 0;
-      const encadrementsActifs = idProfesseur > 0 ? getEncadrementsActifs(idProfesseur) : [];
-      const demandesEnAttente = idProfesseur > 0 ? getDemandesEncadrementEnAttente(idProfesseur) : [];
-      
-      // Afficher les cartes d'encadrement uniquement si le professeur a des encadrements actifs ou des demandes en attente
-      if (encadrementsActifs.length > 0 || demandesEnAttente.length > 0) {
-        // 1. Étudiants encadrés (Actifs)
-        if (encadrementsActifs.length > 0) {
-          cards.push(
-            <DashboardCard 
-              key="etudiants-encadres"
-              title="Étudiants encadrés" 
-              value={encadrementsActifs.length.toString()} 
-              icon={<UserCheck className="h-6 w-6" />} 
-              iconColor="bg-emerald-100 text-emerald-600"
-              delay={delay}
-              onClick={() => navigate('/professeur/encadrements')}
-            />
-          );
-          delay += 0.1;
-        }
+      const anneeCourante = getAnneeAcademiqueCourante();
+      const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
+      const estChef = user?.estChef;
 
-        // 2. Demandes d'encadrement (En attente)
-        if (demandesEnAttente.length > 0) {
-          cards.push(
-            <DashboardCard 
-              key="demandes-encadrement"
-              title="Demandes en attente" 
-              value={demandesEnAttente.length.toString()} 
-              icon={<UserPlus className="h-6 w-6" />} 
-              iconColor="bg-blue-100 text-blue-600"
-              trend={{ value: "Nouveau", up: true }}
-              delay={delay}
-              onClick={() => navigate('/professeur/encadrements')}
-            />
-          );
-          delay += 0.1;
-        }
+      // 1. Composants de base pour tous les professeurs
+      const baseCards = getDashboardProfesseurBaseCards(delay, navigate);
+      cards.push(...baseCards);
+      delay += baseCards.length * 0.1;
+
+      // 2. Composants spécifiques pour encadrant (si année académique en cours ou chef)
+      if (user?.estEncadrant && (!anneeTerminee || estChef)) {
+        const encadrantCards = getDashboardEncadrantCards(idProfesseur, delay, navigate);
+        cards.push(...encadrantCards);
+        delay += encadrantCards.length * 0.1;
       }
 
-      // 3. Disponibilités Jury
-      cards.push(
-        <DashboardCard 
-          key="disponibilites"
-          title="Disponibilités Jury" 
-          value="Session Ouverte" 
-          icon={<Calendar className="h-6 w-6" />} 
-          iconColor="bg-purple-100 text-purple-600"
-          delay={delay}
-          onClick={() => navigate('/professeur/disponibilites')}
-        />
-      );
-      delay += 0.1;
+      // 3. Composants spécifiques pour membre du jury (si année académique en cours ou chef)
+      if (user?.estJurie && (!anneeTerminee || estChef)) {
+        const juryCards = getDashboardJuryCards(user.email, delay, navigate);
+        cards.push(...juryCards);
+        delay += juryCards.length * 0.1;
+      }
 
-      // 4. Sujets proposés
-      cards.push(
-        <DashboardCard 
-          key="sujets"
-          title="Sujets proposés" 
-          value="8" 
-          icon={<BookOpen className="h-6 w-6" />} 
-          iconColor="bg-amber-100 text-amber-600"
-          delay={delay}
-          onClick={() => navigate('/professeur/sujets')}
-        />
-      );
-      delay += 0.1;
+      // 4. Composants spécifiques pour commission (si année académique en cours ou chef)
+      if (user?.estCommission && (!anneeTerminee || estChef)) {
+        const commissionCards = getDashboardCommissionCards(delay, navigate);
+        cards.push(...commissionCards);
+        delay += commissionCards.length * 0.1;
+      }
     }
 
     // Cartes pour Assistant
