@@ -50,7 +50,7 @@ interface Sujet {
 }
 
 // Données mockées
-const TOUS_LES_SUJETS: Sujet[] = [
+export const TOUS_LES_SUJETS: Sujet[] = [
   {
     id: 1,
     titre: "Intelligence Artificielle pour la Détection de Fraudes",

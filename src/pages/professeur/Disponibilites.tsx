@@ -77,9 +77,20 @@ const Disponibilites: React.FC = () => {
       if (existingDispo) {
         setTempJoursDisponibles(JSON.parse(JSON.stringify(existingDispo.joursDisponibles)));
       } else {
+        // Générer tous les jours entre dateDebut et dateFin
+        const jours: Date[] = [];
+        const debut = new Date(selectedSession.dateDebut);
+        const fin = new Date(selectedSession.dateFin);
+        const currentDate = new Date(debut);
+        
+        while (currentDate <= fin) {
+          jours.push(new Date(currentDate));
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
         // Si pas de dispo existante, on initialise avec des tableaux vides pour chaque jour de la session
         setTempJoursDisponibles(
-          selectedSession.joursSession.map(date => ({
+          jours.map(date => ({
             date: date,
             creneaux: []
           }))

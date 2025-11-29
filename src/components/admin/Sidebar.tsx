@@ -22,7 +22,6 @@ import {
   FileText,
   Clock,
   Calendar,
-  Video,
   MapPin,
   Presentation,
   Gavel,
@@ -51,6 +50,7 @@ import {
 } from 'lucide-react';
 import Logo from './Logo';
 import { User } from '../../models/auth';
+import { User as UserIcon } from 'lucide-react';
 
 interface ElementMenu {
   nom: string;
@@ -145,6 +145,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     { nom: 'Notifications', icone: <Bell className="mr-2 h-5 w-5" />, chemin: '/etudiant/notifications' },
     
     // Menus pour Professeur
+    { nom: 'Espace Professeur', icone: <UserIcon className="mr-2 h-5 w-5" />, chemin: '/professors' },
     { nom: 'Sujets', icone: <BookOpen className="mr-2 h-5 w-5" />, chemin: '/sujets-professeurs' },
     { nom: 'Encadrements', icone: <Users className="mr-2 h-5 w-5" />, chemin: '/professeur/encadrements' },
     { nom: 'Disponibilités', icone: <CalendarCheck className="mr-2 h-5 w-5" />, chemin: '/professeur/disponibilites' },
@@ -152,12 +153,12 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     { nom: 'Espace Commission', icone: <FileCheck className="mr-2 h-5 w-5" />, chemin: '/commission' },
     
     // Menus pour Chef de Département / Assistant
-    { nom: 'Classes', icone: <Grid className="mr-2 h-5 w-5" />, chemin: '/classes' },
+    { nom: 'Périodes', icone: <CalendarCheck className="mr-2 h-5 w-5" />, chemin: '/departement/periodes' },
+    { nom: 'Rôles', icone: <UserCheck className="mr-2 h-5 w-5" />, chemin: '/departement/roles' },
     { nom: 'Étudiants', icone: <Users className="mr-2 h-5 w-5" />, chemin: '/students' },
-    { nom: 'Professeurs', icone: <UserCheck className="mr-2 h-5 w-5" />, chemin: '/professors' },
+    { nom: 'Professeurs', icone: <Users className="mr-2 h-5 w-5" />, chemin: '/professors' },
     { nom: 'Salles', icone: <Building2 className="mr-2 h-5 w-5" />, chemin: '/departement/salles' },
     { nom: 'Jury', icone: <Gavel className="mr-2 h-5 w-5" />, chemin: '/departement/jury' },
-    { nom: 'Soutenances', icone: <Video className="mr-2 h-5 w-5" />, chemin: '/departement/soutenance' },
     { nom: 'Bibliothèque numérique', icone: <Library className="mr-2 h-5 w-5" />, chemin: '/etudiant/ressources/mediatheque' },
   ];
 
@@ -296,7 +297,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       // Ajouter menus selon les rôles (chef garde toujours ses rôles)
       if (user.estChef) {
         menus = menus.concat([
-          'Classes', 'Étudiants', 'Professeurs', 'Salles', 'Jury', 'Soutenances'
+          'Périodes', 'Rôles', 'Étudiants', 'Professeurs', 'Salles', 'Jury'
         ]);
       }
       // Commission : seulement si année académique en cours (pas terminée) ou chef
@@ -313,7 +314,6 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
         'Salles',
         'Bibliothèque numérique',
         'Jury',
-        'Soutenances',
         'Notifications',
         'Assistant IA'
       ];

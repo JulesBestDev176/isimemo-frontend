@@ -28,9 +28,8 @@ export interface SessionSoutenance {
   id: number;
   nom: string; // ex: "Session Septembre 2025"
   anneeAcademique: string;
-  dateDebut: Date;
-  dateFin: Date;
-  joursSession: Date[]; // Liste des jours spécifiques (ex: [Ven 15, Sam 16, Lun 18])
+  dateDebut: Date; // Date de début de la période de soutenance
+  dateFin: Date; // Date de fin de la période de soutenance
   statut: StatutSession;
 }
 
@@ -56,11 +55,6 @@ export const MOCK_SESSIONS: SessionSoutenance[] = [
     anneeAcademique: "2024-2025",
     dateDebut: new Date('2025-09-15'),
     dateFin: new Date('2025-09-18'),
-    joursSession: [
-      new Date('2025-09-15'), // Lundi
-      new Date('2025-09-16'), // Mardi
-      new Date('2025-09-18')  // Jeudi
-    ],
     statut: StatutSession.OUVERTE
   },
   {
@@ -69,11 +63,6 @@ export const MOCK_SESSIONS: SessionSoutenance[] = [
     anneeAcademique: "2024-2025",
     dateDebut: new Date('2025-12-10'),
     dateFin: new Date('2025-12-12'),
-    joursSession: [
-      new Date('2025-12-10'),
-      new Date('2025-12-11'),
-      new Date('2025-12-12')
-    ],
     statut: StatutSession.PLANIFIEE
   }
 ];

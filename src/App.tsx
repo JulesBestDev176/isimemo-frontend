@@ -46,6 +46,15 @@ const EspaceJury = lazy(() => import("./pages/jurie/EspaceJury"));
 const DossierCandidatJury = lazy(() => import("./pages/jurie/DossierCandidatJury"));
 const EspaceCommission = lazy(() => import("./pages/commission/EspaceCommission"));
 
+// Pages Chef de Département
+const PeriodesChef = lazy(() => import("./pages/departement/departement/PeriodesChef"));
+const RolesChef = lazy(() => import("./pages/departement/departement/RolesChef"));
+const SallesChef = lazy(() => import("./pages/departement/departement/SallesChef"));
+const StudentsChef = lazy(() => import("./pages/departement/departement/StudentsChef"));
+const ProfessorsChef = lazy(() => import("./pages/departement/departement/ProfessorsChef"));
+const JuryDepartement = lazy(() => import("./pages/departement/departement/JuryDepartement"));
+const SoutenanceChef = lazy(() => import("./pages/departement/departement/SoutenanceChef"));
+
 // Composants non-lazy (utilisés partout)
 import Navbar from "./components/Navbar";
 
@@ -333,8 +342,79 @@ const AnimatedRoutes = () => {
               } 
             />
             
+            {/* Routes Chef de Département */}
+            <Route 
+              path="/departement/periodes" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <PeriodesChef />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/departement/roles" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <RolesChef />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/departement/salles" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <SallesChef />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/students" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <StudentsChef />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/professors" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <ProfessorsChef />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/departement/jury" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <JuryDepartement />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/departement/soutenance" 
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <SoutenanceChef />
+                  </MainLayout>
+                </Suspense>
+              } 
+            />
+            
             {/* TODO: Ajouter les autres routes protégées ici */}
-            {/* Routes departement */}
             {/* Routes etude */}
             {/* Routes admin */}
             

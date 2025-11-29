@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -21,9 +21,29 @@ import {
   MapPin,
   BookOpen,
   Award,
-  CheckCircle
+  CheckCircle,
+  History,
+  Clock
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { 
+  getDossierEnCoursByCandidat, 
+  getDossiersTerminesByCandidat,
+  getDossiersByCandidat,
+  type DossierMemoire,
+  StatutDossierMemoire,
+  mockDossiers
+} from '../../../models/dossier/DossierMemoire';
+import { 
+  getDocumentsByDossier, 
+  getDocumentsAdministratifs,
+  getDocumentsDeposesByDossier,
+  type Document,
+  TypeDocument,
+  StatutDocument
+} from '../../../models/dossier/Document';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 // Liste des classes disponibles
 const CLASSES = [
@@ -61,6 +81,7 @@ interface StudentItem {
   address?: string;
   gpa?: number;
   lastUpdated: string;
+  idCandidat?: number; // ID du candidat pour récupérer les dossiers mémoire
 }
 
 const STUDENTS_DATA: StudentItem[] = [
@@ -132,7 +153,8 @@ const STUDENTS_DATA: StudentItem[] = [
     phoneNumber: "+221 76 111 22 33",
     address: "90 Rue des Écoles, Dakar",
     gpa: 14.7,
-    lastUpdated: "2025-01-14"
+    lastUpdated: "2025-01-14",
+    idCandidat: 1 // Correspond à Amadou Diallo dans mockCandidats
   },
   { 
     id: 6, 
@@ -146,7 +168,8 @@ const STUDENTS_DATA: StudentItem[] = [
     phoneNumber: "+221 77 444 55 66",
     address: "67 Avenue Georges Bush, Dakar",
     gpa: 15.9,
-    lastUpdated: "2025-01-11"
+    lastUpdated: "2025-01-11",
+    idCandidat: 2 // Correspond à Fatou Ndiaye dans mockCandidats
   },
   { 
     id: 7, 
@@ -288,7 +311,68 @@ const StudentDetailsModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
 }> = ({ studentItem, isOpen, onClose }) => {
+  const [showHistory, setShowHistory] = useState(false);
+  
+  // Récupérer les dossiers mémoire si l'étudiant a un idCandidat
+  // Les hooks doivent être appelés avant tout return conditionnel
+  const dossierActif = useMemo(() => {
+    if (!studentItem?.idCandidat) return undefined;
+    return getDossierEnCoursByCandidat(studentItem.idCandidat);
+  }, [studentItem?.idCandidat]);
+  
+  const dossiersHistorique = useMemo(() => {
+    if (!studentItem?.idCandidat) return [];
+    return getDossiersTerminesByCandidat(studentItem.idCandidat);
+  }, [studentItem?.idCandidat]);
+
   if (!isOpen || !studentItem) return null;
+
+  // Récupérer les documents pour le dossier actif
+  const documentsDossierActif = dossierActif 
+    ? getDocumentsByDossier(dossierActif.idDossierMemoire)
+    : [];
+  
+  // Document du mémoire (un seul document principal)
+  const documentMemoire = documentsDossierActif.find(d => 
+    d.typeDocument === TypeDocument.CHAPITRE || 
+    d.typeDocument === TypeDocument.PRESENTATION
+  );
+  
+  // Documents déposés (exclure les documents de type CHAPITRE et PRESENTATION qui sont déjà dans "Document du mémoire")
+  const documentsDeposes = dossierActif 
+    ? getDocumentsDeposesByDossier(dossierActif.idDossierMemoire).filter(d => 
+        d.typeDocument !== TypeDocument.CHAPITRE && 
+        d.typeDocument !== TypeDocument.PRESENTATION
+      )
+    : [];
+  
+  // Documents administratifs (généraux)
+  const documentsAdministratifs = getDocumentsAdministratifs();
+  
+  // Récupérer les documents pour chaque dossier historique
+  const documentsParDossier = dossiersHistorique.reduce((acc, dossier) => {
+    acc[dossier.idDossierMemoire] = getDocumentsByDossier(dossier.idDossierMemoire);
+    return acc;
+  }, {} as Record<number, Document[]>);
+  
+  // État pour le document à consulter
+  const [documentAConsulter, setDocumentAConsulter] = useState<Document | null>(null);
+
+  const getStatutBadgeColor = (statut: StatutDossierMemoire) => {
+    switch (statut) {
+      case StatutDossierMemoire.EN_CREATION:
+      case StatutDossierMemoire.EN_COURS:
+        return 'bg-blue-100 text-blue-700 border-blue-200';
+      case StatutDossierMemoire.EN_ATTENTE_VALIDATION:
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case StatutDossierMemoire.VALIDE:
+        return 'bg-green-100 text-green-700 border-green-200';
+      case StatutDossierMemoire.SOUTENU:
+        return 'bg-purple-100 text-purple-700 border-purple-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -296,7 +380,7 @@ const StudentDetailsModal: React.FC<{
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white border border-gray-200 p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+        className="bg-white border border-gray-200 p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -316,7 +400,195 @@ const StudentDetailsModal: React.FC<{
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Dossier Mémoire Actif - Mise en avant */}
+        {dossierActif ? (
+          <div className="mb-6 pb-6 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Dossier Mémoire Actif
+            </h3>
+            <div className="bg-primary-50 border-2 border-primary-200 rounded-lg p-5">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-bold text-lg text-gray-900 mb-2">{dossierActif.titre}</h4>
+                  <p className="text-sm text-gray-700 mb-3">{dossierActif.description}</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Statut</label>
+                    <span className={`inline-block px-3 py-1 text-xs font-medium rounded border ${getStatutBadgeColor(dossierActif.statut)}`}>
+                      {dossierActif.statut}
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Étape</label>
+                    <span className="text-sm text-gray-900">{dossierActif.etape}</span>
+                  </div>
+                  
+                  {dossierActif.anneeAcademique && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Année académique</label>
+                      <span className="text-sm text-gray-900">{dossierActif.anneeAcademique}</span>
+                    </div>
+                  )}
+                  
+                  {dossierActif.encadrant && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Encadrant</label>
+                      <span className="text-sm text-gray-900">{dossierActif.encadrant.prenom} {dossierActif.encadrant.nom}</span>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Date de création</label>
+                    <span className="text-sm text-gray-900 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {format(dossierActif.dateCreation, 'dd/MM/yyyy', { locale: fr })}
+                    </span>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Dernière modification</label>
+                    <span className="text-sm text-gray-900 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {format(dossierActif.dateModification, 'dd/MM/yyyy', { locale: fr })}
+                    </span>
+                  </div>
+                </div>
+                
+                {dossierActif.binome && (
+                  <div className="pt-3 border-t border-primary-200">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Binôme</label>
+                    <span className="text-sm text-gray-900">
+                      {dossierActif.binome.candidat1.prenom} {dossierActif.binome.candidat1.nom} & {dossierActif.binome.candidat2.prenom} {dossierActif.binome.candidat2.nom}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Document du mémoire (un seul) */}
+                {documentMemoire && (
+                  <div className="pt-3 border-t border-primary-200">
+                    <label className="block text-xs font-medium text-gray-500 mb-2">Document du mémoire</label>
+                    <div className="bg-white border border-primary-200 rounded-lg p-3 flex items-center justify-between hover:bg-primary-50 transition-colors">
+                      <div className="flex items-center gap-3 flex-1">
+                        <FileText className="h-5 w-5 text-primary" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">{documentMemoire.titre}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              documentMemoire.statut === StatutDocument.VALIDE ? 'bg-green-100 text-green-700' :
+                              documentMemoire.statut === StatutDocument.DEPOSE ? 'bg-blue-100 text-blue-700' :
+                              documentMemoire.statut === StatutDocument.EN_ATTENTE_VALIDATION ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {documentMemoire.statut}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {format(documentMemoire.dateModification || documentMemoire.dateCreation, 'dd/MM/yyyy', { locale: fr })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setDocumentAConsulter(documentMemoire)}
+                        className="ml-4 px-3 py-1.5 text-sm text-primary border border-primary rounded hover:bg-primary hover:text-white transition-colors flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Consulter
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Documents déposés */}
+                {documentsDeposes.length > 0 && (
+                  <div className="pt-3 border-t border-primary-200">
+                    <label className="block text-xs font-medium text-gray-500 mb-2">Documents déposés ({documentsDeposes.length})</label>
+                    <div className="space-y-2">
+                      {documentsDeposes.map((doc) => (
+                        <div key={doc.idDocument} className="bg-white border border-gray-200 rounded-lg p-2 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-2 flex-1">
+                            <Download className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm text-gray-700">{doc.titre}</span>
+                            <span className="text-xs text-gray-500">({doc.typeDocument})</span>
+                          </div>
+                          <button
+                            onClick={() => setDocumentAConsulter(doc)}
+                            className="ml-2 px-2 py-1 text-xs text-primary border border-primary rounded hover:bg-primary hover:text-white transition-colors flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            Voir
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Documents administratifs */}
+                {documentsAdministratifs.length > 0 && (
+                  <div className="pt-3 border-t border-primary-200">
+                    <label className="block text-xs font-medium text-gray-500 mb-2">Dossiers administratifs ({documentsAdministratifs.length})</label>
+                    <div className="space-y-2">
+                      {documentsAdministratifs.map((doc) => (
+                        <div key={doc.idDocument} className="bg-white border border-gray-200 rounded-lg p-2 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-2 flex-1">
+                            <FileText className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm text-gray-700">{doc.titre}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              doc.statut === StatutDocument.VALIDE ? 'bg-green-100 text-green-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {doc.statut}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setDocumentAConsulter(doc)}
+                            className="ml-2 px-2 py-1 text-xs text-primary border border-primary rounded hover:bg-primary hover:text-white transition-colors flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            Voir
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-4 pt-2">
+                  <div className="flex items-center gap-2">
+                    {dossierActif.estComplet ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500" />
+                    )}
+                    <span className="text-xs text-gray-600">
+                      {dossierActif.estComplet ? 'Dossier complet' : 'Dossier incomplet'}
+                    </span>
+                  </div>
+                  {dossierActif.autoriseSoutenance && (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-xs text-gray-600">Soutenance autorisée</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-6 pb-6 border-b border-gray-200">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+              <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600">Aucun dossier mémoire actif</p>
+            </div>
+          </div>
+        )}
+
+        {/* Informations étudiant (moins importantes) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Informations générales */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">Informations générales</h3>
@@ -333,13 +605,6 @@ const StudentDetailsModal: React.FC<{
                 <p className="text-gray-900 flex items-center">
                   <School className="h-4 w-4 text-gray-400 mr-2" />
                   {studentItem.class}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500">Date d'inscription</label>
-                <p className="text-gray-900 flex items-center">
-                  <Calendar className="h-4 w-4 text-gray-400 mr-2" />
-                  {studentItem.registrationDate}
                 </p>
               </div>
               <div>
@@ -371,18 +636,105 @@ const StudentDetailsModal: React.FC<{
                   </p>
                 </div>
               )}
-              {studentItem.gpa && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">Moyenne générale</label>
-                  <p className="text-gray-900 flex items-center">
-                    <Award className="h-4 w-4 text-gray-400 mr-2" />
-                    {studentItem.gpa}/20
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
+
+        {/* Historique des dossiers */}
+        {dossiersHistorique.length > 0 && (
+          <div className="mb-6 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <History className="h-5 w-5 text-primary" />
+                Historique des Dossiers ({dossiersHistorique.length})
+              </h3>
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="text-sm text-primary hover:underline flex items-center gap-1"
+              >
+                {showHistory ? 'Masquer' : 'Afficher'} l'historique
+              </button>
+            </div>
+            {showHistory && (
+              <div className="space-y-3">
+                {dossiersHistorique.map((dossier) => (
+                  <div key={dossier.idDossierMemoire} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                    <div className="space-y-3">
+                <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">{dossier.titre}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{dossier.description}</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Statut</label>
+                          <span className={`inline-block px-2 py-1 text-xs font-medium rounded border ${getStatutBadgeColor(dossier.statut)}`}>
+                            {dossier.statut}
+                          </span>
+                        </div>
+                        
+                        {dossier.anneeAcademique && (
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Année</label>
+                            <span className="text-xs text-gray-900">{dossier.anneeAcademique}</span>
+                </div>
+              )}
+                        
+                        {dossier.encadrant && (
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Encadrant</label>
+                            <span className="text-xs text-gray-900">{dossier.encadrant.prenom} {dossier.encadrant.nom}</span>
+            </div>
+                        )}
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Étape</label>
+                          <span className="text-xs text-gray-900">{dossier.etape}</span>
+          </div>
+        </div>
+                      
+                      <div className="text-xs text-gray-500 flex items-center gap-4 pt-2 border-t border-gray-200">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Créé: {format(dossier.dateCreation, 'dd/MM/yyyy', { locale: fr })}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Modifié: {format(dossier.dateModification, 'dd/MM/yyyy', { locale: fr })}
+                        </span>
+                      </div>
+                      
+                      {documentsParDossier[dossier.idDossierMemoire] && documentsParDossier[dossier.idDossierMemoire].length > 0 && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Documents ({documentsParDossier[dossier.idDossierMemoire].length})</label>
+                          <div className="space-y-1">
+                            {documentsParDossier[dossier.idDossierMemoire].slice(0, 3).map((doc) => (
+                              <div key={doc.idDocument} className="text-xs text-gray-600 flex items-center justify-between bg-gray-50 rounded p-1.5">
+                                <div className="flex items-center gap-1 flex-1">
+                                  <BookOpen className="h-3 w-3 text-gray-400" />
+                                  <span className="truncate">{doc.titre}</span>
+                                </div>
+                                <button
+                                  onClick={() => setDocumentAConsulter(doc)}
+                                  className="ml-2 px-1.5 py-0.5 text-xs text-primary border border-primary rounded hover:bg-primary hover:text-white transition-colors flex items-center gap-1"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                            {documentsParDossier[dossier.idDossierMemoire].length > 3 && (
+                              <span className="text-xs text-gray-500">+ {documentsParDossier[dossier.idDossierMemoire].length - 3} autre(s)</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
@@ -394,6 +746,105 @@ const StudentDetailsModal: React.FC<{
           </SimpleButton>
         </div>
       </motion.div>
+      
+      {/* Modal de consultation de document */}
+      {documentAConsulter && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white border border-gray-200 p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{documentAConsulter.titre}</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    documentAConsulter.statut === StatutDocument.VALIDE ? 'bg-green-100 text-green-700' :
+                    documentAConsulter.statut === StatutDocument.DEPOSE ? 'bg-blue-100 text-blue-700' :
+                    documentAConsulter.statut === StatutDocument.EN_ATTENTE_VALIDATION ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {documentAConsulter.statut}
+                  </span>
+                  <span className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">
+                    {documentAConsulter.typeDocument}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setDocumentAConsulter(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Date de création</label>
+                  <p className="text-sm text-gray-900 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {format(documentAConsulter.dateCreation, 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                  </p>
+                </div>
+                {documentAConsulter.dateModification && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Dernière modification</label>
+                    <p className="text-sm text-gray-900 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {format(documentAConsulter.dateModification, 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {documentAConsulter.commentaire && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Commentaire</label>
+                  <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded p-3">
+                    {documentAConsulter.commentaire}
+                  </p>
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Fichier</label>
+                <div className="bg-primary-50 border-2 border-primary-200 rounded-lg p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-8 w-8 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{documentAConsulter.cheminFichier.split('/').pop()}</p>
+                      <p className="text-xs text-gray-500">{documentAConsulter.cheminFichier}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      // Simuler l'ouverture du document
+                      window.open(documentAConsulter.cheminFichier, '_blank');
+                    }}
+                    className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-700 transition-colors flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Ouvrir
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-4 mt-6 pt-4 border-t border-gray-200">
+              <SimpleButton
+                variant="secondary"
+                onClick={() => setDocumentAConsulter(null)}
+              >
+                Fermer
+              </SimpleButton>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
@@ -403,11 +854,10 @@ const StudentListTab: React.FC<{
   students: StudentItem[];
   onToggleActive: (id: number) => void;
   onViewDetails: (student: StudentItem) => void;
-  onEditStudent: (student: StudentItem) => void;
-}> = ({ students, onToggleActive, onViewDetails, onEditStudent }) => {
+}> = ({ students, onToggleActive, onViewDetails }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const [levelFilter, setLevelFilter] = useState<string>('Licence 3'); // Par défaut, afficher seulement Licence 3
   const [classFilter, setClassFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
 
@@ -549,8 +999,6 @@ const StudentListTab: React.FC<{
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Étudiant</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Niveau</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Classe</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date d'inscription</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Moyenne</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">État</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -587,18 +1035,6 @@ const StudentListTab: React.FC<{
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-navy mr-1" />
-                        <span className="text-sm text-gray-900">{student.registrationDate}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Award className="h-4 w-4 text-green-600 mr-1" />
-                        <span className="text-sm text-gray-900">{student.gpa || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
                       <SimpleToggle 
                         isActive={student.active} 
                         onToggle={() => onToggleActive(student.id)}
@@ -607,20 +1043,12 @@ const StudentListTab: React.FC<{
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex space-x-2">
                         <button 
                           onClick={() => onViewDetails(student)}
                           className="p-2 text-gray-600 hover:text-navy hover:bg-navy-light border border-gray-300 hover:border-navy transition-colors duration-200"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button 
-                          onClick={() => onEditStudent(student)}
-                          className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 border border-gray-300 hover:border-green-300 transition-colors duration-200"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                      </div>
                     </td>
                   </motion.tr>
                 ))}
@@ -637,46 +1065,50 @@ const StudentListTab: React.FC<{
 const StatisticsTab: React.FC<{
   students: StudentItem[];
 }> = ({ students }) => {
-  const activeStudents = students.filter(s => s.active);
-  const totalGPA = students.reduce((sum, s) => sum + (s.gpa || 0), 0);
-  const averageGPA = students.length > 0 ? (totalGPA / students.length).toFixed(1) : '0.0';
-  
-  // Statistiques par niveau
-  const levelStats = LEVELS.map(level => {
-    const levelStudents = students.filter(s => s.level === level);
-    return {
-      name: level,
-      count: levelStudents.length,
-      active: levelStudents.filter(s => s.active).length,
-      avgGPA: levelStudents.length > 0 
-        ? (levelStudents.reduce((sum, s) => sum + (s.gpa || 0), 0) / levelStudents.length).toFixed(1)
-        : '0.0'
-    };
-  }).filter(stat => stat.count > 0);
+  // Statistiques liées aux mémoires
+  const totalDossiers = mockDossiers.length;
+  const dossiersEnCours = mockDossiers.filter(d => 
+    d.statut === StatutDossierMemoire.EN_CREATION || 
+    d.statut === StatutDossierMemoire.EN_COURS
+  ).length;
+  const dossiersValides = mockDossiers.filter(d => 
+    d.statut === StatutDossierMemoire.VALIDE
+  ).length;
+  const dossiersSoutenus = mockDossiers.filter(d => 
+    d.statut === StatutDossierMemoire.SOUTENU
+  ).length;
+  const dossiersEnAttenteValidation = mockDossiers.filter(d => 
+    d.statut === StatutDossierMemoire.EN_ATTENTE_VALIDATION
+  ).length;
 
-  // Statistiques par classe
-  const classStats = CLASSES.map(cls => {
-    const classStudents = students.filter(s => s.class === cls);
-    return {
-      name: cls,
-      count: classStudents.length,
-      active: classStudents.filter(s => s.active).length
-    };
-  }).filter(stat => stat.count > 0);
+  // Étudiants avec dossier actif
+  const etudiantsAvecDossierActif = students.filter(s => 
+    s.idCandidat && getDossierEnCoursByCandidat(s.idCandidat)
+  ).length;
+
+  // Répartition par statut
+  const statutStats = [
+    { name: 'En création', count: mockDossiers.filter(d => d.statut === StatutDossierMemoire.EN_CREATION).length, color: 'bg-gray-500' },
+    { name: 'En cours', count: mockDossiers.filter(d => d.statut === StatutDossierMemoire.EN_COURS).length, color: 'bg-blue-500' },
+    { name: 'En attente validation', count: dossiersEnAttenteValidation, color: 'bg-yellow-500' },
+    { name: 'Validés', count: dossiersValides, color: 'bg-green-500' },
+    { name: 'Déposés', count: mockDossiers.filter(d => d.statut === StatutDossierMemoire.DEPOSE).length, color: 'bg-purple-500' },
+    { name: 'Soutenus', count: dossiersSoutenus, color: 'bg-indigo-500' }
+  ].filter(stat => stat.count > 0);
 
   return (
     <div className="space-y-6">
       {/* Statistiques générales */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { title: "Total Étudiants", value: students.length, icon: User, color: "bg-navy-light text-navy" },
-          { title: "Étudiants Actifs", value: activeStudents.length, icon: Check, color: "bg-green-100 text-green-600" },
-          { title: "Moyenne GPA", value: averageGPA, icon: Award, color: "bg-orange-100 text-orange-600" },
-          { title: "Taux d'activité", value: `${Math.round((activeStudents.length / students.length) * 100)}%`, icon: BarChart3, color: "bg-purple-100 text-purple-600" }
+          { title: "Total Dossiers", value: totalDossiers, icon: FileText, color: "bg-navy-light text-navy" },
+          { title: "Dossiers en cours", value: dossiersEnCours, icon: Clock, color: "bg-blue-100 text-blue-600" },
+          { title: "Dossiers validés", value: dossiersValides, icon: CheckCircle, color: "bg-green-100 text-green-600" },
+          { title: "Dossiers soutenus", value: dossiersSoutenus, icon: Award, color: "bg-purple-100 text-purple-600" }
         ].map((stat, index) => (
           <div key={stat.title} className="bg-white border border-gray-200 p-6">
             <div className="flex items-center">
-              <div className={`${stat.color} p-3 mr-4`}>
+              <div className={`${stat.color} p-3 mr-4 rounded-lg`}>
                 <stat.icon className="h-6 w-6" />
               </div>
               <div>
@@ -688,24 +1120,24 @@ const StatisticsTab: React.FC<{
         ))}
       </div>
 
-      {/* Graphiques */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Statistiques supplémentaires */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Répartition par niveau</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Répartition par statut</h3>
           <div className="space-y-3">
-            {levelStats.map(level => {
-              const percentage = Math.round((level.count / students.length) * 100);
+            {statutStats.map(stat => {
+              const percentage = totalDossiers > 0 ? Math.round((stat.count / totalDossiers) * 100) : 0;
               return (
-                <div key={level.name} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{level.name}</span>
+                <div key={stat.name} className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">{stat.name}</span>
                   <div className="flex items-center">
-                    <div className="w-24 bg-gray-200 h-2 mr-3">
+                    <div className="w-24 bg-gray-200 h-2 mr-3 rounded">
                       <div 
-                        className="bg-navy h-2" 
+                        className={`${stat.color} h-2 rounded`}
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
-                    <span className="text-sm font-medium text-gray-900">{level.count}</span>
+                    <span className="text-sm font-medium text-gray-900 w-12 text-right">{stat.count}</span>
                   </div>
                 </div>
               );
@@ -714,25 +1146,15 @@ const StatisticsTab: React.FC<{
         </div>
         
         <div className="bg-white border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Répartition par classe</h3>
-          <div className="space-y-3">
-            {classStats.map(cls => {
-              const percentage = Math.round((cls.count / students.length) * 100);
-              return (
-                <div key={cls.name} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{cls.name}</span>
-                  <div className="flex items-center">
-                    <div className="w-24 bg-gray-200 h-2 mr-3">
-                      <div 
-                        className="bg-green-500 h-2" 
-                        style={{ width: `${percentage}%` }}
-                      ></div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Étudiants avec dossier actif</h3>
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary mb-2">{etudiantsAvecDossierActif}</div>
+              <div className="text-sm text-gray-500">sur {students.length} étudiants</div>
+              <div className="text-xs text-gray-400 mt-2">
+                {students.length > 0 ? Math.round((etudiantsAvecDossierActif / students.length) * 100) : 0}% ont un dossier actif
                     </div>
-                    <span className="text-sm font-medium text-gray-900">{cls.count}</span>
                   </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
@@ -1020,10 +1442,9 @@ const StudentsChef: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'list' | 'add' | 'stats'>('list');
   
-  // États pour la modal et l'édition
+  // États pour la modal
   const [selectedStudent, setSelectedStudent] = useState<StudentItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [studentToEdit, setStudentToEdit] = useState<StudentItem | null>(null);
   
   const [studentsState, setStudentsState] = useState(STUDENTS_DATA);
 
@@ -1045,16 +1466,6 @@ const StudentsChef: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  // Fonctions pour gérer l'édition
-  const startEditStudent = (studentItem: StudentItem) => {
-    setStudentToEdit(studentItem);
-    setActiveTab('add');
-  };
-
-  const stopEditStudent = () => {
-    setStudentToEdit(null);
-    setActiveTab('list');
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1080,23 +1491,10 @@ const StudentsChef: React.FC = () => {
             <nav className="flex space-x-8 px-6">
               <TabButton
                 isActive={activeTab === 'list'}
-                onClick={() => {
-                  setStudentToEdit(null); // Reset l'édition quand on clique sur l'onglet
-                  setActiveTab('list');
-                }}
+                onClick={() => setActiveTab('list')}
                 icon={<FileText className="h-4 w-4" />}
               >
                 Liste des étudiants
-              </TabButton>
-              <TabButton
-                isActive={activeTab === 'add'}
-                onClick={() => {
-                  setStudentToEdit(null); // Reset l'édition quand on clique sur l'onglet
-                  setActiveTab('add');
-                }}
-                icon={<UserPlus className="h-4 w-4" />}
-              >
-                {studentToEdit ? 'Modifier un étudiant' : 'Ajouter un étudiant'}
               </TabButton>
               <TabButton
                 isActive={activeTab === 'stats'}
@@ -1120,20 +1518,6 @@ const StudentsChef: React.FC = () => {
                   students={studentsState}
                   onToggleActive={toggleStudentActive}
                   onViewDetails={openStudentDetails}
-                  onEditStudent={startEditStudent}
-                />
-              </motion.div>
-            )}
-
-            {activeTab === 'add' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <AddStudentTab 
-                  studentToEdit={studentToEdit}
-                  onEditComplete={stopEditStudent}
                 />
               </motion.div>
             )}

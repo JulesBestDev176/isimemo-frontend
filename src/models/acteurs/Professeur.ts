@@ -144,6 +144,73 @@ export const mockProfesseurs: Professeur[] = [
     estJurie: true,
     capaciteEncadrement: 8,
     nombreEncadrementsActuels: 1
+  },
+  // Professeurs supplémentaires pour jurys
+  {
+    idProfesseur: 10,
+    nom: 'Cissé',
+    prenom: 'Abdoulaye',
+    email: 'abdoulaye.cisse@isi.edu.sn',
+    grade: 'Professeur',
+    specialite: 'Génie Logiciel',
+    estDisponible: true,
+    departement: 'Département Informatique',
+    estJurie: true
+  },
+  {
+    idProfesseur: 11,
+    nom: 'Mbaye',
+    prenom: 'Sokhna',
+    email: 'sokhna.mbaye@isi.edu.sn',
+    grade: 'Maître de Conférences',
+    specialite: 'Sécurité Informatique',
+    estDisponible: true,
+    departement: 'Département Informatique',
+    estJurie: true
+  },
+  {
+    idProfesseur: 12,
+    nom: 'Diouf',
+    prenom: 'Cheikh',
+    email: 'cheikh.diouf@isi.edu.sn',
+    grade: 'Professeur',
+    specialite: 'Réseaux',
+    estDisponible: true,
+    departement: 'Département Informatique',
+    estJurie: true
+  },
+  {
+    idProfesseur: 13,
+    nom: 'Faye',
+    prenom: 'Mariama',
+    email: 'mariama.faye@isi.edu.sn',
+    grade: 'Docteur',
+    specialite: 'Data Science',
+    estDisponible: true,
+    departement: 'Département Informatique',
+    estJurie: true
+  },
+  {
+    idProfesseur: 14,
+    nom: 'Tall',
+    prenom: 'Alioune',
+    email: 'alioune.tall@isi.edu.sn',
+    grade: 'Professeur',
+    specialite: 'Systèmes Embarqués',
+    estDisponible: true,
+    departement: 'Département Informatique',
+    estJurie: true
+  },
+  {
+    idProfesseur: 15,
+    nom: 'Ndao',
+    prenom: 'Bineta',
+    email: 'bineta.ndao@isi.edu.sn',
+    grade: 'Maître de Conférences',
+    specialite: 'Cloud Computing',
+    estDisponible: true,
+    departement: 'Département Informatique',
+    estJurie: true
   }
 ];
 

@@ -18,6 +18,7 @@ export enum TypeDocument {
   ANNEXE = 'ANNEXE',
   FICHE_SUIVI = 'FICHE_SUIVI',
   DOCUMENT_ADMINISTRATIF = 'DOCUMENT_ADMINISTRATIF', // CNI, Attestation Bac, Bulletins, etc.
+  PRESENTATION = 'PRESENTATION', // Présentation de soutenance
   AUTRE = 'AUTRE'
 }
 
@@ -30,6 +31,7 @@ export interface Document {
   dateModification?: Date; // Date de dernière modification (quand un nouveau livrable écrase le précédent)
   statut: StatutDocument;
   commentaire?: string;
+  estPhasePublique?: boolean; // Indique si le document est en phase publique
   // Relations
   dossierMemoire?: DossierMemoire;
 }
@@ -37,6 +39,8 @@ export interface Document {
 // ============================================================================
 // MOCKS
 // ============================================================================
+
+import { mockDossiers } from './DossierMemoire';
 
 // Documents administratifs - Généraux à tous les dossiers (indépendants)
 export const mockDocumentsAdministratifs: Document[] = [
@@ -88,12 +92,36 @@ export const mockDocuments: Document[] = [
   // Document pour le dossier en cours (idDossierMemoire: 0)
   {
     idDocument: 0,
-    titre: 'Document initial',
-    typeDocument: TypeDocument.DOCUMENT_ADMINISTRATIF,
-    cheminFichier: '/documents/initial.pdf',
-    dateCreation: new Date('2025-01-15'),
+    titre: 'Mémoire - Chapitre 1 : Introduction',
+    typeDocument: TypeDocument.CHAPITRE,
+    cheminFichier: '/documents/dossier0/chapitre1.pdf',
+    dateCreation: new Date('2024-11-15'),
+    dateModification: new Date('2025-01-10'),
+    statut: StatutDocument.VALIDE,
+    commentaire: 'Chapitre 1 validé par l\'encadrant',
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 0)
+  },
+  {
+    idDocument: 10,
+    titre: 'Mémoire - Chapitre 2 : État de l\'art',
+    typeDocument: TypeDocument.CHAPITRE,
+    cheminFichier: '/documents/dossier0/chapitre2.pdf',
+    dateCreation: new Date('2024-12-01'),
+    dateModification: new Date('2025-01-15'),
+    statut: StatutDocument.EN_ATTENTE_VALIDATION,
+    commentaire: 'En attente de validation',
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 0)
+  },
+  {
+    idDocument: 11,
+    titre: 'Mémoire - Chapitre 3 : Conception',
+    typeDocument: TypeDocument.CHAPITRE,
+    cheminFichier: '/documents/dossier0/chapitre3.pdf',
+    dateCreation: new Date('2025-01-05'),
+    dateModification: new Date('2025-01-20'),
     statut: StatutDocument.DEPOSE,
-    commentaire: 'Document initial du dossier'
+    commentaire: 'Dernière version déposée',
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 0)
   },
   // Documents pour le dossier terminé 1 (idDossierMemoire: 1)
   {
@@ -103,7 +131,18 @@ export const mockDocuments: Document[] = [
     cheminFichier: '/documents/dossier1/memoire_final.pdf',
     dateCreation: new Date('2024-06-10'),
     statut: StatutDocument.VALIDE,
-    commentaire: 'Mémoire complet validé et déposé'
+    commentaire: 'Mémoire complet validé et déposé',
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 1)
+  },
+  {
+    idDocument: 12,
+    titre: 'Présentation de soutenance',
+    typeDocument: TypeDocument.PRESENTATION,
+    cheminFichier: '/documents/dossier1/presentation.pdf',
+    dateCreation: new Date('2024-06-12'),
+    statut: StatutDocument.VALIDE,
+    commentaire: 'Présentation validée',
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 1)
   },
   // Documents pour le dossier terminé 2 (idDossierMemoire: 2)
   {
@@ -113,7 +152,18 @@ export const mockDocuments: Document[] = [
     cheminFichier: '/documents/dossier2/memoire_final.pdf',
     dateCreation: new Date('2023-06-15'),
     statut: StatutDocument.VALIDE,
-    commentaire: 'Mémoire complet validé et déposé'
+    commentaire: 'Mémoire complet validé et déposé',
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 2)
+  },
+  {
+    idDocument: 13,
+    titre: 'Présentation de soutenance',
+    typeDocument: TypeDocument.PRESENTATION,
+    cheminFichier: '/documents/dossier2/presentation.pdf',
+    dateCreation: new Date('2023-06-18'),
+    statut: StatutDocument.VALIDE,
+    commentaire: 'Présentation validée',
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 2)
   },
   // Documents pour les dossiers étudiants de l'encadrement actif (idDossierMemoire: 101, 102, 103)
   // Chaque dossier ne peut avoir qu'un seul document (le mémoire), chaque nouveau livrable écrase le précédent
@@ -125,7 +175,9 @@ export const mockDocuments: Document[] = [
     dateCreation: new Date('2025-01-20'),
     dateModification: new Date('2025-01-20'),
     statut: StatutDocument.EN_ATTENTE_VALIDATION,
-    commentaire: 'Mémoire déposé - En attente de validation'
+    commentaire: 'Mémoire déposé - En attente de validation',
+    estPhasePublique: true, // Exemple : document corrigé en phase publique (période de validation des corrections)
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 101) // Association avec le dossier 101
   },
   {
     idDocument: 102,
@@ -181,4 +233,45 @@ export const getDocumentsByDossier = (dossierId: number): Document[] => {
 
 export const getDocumentsValides = (): Document[] => {
   return mockDocuments.filter(d => d.statut === StatutDocument.VALIDE);
+};
+
+/**
+ * Récupère tous les documents administratifs (généraux à tous les dossiers)
+ */
+export const getDocumentsAdministratifs = (): Document[] => {
+  return mockDocumentsAdministratifs;
+};
+
+/**
+ * Récupère les documents déposés d'un dossier
+ */
+export const getDocumentsDeposesByDossier = (dossierId: number): Document[] => {
+  return getDocumentsByDossier(dossierId).filter(d => d.statut === StatutDocument.DEPOSE);
+};
+
+/**
+ * Met un document en phase publique
+ */
+export const mettreDocumentEnPhasePublique = (idDocument: number): void => {
+  const document = mockDocuments.find(d => d.idDocument === idDocument);
+  if (document) {
+    document.estPhasePublique = true;
+  }
+};
+
+/**
+ * Retire un document de la phase publique
+ */
+export const retirerDocumentDePhasePublique = (idDocument: number): void => {
+  const document = mockDocuments.find(d => d.idDocument === idDocument);
+  if (document) {
+    document.estPhasePublique = false;
+  }
+};
+
+/**
+ * Récupère tous les documents en phase publique
+ */
+export const getDocumentsEnPhasePublique = (): Document[] => {
+  return mockDocuments.filter(d => d.estPhasePublique === true);
 };

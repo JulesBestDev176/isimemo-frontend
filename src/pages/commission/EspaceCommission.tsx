@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { 
@@ -12,7 +12,10 @@ import {
   Download,
   User,
   Calendar,
-  Users
+  Users,
+  Globe,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -27,15 +30,67 @@ import {
   TypeDocument,
   type Document 
 } from '../../models/dossier/Document';
+import { mockProfesseurs } from '../../models/acteurs/Professeur';
+import { mockCandidats } from '../../models/acteurs/Candidat';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { activerRessource } from '../../models/ressource/RessourceMediatheque';
 import { mockRessourcesMediatheque } from '../../models/ressource/RessourceMediatheque';
-import { getEncadrementsByDossier } from '../../models/dossier/Encadrement';
+import { getEncadrementsByDossier, StatutEncadrement } from '../../models/dossier/Encadrement';
+import { 
+  mettreDepotEnPhasePublique, 
+  getDepotsEnPhasePublique 
+} from '../../models/dossier/DossierMemoire';
+import { 
+  mettreDocumentEnPhasePublique, 
+  getDocumentsEnPhasePublique 
+} from '../../models/dossier/Document';
+import { 
+  mockAvisPublics, 
+  getAvisPublicsByElement, 
+  ajouterAvisPublic,
+  type AvisPublic 
+} from '../../models/commission/AvisPublic';
+import { 
+  getTypePeriodeActive, 
+  TypePeriodeValidation,
+  estPeriodeValidationSujets,
+  estPeriodeValidationCorrections,
+  changerPeriodeActive
+} from '../../models/commission/PeriodeValidation';
 
 const EspaceCommission: React.FC = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'sujets' | 'documents'>('sujets');
+  
+  // State pour forcer le re-render lors du changement de période
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Recalculer la période active à chaque changement (dépend de refreshKey)
+  const periodeActive = useMemo(() => getTypePeriodeActive(), [refreshKey]);
+  
+  // Déterminer l'onglet initial selon la période active
+  const initialTab = useMemo(() => {
+    return periodeActive === TypePeriodeValidation.VALIDATION_SUJETS 
+      ? 'sujets' 
+      : periodeActive === TypePeriodeValidation.VALIDATION_CORRECTIONS
+      ? 'documents'
+      : periodeActive === TypePeriodeValidation.AUCUNE
+      ? 'sujets' // Par défaut, mais ne sera pas affiché
+      : 'phase_publique';
+  }, [periodeActive]);
+  
+  // Sous-onglets pour les sujets
+  const [sousOngletSujets, setSousOngletSujets] = useState<'en_attente' | 'valides' | 'rejetes'>('en_attente');
+  
+  // Sous-onglets pour les documents
+  const [sousOngletDocuments, setSousOngletDocuments] = useState<'en_attente' | 'valides' | 'rejetes'>('en_attente');
+  
+  const [activeTab, setActiveTab] = useState<'sujets' | 'documents' | 'phase_publique'>(initialTab);
+  
+  // Mettre à jour l'onglet actif si la période change
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
   
   // États pour la validation des dépôts de sujets
   const [searchQuerySujets, setSearchQuerySujets] = useState('');
@@ -52,6 +107,16 @@ const EspaceCommission: React.FC = () => {
   const [showValidationModalDocument, setShowValidationModalDocument] = useState(false);
   const [validationActionDocument, setValidationActionDocument] = useState<'valider' | 'rejeter' | null>(null);
   const [commentaireDocument, setCommentaireDocument] = useState('');
+
+  // États pour la phase publique
+  const [searchQueryPhasePublique, setSearchQueryPhasePublique] = useState('');
+  const [selectedElementPhasePublique, setSelectedElementPhasePublique] = useState<{
+    type: 'depot_sujet' | 'document_corrige';
+    depot?: DossierMemoire;
+    document?: Document;
+  } | null>(null);
+  const [showPhasePubliqueModal, setShowPhasePubliqueModal] = useState(false);
+  const [nouvelAvis, setNouvelAvis] = useState('');
 
   // Vérifier que l'utilisateur est membre de la commission
   if (!user || user.type !== 'professeur' || !user.estCommission) {
@@ -70,21 +135,44 @@ const EspaceCommission: React.FC = () => {
   // LOGIQUE POUR LA VALIDATION DES DÉPÔTS DE SUJETS
   // ============================================================================
 
-  // Récupérer les dépôts de sujets en attente de validation
-  // Un dépôt est un dossier à l'étape VALIDATION_SUJET avec un encadrant choisi
+  // Récupérer les dépôts de sujets selon le sous-onglet
   const depotsEnAttente = useMemo(() => {
     return mockDossiers.filter(d => 
       d.etape === EtapeDossier.VALIDATION_SUJET && 
       d.encadrant && 
       (d.statut === StatutDossierMemoire.EN_ATTENTE_VALIDATION || d.statut === StatutDossierMemoire.EN_CREATION)
     );
-  }, []);
+  }, [refreshKey]);
+  
+  const depotsValides = useMemo(() => {
+    return mockDossiers.filter(d => 
+      d.etape === EtapeDossier.EN_COURS_REDACTION && 
+      d.statut === StatutDossierMemoire.EN_COURS &&
+      d.encadrant // Avoir un encadrant signifie qu'il a été validé
+    );
+  }, [refreshKey]);
+  
+  const depotsRejetes = useMemo(() => {
+    return mockDossiers.filter(d => 
+      d.etape === EtapeDossier.CHOIX_SUJET && 
+      d.statut === StatutDossierMemoire.EN_CREATION &&
+      d.encadrant === undefined // Pas d'encadrant après rejet (ou encadrant retiré)
+    );
+  }, [refreshKey]);
+  
+  // Filtrer selon le sous-onglet actif
+  const depotsFiltresParSousOnglet = useMemo(() => {
+    if (sousOngletSujets === 'en_attente') return depotsEnAttente;
+    if (sousOngletSujets === 'valides') return depotsValides;
+    if (sousOngletSujets === 'rejetes') return depotsRejetes;
+    return [];
+  }, [sousOngletSujets, depotsEnAttente, depotsValides, depotsRejetes]);
 
   // Filtrer les dépôts par recherche
   const depotsFiltres = useMemo(() => {
-    if (!searchQuerySujets.trim()) return depotsEnAttente;
+    if (!searchQuerySujets.trim()) return depotsFiltresParSousOnglet;
     const query = searchQuerySujets.toLowerCase();
-    return depotsEnAttente.filter(d => {
+    return depotsFiltresParSousOnglet.filter(d => {
       const titreMatch = d.titre.toLowerCase().includes(query);
       const descriptionMatch = d.description.toLowerCase().includes(query);
       const candidatMatch = d.candidats?.some(c => 
@@ -96,7 +184,7 @@ const EspaceCommission: React.FC = () => {
         d.encadrant.email.toLowerCase().includes(query) : false;
       return titreMatch || descriptionMatch || candidatMatch || encadrantMatch;
     });
-  }, [depotsEnAttente, searchQuerySujets]);
+  }, [depotsFiltresParSousOnglet, searchQuerySujets]);
 
   const handleConsulterDepot = (depot: DossierMemoire) => {
     setSelectedDepot(depot);
@@ -145,19 +233,41 @@ const EspaceCommission: React.FC = () => {
   // LOGIQUE POUR LA VALIDATION DES DOCUMENTS
   // ============================================================================
 
-  // Récupérer les documents en attente de validation (corrections après soutenance)
+  // Récupérer les documents selon le sous-onglet
   const documentsEnAttente = useMemo(() => {
     return mockDocuments.filter(d => 
       d.statut === StatutDocument.EN_ATTENTE_VALIDATION && 
       d.typeDocument === TypeDocument.CHAPITRE
     );
-  }, []);
+  }, [refreshKey]);
+  
+  const documentsValides = useMemo(() => {
+    return mockDocuments.filter(d => 
+      d.statut === StatutDocument.VALIDE && 
+      d.typeDocument === TypeDocument.CHAPITRE
+    );
+  }, [refreshKey]);
+  
+  const documentsRejetes = useMemo(() => {
+    return mockDocuments.filter(d => 
+      d.statut === StatutDocument.REJETE && 
+      d.typeDocument === TypeDocument.CHAPITRE
+    );
+  }, [refreshKey]);
+  
+  // Filtrer selon le sous-onglet actif
+  const documentsFiltresParSousOnglet = useMemo(() => {
+    if (sousOngletDocuments === 'en_attente') return documentsEnAttente;
+    if (sousOngletDocuments === 'valides') return documentsValides;
+    if (sousOngletDocuments === 'rejetes') return documentsRejetes;
+    return [];
+  }, [sousOngletDocuments, documentsEnAttente, documentsValides, documentsRejetes]);
 
   // Filtrer les documents par recherche
   const documentsFiltres = useMemo(() => {
-    if (!searchQueryDocuments.trim()) return documentsEnAttente;
+    if (!searchQueryDocuments.trim()) return documentsFiltresParSousOnglet;
     const query = searchQueryDocuments.toLowerCase();
-    return documentsEnAttente.filter(d => {
+    return documentsFiltresParSousOnglet.filter(d => {
       const dossier = d.dossierMemoire;
       const titreMatch = d.titre.toLowerCase().includes(query);
       const dossierTitreMatch = dossier?.titre?.toLowerCase().includes(query) || false;
@@ -167,7 +277,7 @@ const EspaceCommission: React.FC = () => {
       ) || false;
       return titreMatch || dossierTitreMatch || candidatsMatch;
     });
-  }, [documentsEnAttente, searchQueryDocuments]);
+  }, [documentsFiltresParSousOnglet, searchQueryDocuments]);
 
   const handleConsulterDocument = (document: Document) => {
     setSelectedDocument(document);
@@ -217,6 +327,131 @@ const EspaceCommission: React.FC = () => {
     setCommentaireDocument('');
   };
 
+  // ============================================================================
+  // LOGIQUE POUR LA PHASE PUBLIQUE
+  // ============================================================================
+
+  // Récupérer les dépôts en phase publique (seulement si période de validation des sujets)
+  const depotsPhasePublique = useMemo(() => {
+    if (!estPeriodeValidationSujets()) return [];
+    return getDepotsEnPhasePublique();
+  }, [refreshKey]);
+
+  // Récupérer les documents en phase publique (seulement si période de validation des corrections)
+  const documentsPhasePublique = useMemo(() => {
+    if (!estPeriodeValidationCorrections()) return [];
+    return getDocumentsEnPhasePublique();
+  }, [refreshKey]);
+
+  // Filtrer les éléments en phase publique par recherche
+  const elementsPhasePubliqueFiltres = useMemo(() => {
+    const elements: Array<{ type: 'depot_sujet' | 'document_corrige'; depot?: DossierMemoire; document?: Document }> = [];
+    
+    depotsPhasePublique.forEach(depot => {
+      elements.push({ type: 'depot_sujet', depot });
+    });
+    
+    documentsPhasePublique.forEach(document => {
+      elements.push({ type: 'document_corrige', document });
+    });
+
+    if (!searchQueryPhasePublique.trim()) return elements;
+    
+    const query = searchQueryPhasePublique.toLowerCase();
+    return elements.filter(el => {
+      if (el.type === 'depot_sujet' && el.depot) {
+        const titreMatch = el.depot.titre.toLowerCase().includes(query);
+        const descriptionMatch = el.depot.description.toLowerCase().includes(query);
+        const candidatMatch = el.depot.candidats?.some(c => 
+          `${c.prenom} ${c.nom}`.toLowerCase().includes(query)
+        ) || false;
+        return titreMatch || descriptionMatch || candidatMatch;
+      } else if (el.type === 'document_corrige' && el.document) {
+        const titreMatch = el.document.titre.toLowerCase().includes(query);
+        const dossierTitreMatch = el.document.dossierMemoire?.titre?.toLowerCase().includes(query) || false;
+        return titreMatch || dossierTitreMatch;
+      }
+      return false;
+    });
+  }, [depotsPhasePublique, documentsPhasePublique, searchQueryPhasePublique]);
+
+  const handleMettreEnPhasePubliqueDepot = () => {
+    if (!selectedDepot) return;
+    mettreDepotEnPhasePublique(selectedDepot.idDossierMemoire);
+    setShowConsultationModalSujet(false);
+    setSelectedDepot(null);
+  };
+
+  const handleMettreEnPhasePubliqueDocument = () => {
+    if (!selectedDocument) return;
+    mettreDocumentEnPhasePublique(selectedDocument.idDocument);
+    setShowConsultationModalDocument(false);
+    setSelectedDocument(null);
+  };
+
+  const handleConsulterPhasePublique = (element: { type: 'depot_sujet' | 'document_corrige'; depot?: DossierMemoire; document?: Document }) => {
+    setSelectedElementPhasePublique(element);
+    setShowPhasePubliqueModal(true);
+    setNouvelAvis('');
+  };
+
+  const handleAjouterAvis = () => {
+    if (!selectedElementPhasePublique || !nouvelAvis.trim() || !user) return;
+
+    const idElement = selectedElementPhasePublique.type === 'depot_sujet' 
+      ? selectedElementPhasePublique.depot?.idDossierMemoire 
+      : selectedElementPhasePublique.document?.idDocument;
+
+    if (!idElement) return;
+
+    // Trouver l'auteur dans les mocks basé sur l'utilisateur connecté
+    let auteur: any = null;
+    
+    if (user.type === 'professeur') {
+      // Chercher le professeur correspondant dans les mocks
+      const professeur = mockProfesseurs.find(p => p.email === user.email);
+      if (professeur) {
+        auteur = professeur;
+      } else {
+        // Créer un professeur temporaire si non trouvé
+        const [prenom, ...nomParts] = (user.name || '').split(' ');
+        auteur = {
+          idProfesseur: parseInt(user.id) || 0,
+          nom: nomParts.join(' ') || 'Professeur',
+          prenom: prenom || '',
+          email: user.email || '',
+          estDisponible: true
+        };
+      }
+    } else {
+      // Chercher le candidat correspondant dans les mocks
+      const candidat = mockCandidats.find(c => c.email === user.email);
+      if (candidat) {
+        auteur = candidat;
+      } else {
+        // Créer un candidat temporaire si non trouvé
+        const [prenom, ...nomParts] = (user.name || '').split(' ');
+        auteur = {
+          idCandidat: parseInt(user.id) || 0,
+          nom: nomParts.join(' ') || 'Candidat',
+          prenom: prenom || '',
+          email: user.email || '',
+          numeroMatricule: `ETU${user.id}`
+        };
+      }
+    }
+
+    if (auteur) {
+      ajouterAvisPublic(
+        selectedElementPhasePublique.type,
+        idElement,
+        auteur,
+        nouvelAvis.trim()
+      );
+      setNouvelAvis('');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -224,47 +459,142 @@ const EspaceCommission: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">Espace Commission</h1>
           <p className="text-gray-600 mt-1">Validez les sujets et les documents corrigés après soutenance</p>
         </div>
+        {/* Bouton de simulation pour changer de période - À RETIRER */}
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+            Période: {periodeActive === TypePeriodeValidation.VALIDATION_SUJETS 
+              ? 'Validation Sujets' 
+              : periodeActive === TypePeriodeValidation.VALIDATION_CORRECTIONS
+              ? 'Validation Corrections'
+              : 'Aucune'}
+          </Badge>
+          <div className="flex gap-1 border rounded-lg p-1 bg-gray-50">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                changerPeriodeActive(TypePeriodeValidation.VALIDATION_SUJETS);
+                setActiveTab('sujets');
+                setRefreshKey(prev => prev + 1); // Force le re-render
+              }}
+              className={`text-xs ${periodeActive === TypePeriodeValidation.VALIDATION_SUJETS ? 'bg-primary text-white' : ''}`}
+            >
+              Sujets
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                changerPeriodeActive(TypePeriodeValidation.VALIDATION_CORRECTIONS);
+                setActiveTab('documents');
+                setRefreshKey(prev => prev + 1); // Force le re-render
+              }}
+              className={`text-xs ${periodeActive === TypePeriodeValidation.VALIDATION_CORRECTIONS ? 'bg-primary text-white' : ''}`}
+            >
+              Corrections
+            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  changerPeriodeActive(TypePeriodeValidation.AUCUNE);
+                  setActiveTab('sujets'); // Par défaut, mais ne sera pas affiché
+                  setRefreshKey(prev => prev + 1); // Force le re-render
+                }}
+                className={`text-xs ${periodeActive === TypePeriodeValidation.AUCUNE ? 'bg-primary text-white' : ''}`}
+              >
+                Aucune
+              </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Onglets */}
+      {/* Onglets - Affichage conditionnel selon la période active */}
       <div className="flex gap-2 border-b">
-        <button
-          onClick={() => setActiveTab('sujets')}
-          className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'sujets'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            Validation des sujets
-            {depotsEnAttente.length > 0 && (
-              <Badge variant="outline" className="ml-2">
-                {depotsEnAttente.length}
-              </Badge>
-            )}
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('documents')}
-          className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'documents'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <FileCheck className="h-4 w-4" />
-            Validation des documents corrigés
-            {documentsEnAttente.length > 0 && (
-              <Badge variant="outline" className="ml-2">
-                {documentsEnAttente.length}
-              </Badge>
-            )}
-          </div>
-        </button>
+        {/* Onglet Validation des sujets - Seulement si période de validation des sujets */}
+        {periodeActive === TypePeriodeValidation.VALIDATION_SUJETS && (
+          <button
+            onClick={() => setActiveTab('sujets')}
+            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'sujets'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Validation des sujets
+              {depotsEnAttente.length > 0 && (
+                <Badge variant="outline" className="ml-2">
+                  {depotsEnAttente.length}
+                </Badge>
+              )}
+            </div>
+          </button>
+        )}
+        
+        {/* Onglet Validation des documents - Seulement si période de validation des corrections */}
+        {periodeActive === TypePeriodeValidation.VALIDATION_CORRECTIONS && (
+          <button
+            onClick={() => setActiveTab('documents')}
+            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'documents'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <FileCheck className="h-4 w-4" />
+              Validation des documents corrigés
+              {documentsEnAttente.length > 0 && (
+                <Badge variant="outline" className="ml-2">
+                  {documentsEnAttente.length}
+                </Badge>
+              )}
+            </div>
+          </button>
+        )}
+        
+        {/* Onglet Phase publique - Seulement si une période est active */}
+        {periodeActive !== TypePeriodeValidation.AUCUNE && (
+          <button
+            onClick={() => setActiveTab('phase_publique')}
+            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'phase_publique'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Phase publique
+              {(depotsPhasePublique.length + documentsPhasePublique.length) > 0 && (
+                <Badge variant="outline" className="ml-2">
+                  {depotsPhasePublique.length + documentsPhasePublique.length}
+                </Badge>
+              )}
+            </div>
+          </button>
+        )}
       </div>
+      
+      {/* Message si aucune période n'est active */}
+      {periodeActive === TypePeriodeValidation.AUCUNE && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <div>
+                <p className="font-medium text-yellow-900">Aucune période de validation active</p>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Aucune période de validation des sujets ou des corrections n'est actuellement active. 
+                  Veuillez contacter le chef de département pour activer une période de validation.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Contenu des onglets */}
       <motion.div
@@ -273,9 +603,58 @@ const EspaceCommission: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {/* Onglet Validation des sujets */}
-        {activeTab === 'sujets' && (
+        {/* Onglet Validation des sujets - Seulement si période active */}
+        {activeTab === 'sujets' && periodeActive === TypePeriodeValidation.VALIDATION_SUJETS && (
           <div className="space-y-6">
+            {/* Sous-onglets pour les sujets */}
+            <div className="flex gap-2 border-b">
+              <button
+                onClick={() => setSousOngletSujets('en_attente')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  sousOngletSujets === 'en_attente'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                En attente
+                {depotsEnAttente.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    {depotsEnAttente.length}
+                  </Badge>
+                )}
+              </button>
+              <button
+                onClick={() => setSousOngletSujets('valides')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  sousOngletSujets === 'valides'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Validés
+                {depotsValides.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    {depotsValides.length}
+                  </Badge>
+                )}
+              </button>
+              <button
+                onClick={() => setSousOngletSujets('rejetes')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  sousOngletSujets === 'rejetes'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Rejetés
+                {depotsRejetes.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    {depotsRejetes.length}
+                  </Badge>
+                )}
+              </button>
+            </div>
+            
             {/* Recherche */}
             <Card>
               <CardContent className="pt-6">
@@ -339,9 +718,21 @@ const EspaceCommission: React.FC = () => {
                                 </div>
                               </CardDescription>
                             </div>
-                            <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                              En attente
-                            </Badge>
+                            {sousOngletSujets === 'en_attente' && (
+                              <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                                En attente
+                              </Badge>
+                            )}
+                            {sousOngletSujets === 'valides' && (
+                              <Badge className="bg-green-50 text-green-700 border-green-200">
+                                Validé
+                              </Badge>
+                            )}
+                            {sousOngletSujets === 'rejetes' && (
+                              <Badge className="bg-red-50 text-red-700 border-red-200">
+                                Rejeté
+                              </Badge>
+                            )}
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -387,6 +778,38 @@ const EspaceCommission: React.FC = () => {
                                 <Eye className="h-4 w-4" />
                                 Consulter
                               </Button>
+                              {sousOngletSujets === 'en_attente' && (
+                                <>
+                                  <Button
+                                    variant="default"
+                                    onClick={() => {
+                                      handleConsulterDepot(depot);
+                                      setTimeout(() => {
+                                        setShowConsultationModalSujet(false);
+                                        handleValiderDepot();
+                                      }, 100);
+                                    }}
+                                    className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                    Valider
+                                  </Button>
+                                  <Button
+                                    variant="default"
+                                    onClick={() => {
+                                      handleConsulterDepot(depot);
+                                      setTimeout(() => {
+                                        setShowConsultationModalSujet(false);
+                                        handleRejeterDepot();
+                                      }, 100);
+                                    }}
+                                    className="flex items-center gap-2 bg-destructive hover:bg-destructive/90"
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                    Rejeter
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </CardContent>
@@ -399,9 +822,58 @@ const EspaceCommission: React.FC = () => {
           </div>
         )}
 
-        {/* Onglet Validation des documents */}
-        {activeTab === 'documents' && (
+        {/* Onglet Validation des documents - Seulement si période active */}
+        {activeTab === 'documents' && periodeActive === TypePeriodeValidation.VALIDATION_CORRECTIONS && (
           <div className="space-y-6">
+            {/* Sous-onglets pour les documents */}
+            <div className="flex gap-2 border-b">
+              <button
+                onClick={() => setSousOngletDocuments('en_attente')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  sousOngletDocuments === 'en_attente'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                En attente
+                {documentsEnAttente.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    {documentsEnAttente.length}
+                  </Badge>
+                )}
+              </button>
+              <button
+                onClick={() => setSousOngletDocuments('valides')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  sousOngletDocuments === 'valides'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Validés
+                {documentsValides.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    {documentsValides.length}
+                  </Badge>
+                )}
+              </button>
+              <button
+                onClick={() => setSousOngletDocuments('rejetes')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  sousOngletDocuments === 'rejetes'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Rejetés
+                {documentsRejetes.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    {documentsRejetes.length}
+                  </Badge>
+                )}
+              </button>
+            </div>
+            
             {/* Recherche */}
             <Card>
               <CardContent className="pt-6">
@@ -423,8 +895,16 @@ const EspaceCommission: React.FC = () => {
               <Card>
                 <CardContent className="py-12 text-center">
                   <FileCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun document en attente</h3>
-                  <p className="text-gray-600">Tous les documents ont été traités ou aucun document n'est en attente de validation.</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {sousOngletDocuments === 'en_attente' && 'Aucun document en attente'}
+                    {sousOngletDocuments === 'valides' && 'Aucun document validé'}
+                    {sousOngletDocuments === 'rejetes' && 'Aucun document rejeté'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {sousOngletDocuments === 'en_attente' && 'Tous les documents ont été traités ou aucun document n\'est en attente de validation.'}
+                    {sousOngletDocuments === 'valides' && 'Aucun document corrigé n\'a été validé pour le moment.'}
+                    {sousOngletDocuments === 'rejetes' && 'Aucun document corrigé n\'a été rejeté pour le moment.'}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -458,9 +938,21 @@ const EspaceCommission: React.FC = () => {
                                 )}
                               </CardDescription>
                             </div>
-                            <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                              En attente
-                            </Badge>
+                            {sousOngletDocuments === 'en_attente' && (
+                              <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                                En attente
+                              </Badge>
+                            )}
+                            {sousOngletDocuments === 'valides' && (
+                              <Badge className="bg-green-50 text-green-700 border-green-200">
+                                Validé
+                              </Badge>
+                            )}
+                            {sousOngletDocuments === 'rejetes' && (
+                              <Badge className="bg-red-50 text-red-700 border-red-200">
+                                Rejeté
+                              </Badge>
+                            )}
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -500,12 +992,214 @@ const EspaceCommission: React.FC = () => {
                                 <Eye className="h-4 w-4" />
                                 Consulter
                               </Button>
+                              {sousOngletDocuments === 'en_attente' && (
+                                <>
+                                  <Button
+                                    variant="default"
+                                    onClick={() => {
+                                      handleConsulterDocument(document);
+                                      setTimeout(() => {
+                                        setShowConsultationModalDocument(false);
+                                        handleValiderDocument();
+                                      }, 100);
+                                    }}
+                                    className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                    Valider
+                                  </Button>
+                                  <Button
+                                    variant="default"
+                                    onClick={() => {
+                                      handleConsulterDocument(document);
+                                      setTimeout(() => {
+                                        setShowConsultationModalDocument(false);
+                                        handleRejeterDocument();
+                                      }, 100);
+                                    }}
+                                    className="flex items-center gap-2 bg-destructive hover:bg-destructive/90"
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                    Rejeter
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </CardContent>
                       </Card>
                     </motion.div>
                   );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Onglet Phase publique */}
+        {activeTab === 'phase_publique' && (
+          <div className="space-y-6">
+            {/* Recherche */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input
+                    type="text"
+                    placeholder="Rechercher dans les éléments en phase publique..."
+                    value={searchQueryPhasePublique}
+                    onChange={(e) => setSearchQueryPhasePublique(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Liste des éléments en phase publique */}
+            {elementsPhasePubliqueFiltres.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun élément en phase publique</h3>
+                  <p className="text-gray-600">Aucun dépôt de sujet ou document n'est actuellement en phase publique.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {elementsPhasePubliqueFiltres.map((element, index) => {
+                  if (element.type === 'depot_sujet' && element.depot) {
+                    const depot = element.depot;
+                    const candidats = depot.binome?.candidats || depot.candidats || [];
+                    const estBinome = depot.binome && depot.binome.candidats && depot.binome.candidats.length > 1;
+                    const avis = getAvisPublicsByElement('depot_sujet', depot.idDossierMemoire);
+                    
+                    return (
+                      <motion.div
+                        key={`depot-${depot.idDossierMemoire}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <Card className="hover:shadow-lg transition-shadow border-blue-200">
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-xl mb-2 flex items-center gap-2">
+                                  {depot.titre}
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    <Globe className="h-3 w-3 mr-1" />
+                                    Phase publique
+                                  </Badge>
+                                </CardTitle>
+                                <CardDescription className="mt-2">
+                                  <div className="flex flex-wrap gap-2 items-center">
+                                    {estBinome && (
+                                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                        Binôme
+                                      </Badge>
+                                    )}
+                                    {candidats.map((candidat, idx) => (
+                                      <Badge key={idx} variant="outline">
+                                        {candidat.prenom} {candidat.nom}
+                                      </Badge>
+                                    ))}
+                                    {depot.encadrant && (
+                                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                        Encadrant: {depot.encadrant.prenom} {depot.encadrant.nom}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </CardDescription>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              <div>
+                                <p className="text-sm text-gray-600 mb-1">Description</p>
+                                <p className="text-gray-700">{depot.description}</p>
+                              </div>
+                              <div className="flex items-center justify-between pt-4 border-t">
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <MessageSquare className="h-4 w-4" />
+                                  <span>{avis.length} avis</span>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleConsulterPhasePublique(element)}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  Consulter et donner un avis
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  } else if (element.type === 'document_corrige' && element.document) {
+                    const document = element.document;
+                    const dossier = document.dossierMemoire;
+                    const candidats = dossier?.candidats || [];
+                    const avis = getAvisPublicsByElement('document_corrige', document.idDocument);
+                    
+                    return (
+                      <motion.div
+                        key={`document-${document.idDocument}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <Card className="hover:shadow-lg transition-shadow border-blue-200">
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-xl mb-2 flex items-center gap-2">
+                                  {document.titre}
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    <Globe className="h-3 w-3 mr-1" />
+                                    Phase publique
+                                  </Badge>
+                                </CardTitle>
+                                <CardDescription className="mt-2">
+                                  {dossier && (
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                      <Badge variant="outline">Dossier: {dossier.titre}</Badge>
+                                      {candidats.map((candidat, idx) => (
+                                        <Badge key={idx} variant="outline">
+                                          {candidat.prenom} {candidat.nom}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </CardDescription>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between pt-4 border-t">
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <MessageSquare className="h-4 w-4" />
+                                  <span>{avis.length} avis</span>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleConsulterPhasePublique(element)}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  Consulter et donner un avis
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  }
+                  return null;
                 })}
               </div>
             )}
@@ -534,6 +1228,41 @@ const EspaceCommission: React.FC = () => {
             >
               <h3 className="text-xl font-bold mb-4">Détails du dépôt de sujet</h3>
               <div className="space-y-4">
+                {/* Avis publics existants */}
+                {(() => {
+                  const avis = getAvisPublicsByElement('depot_sujet', selectedDepot.idDossierMemoire);
+                  if (avis.length > 0) {
+                    return (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-blue-900">
+                          <MessageSquare className="h-4 w-4" />
+                          Avis publics ({avis.length})
+                        </h4>
+                        <div className="space-y-3 max-h-40 overflow-y-auto">
+                          {avis.map((avisItem) => (
+                            <div key={avisItem.idAvis} className="bg-white p-3 rounded border">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-3 w-3 text-gray-400" />
+                                  <span className="font-medium text-xs">
+                                    {'nom' in avisItem.auteur 
+                                      ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
+                                      : 'Utilisateur'}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500">
+                                  {format(avisItem.dateCreation, 'dd/MM/yyyy', { locale: fr })}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 <div>
                   <p className="text-sm font-medium mb-1 text-gray-600">Sujet choisi</p>
                   <p className="text-gray-900 text-lg">{selectedDepot.titre}</p>
@@ -586,6 +1315,14 @@ const EspaceCommission: React.FC = () => {
                 <div className="flex justify-end gap-2 pt-4 border-t">
                   <Button variant="outline" onClick={() => setShowConsultationModalSujet(false)}>
                     Fermer
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleMettreEnPhasePubliqueDepot}
+                    className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Globe className="h-4 w-4 mr-2" />
+                    Mettre en phase publique
                   </Button>
                   <Button
                     variant="default"
@@ -733,6 +1470,41 @@ const EspaceCommission: React.FC = () => {
             >
               <h3 className="text-xl font-bold mb-4">Détails du document</h3>
               <div className="space-y-4">
+                {/* Avis publics existants */}
+                {(() => {
+                  const avis = getAvisPublicsByElement('document_corrige', selectedDocument.idDocument);
+                  if (avis.length > 0) {
+                    return (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-blue-900">
+                          <MessageSquare className="h-4 w-4" />
+                          Avis publics ({avis.length})
+                        </h4>
+                        <div className="space-y-3 max-h-40 overflow-y-auto">
+                          {avis.map((avisItem) => (
+                            <div key={avisItem.idAvis} className="bg-white p-3 rounded border">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-3 w-3 text-gray-400" />
+                                  <span className="font-medium text-xs">
+                                    {'nom' in avisItem.auteur 
+                                      ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
+                                      : 'Utilisateur'}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500">
+                                  {format(avisItem.dateCreation, 'dd/MM/yyyy', { locale: fr })}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 <div>
                   <p className="text-sm font-medium mb-1 text-gray-600">Titre du document</p>
                   <p className="text-gray-900 text-lg">{selectedDocument.titre}</p>
@@ -818,6 +1590,14 @@ const EspaceCommission: React.FC = () => {
                 <div className="flex justify-end gap-2 pt-4 border-t">
                   <Button variant="outline" onClick={() => setShowConsultationModalDocument(false)}>
                     Fermer
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleMettreEnPhasePubliqueDocument}
+                    className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Globe className="h-4 w-4 mr-2" />
+                    Mettre en phase publique
                   </Button>
                   <Button
                     variant="default"
@@ -925,6 +1705,280 @@ const EspaceCommission: React.FC = () => {
           </motion.div>
         </motion.div>
       )}
+
+      {/* Modal de consultation pour la phase publique */}
+      {showPhasePubliqueModal && selectedElementPhasePublique && (() => {
+        const avis = selectedElementPhasePublique.type === 'depot_sujet'
+          ? getAvisPublicsByElement('depot_sujet', selectedElementPhasePublique.depot?.idDossierMemoire || 0)
+          : getAvisPublicsByElement('document_corrige', selectedElementPhasePublique.document?.idDocument || 0);
+
+        if (selectedElementPhasePublique.type === 'depot_sujet' && selectedElementPhasePublique.depot) {
+          const depot = selectedElementPhasePublique.depot;
+          const candidats = depot.binome?.candidats || depot.candidats || [];
+          const estBinome = depot.binome && depot.binome.candidats && depot.binome.candidats.length > 1;
+
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={() => setShowPhasePubliqueModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white max-w-4xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
+              >
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-blue-600" />
+                  Dépôt de sujet en phase publique
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium mb-1 text-gray-600">Sujet</p>
+                    <p className="text-gray-900 text-lg">{depot.titre}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium mb-1 text-gray-600">Description</p>
+                    <p className="text-gray-700">{depot.description}</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {candidats.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-1 text-gray-600">{estBinome ? 'Binôme' : 'Candidat(s)'}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {candidats.map((candidat, idx) => (
+                            <Badge key={idx} variant="outline">
+                              {candidat.prenom} {candidat.nom}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {depot.encadrant && (
+                      <div>
+                        <p className="text-sm font-medium mb-1 text-gray-600">Encadrant</p>
+                        <p className="text-gray-700">
+                          {depot.encadrant.prenom} {depot.encadrant.nom}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Section des avis */}
+                  <div className="pt-4 border-t">
+                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      Avis publics ({avis.length})
+                    </h4>
+                    <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
+                      {avis.length === 0 ? (
+                        <p className="text-gray-500 text-sm italic">Aucun avis pour le moment.</p>
+                      ) : (
+                        avis.map((avisItem) => (
+                          <div key={avisItem.idAvis} className="bg-gray-50 p-3 rounded border">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-gray-400" />
+                                <span className="font-medium text-sm">
+                                  {'nom' in avisItem.auteur 
+                                    ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
+                                    : 'Utilisateur'}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {format(avisItem.dateCreation, 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Formulaire pour ajouter un avis */}
+                    <div className="pt-4 border-t">
+                      <label className="block text-sm font-medium mb-2">Ajouter votre avis</label>
+                      <Textarea
+                        value={nouvelAvis}
+                        onChange={(e) => setNouvelAvis(e.target.value)}
+                        placeholder="Partagez votre point de vue sur ce dépôt de sujet..."
+                        rows={3}
+                        className="mb-2"
+                      />
+                      <Button
+                        onClick={handleAjouterAvis}
+                        disabled={!nouvelAvis.trim()}
+                        className="w-full"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Publier mon avis
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button variant="outline" onClick={() => setShowPhasePubliqueModal(false)}>
+                      Fermer
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        } else if (selectedElementPhasePublique.type === 'document_corrige' && selectedElementPhasePublique.document) {
+          const document = selectedElementPhasePublique.document;
+          const dossier = document.dossierMemoire;
+          const candidats = dossier?.candidats || [];
+          const encadrements = dossier ? getEncadrementsByDossier(dossier.idDossierMemoire) : [];
+          const encadrementActif = encadrements.find(e => e.statut === StatutEncadrement.ACTIF);
+          const encadrant = encadrementActif?.professeur || dossier?.encadrant;
+
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={() => setShowPhasePubliqueModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white max-w-4xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
+              >
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-blue-600" />
+                  Document corrigé en phase publique
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium mb-1 text-gray-600">Titre du document</p>
+                    <p className="text-gray-900 text-lg">{document.titre}</p>
+                  </div>
+                  {dossier && (
+                    <>
+                      <div>
+                        <p className="text-sm font-medium mb-1 text-gray-600">Dossier</p>
+                        <p className="text-gray-700">{dossier.titre}</p>
+                      </div>
+                      {candidats.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium mb-1 text-gray-600">Candidat(s)</p>
+                          <div className="flex flex-wrap gap-2">
+                            {candidats.map((candidat, idx) => (
+                              <Badge key={idx} variant="outline">
+                                {candidat.prenom} {candidat.nom}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {encadrant && (
+                        <div>
+                          <p className="text-sm font-medium mb-1 text-gray-600">Encadrant</p>
+                          <p className="text-gray-700">
+                            {encadrant.prenom} {encadrant.nom}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open(document.cheminFichier, '_blank')}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Visualiser
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const link = window.document.createElement('a');
+                        link.href = document.cheminFichier;
+                        link.download = document.titre;
+                        window.document.body.appendChild(link);
+                        link.click();
+                        window.document.body.removeChild(link);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Télécharger
+                    </Button>
+                  </div>
+
+                  {/* Section des avis */}
+                  <div className="pt-4 border-t">
+                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      Avis publics ({avis.length})
+                    </h4>
+                    <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
+                      {avis.length === 0 ? (
+                        <p className="text-gray-500 text-sm italic">Aucun avis pour le moment.</p>
+                      ) : (
+                        avis.map((avisItem) => (
+                          <div key={avisItem.idAvis} className="bg-gray-50 p-3 rounded border">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-gray-400" />
+                                <span className="font-medium text-sm">
+                                  {'nom' in avisItem.auteur 
+                                    ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
+                                    : 'Utilisateur'}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {format(avisItem.dateCreation, 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Formulaire pour ajouter un avis */}
+                    <div className="pt-4 border-t">
+                      <label className="block text-sm font-medium mb-2">Ajouter votre avis</label>
+                      <Textarea
+                        value={nouvelAvis}
+                        onChange={(e) => setNouvelAvis(e.target.value)}
+                        placeholder="Partagez votre point de vue sur ce document..."
+                        rows={3}
+                        className="mb-2"
+                      />
+                      <Button
+                        onClick={handleAjouterAvis}
+                        disabled={!nouvelAvis.trim()}
+                        className="w-full"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Publier mon avis
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button variant="outline" onClick={() => setShowPhasePubliqueModal(false)}>
+                      Fermer
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        }
+        return null;
+      })()}
     </div>
   );
 };

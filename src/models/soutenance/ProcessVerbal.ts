@@ -132,6 +132,13 @@ export const getProcessVerbalBySoutenance = (soutenanceId: number): ProcessVerba
   return mockProcessVerbaux.find(pv => pv.soutenance?.idSoutenance === soutenanceId);
 };
 
+export const getProcessVerbalByDossier = (idDossierMemoire: number): ProcessVerbal | undefined => {
+  return mockProcessVerbaux.find(pv => 
+    pv.soutenance?.dossierMemoire?.idDossierMemoire === idDossierMemoire ||
+    pv.soutenance?.dossiersMemoire?.some(d => d.idDossierMemoire === idDossierMemoire)
+  );
+};
+
 /**
  * Vérifie si un professeur a déjà approuvé un procès-verbal
  */
