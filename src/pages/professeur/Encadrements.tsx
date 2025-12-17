@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Users, 
+import {
+  Users,
   Inbox,
   Calendar,
   FileText,
@@ -19,16 +19,37 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  DemandeEncadrement, 
+import {
+  DemandeEncadrement,
   StatutDemandeEncadrement,
   getDemandesEncadrementByProfesseur,
-  Encadrement, 
+  Encadrement,
   StatutEncadrement,
   getEncadrementsByProfesseur,
   getEncadrementsActifs
 } from '../../models';
 import { getAnneeAcademiqueCourante, isAnneeAcademiqueTerminee } from '../../utils/anneeAcademique';
+import { PanelHeader } from '../../components/panel-encadrant/PanelHeader';
+import { PanelTabs } from '../../components/panel-encadrant/PanelTabs';
+import { MessageList, Message } from '../../components/panel-encadrant/MessageList';
+import { TacheCommuneList, TacheCommune } from '../../components/panel-encadrant/TacheCommuneList';
+import { DossierEtudiantList, DossierEtudiant } from '../../components/panel-encadrant/DossierEtudiantList';
+import { AddTacheModal, NewTache } from '../../components/panel-encadrant/AddTacheModal';
+import { PrelectureList } from '../../components/panel-encadrant/PrelectureList';
+import { PrelectureDetail } from '../../components/panel-encadrant/PrelectureDetail';
+import {
+  getDemandesPrelectureByPrelecteur,
+  getDemandesPrelectureRejetees,
+  validerPrelecture,
+  rejeterPrelecture,
+  StatutDemandePrelecture
+} from '../../models/dossier/DemandePrelecture';
+import { createTicketForDossier, Priorite } from '../../models/dossier/Ticket';
+import { getDossierById } from '../../models/dossier/DossierMemoire';
+import {
+  StatutDossierMemoire,
+  EtapeDossier
+} from '../../models';
 
 // Badge Component - Palette simplifiée (3 couleurs)
 const Badge: React.FC<{
@@ -40,7 +61,7 @@ const Badge: React.FC<{
     info: 'bg-blue-50 text-blue-700 border border-blue-200',
     neutral: 'bg-gray-50 text-gray-700 border border-gray-200'
   };
-  
+
   return (
     <span className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium ${variants[variant]}`}>
       {children}
@@ -50,9 +71,9 @@ const Badge: React.FC<{
 
 // Formatage des dates
 const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('fr-FR', { 
-    day: 'numeric', 
-    month: 'long', 
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
     year: 'numeric'
   });
 };
@@ -62,7 +83,7 @@ const getCurrentAnneeAcademique = (): string => {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 0-indexed
-  
+
   // Si on est entre janvier et août, on est dans l'année académique précédente
   // Sinon, on est dans la nouvelle année académique
   if (currentMonth >= 1 && currentMonth <= 8) {
@@ -85,8 +106,8 @@ const TabButton: React.FC<{
       onClick={onClick}
       className={`
         flex items-center px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200
-        ${isActive 
-          ? 'border-primary text-primary bg-white' 
+        ${isActive
+          ? 'border-primary text-primary bg-white'
           : 'border-transparent text-slate-500 hover:text-primary-700 bg-slate-50'
         }
       `}
@@ -94,11 +115,10 @@ const TabButton: React.FC<{
       {icon && <span className="mr-2">{icon}</span>}
       {children}
       {count !== undefined && (
-        <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full ${
-          isActive 
-            ? 'bg-primary-50 text-primary-700' 
-            : 'bg-slate-200 text-slate-600'
-        }`}>
+        <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full ${isActive
+          ? 'bg-primary-50 text-primary-700'
+          : 'bg-slate-200 text-slate-600'
+          }`}>
           {count}
         </span>
       )}
@@ -110,26 +130,112 @@ const TabButton: React.FC<{
 const Encadrements: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'demandes' | 'encadrements'>('demandes');
+  const [activeTab, setActiveTab] = useState<'demandes' | 'encadrements' | 'historique'>('demandes');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatutDemande, setFilterStatutDemande] = useState<StatutDemandeEncadrement | 'tous'>('tous');
   const [selectedDemande, setSelectedDemande] = useState<DemandeEncadrement | null>(null);
   const [showRefuseModal, setShowRefuseModal] = useState(false);
-
   const [motifRefus, setMotifRefus] = useState('');
-  
-  // Configuration de la capacité d'encadrement
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [configEncadrement, setConfigEncadrement] = useState({
-    maxCandidats: 5,
-    illimite: false
+    illimite: false,
+    maxCandidats: 5
   });
+
+  // États pour le panel encadrant
+  const [activePanelTab, setActivePanelTab] = useState<'messages' | 'taches' | 'dossiers' | 'prelecture'>('messages');
+  const [showTacheModal, setShowTacheModal] = useState(false);
+  const [selectedPrelecture, setSelectedPrelecture] = useState<number | null>(null);
 
   const handleSaveConfig = () => {
     console.log('Sauvegarde configuration:', configEncadrement);
     setShowConfigModal(false);
     // TODO: Appel API pour sauvegarder
   };
+
+  // Mock data - Messages (seulement ceux envoyés par l'encadrant, l'étudiant ne peut pas envoyer)
+  const messages: Message[] = useMemo(() => [
+    {
+      id: 1,
+      expediteur: 'encadrant',
+      type: 'texte',
+      contenu: 'Bonjour, j\'ai relu votre chapitre 2. Globalement c\'est bien mais il faut revoir la partie sur les algorithmes.',
+      date: '2025-01-20 14:15',
+      lu: true,
+      titre: 'Feedback sur le chapitre 2'
+    },
+    {
+      id: 2,
+      expediteur: 'encadrant',
+      type: 'reunion-meet',
+      contenu: 'Réunion de suivi programmée pour discuter de l\'avancement de votre mémoire.',
+      date: '2025-01-20 10:15',
+      lu: true,
+      titre: 'Réunion de suivi',
+      lienMeet: 'https://meet.google.com/abc-defg-hij',
+      dateRendezVous: '2025-01-25',
+      heureRendezVous: '14:00'
+    },
+    {
+      id: 3,
+      expediteur: 'encadrant',
+      type: 'presentiel',
+      contenu: 'Pré-lecture programmée. Préparez votre présentation PowerPoint.',
+      date: '2025-01-19 10:45',
+      lu: false,
+      titre: 'Pré-lecture',
+      lieu: 'Salle de conférence A, Bâtiment principal',
+      dateRendezVous: '2025-02-20',
+      heureRendezVous: '10:00'
+    },
+    {
+      id: 4,
+      expediteur: 'encadrant',
+      type: 'document',
+      contenu: 'Document annoté avec mes commentaires sur votre introduction.',
+      date: '2025-01-18 16:30',
+      lu: false,
+      titre: 'Document annoté - Introduction',
+      nomDocument: 'Introduction_annotee.pdf',
+      cheminDocument: '/documents/introduction_annotee.pdf',
+      tailleDocument: '2.4 MB'
+    },
+    {
+      id: 5,
+      expediteur: 'encadrant',
+      type: 'texte',
+      contenu: 'N\'oubliez pas de finaliser l\'état de l\'art avant la prochaine réunion.',
+      date: '2025-01-17 14:20',
+      lu: true,
+      titre: 'Rappel - État de l\'art'
+    }
+  ], []);
+
+  // Mock data - Tâches communes
+  const tachesCommunes: TacheCommune[] = useMemo(() => [
+    {
+      id: 1,
+      titre: 'Finaliser l\'état de l\'art',
+      description: 'Compléter la revue de littérature avec au moins 15 références récentes',
+      dateCreation: '2025-01-15',
+      dateEcheance: '2025-02-01',
+      priorite: 'Haute',
+      active: true,
+      tags: ['recherche', 'bibliographie'],
+      consigne: 'Privilégier les articles récents (moins de 5 ans) et les sources académiques reconnues.'
+    },
+    {
+      id: 2,
+      titre: 'Rédiger le chapitre méthodologie',
+      description: 'Décrire en détail la méthodologie de recherche utilisée',
+      dateCreation: '2025-01-10',
+      dateEcheance: '2025-02-15',
+      priorite: 'Moyenne',
+      active: true,
+      tags: ['rédaction', 'méthodologie'],
+      consigne: 'La méthodologie doit être claire et reproductible.'
+    }
+  ], []);
 
   // Année académique actuelle
   const anneeAcademiqueActuelle = useMemo(() => getCurrentAnneeAcademique(), []);
@@ -150,6 +256,196 @@ const Encadrements: React.FC = () => {
     return encadrementsActifs.length > 0 ? encadrementsActifs[0] : undefined;
   }, [user]);
 
+  // Mock data - Dossiers étudiants
+  const dossiersEtudiants: DossierEtudiant[] = useMemo(() => {
+    // Si l'encadrement a des candidats dans son dossier, les utiliser avec des données variées
+    if (encadrementActif?.dossierMemoire?.candidats && encadrementActif.dossierMemoire.candidats.length > 0) {
+      const titresMemoires = [
+        'Système de recommandation basé sur l\'intelligence artificielle',
+        'Application mobile de gestion de bibliothèque universitaire',
+        'Analyse de données massives avec Apache Spark',
+        'Plateforme de e-learning avec réalité virtuelle',
+        'Système de détection de fraudes bancaires par machine learning'
+      ];
+      const statuts = [
+        StatutDossierMemoire.EN_COURS,
+        StatutDossierMemoire.EN_COURS,
+        StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+        StatutDossierMemoire.EN_COURS, // Dossier 104 - Toutes les tâches terminées
+        StatutDossierMemoire.EN_ATTENTE_VALIDATION // Dossier 105 - Pré-lecture effectuée
+      ];
+      const etapes = [
+        EtapeDossier.EN_COURS_REDACTION,
+        EtapeDossier.DEPOT_INTERMEDIAIRE,
+        EtapeDossier.DEPOT_FINAL,
+        EtapeDossier.DEPOT_FINAL, // Dossier 104 - Prêt pour pré-lecture
+        EtapeDossier.DEPOT_FINAL // Dossier 105 - Pré-lecture effectuée
+      ];
+      const progressions = [45, 60, 75, 100, 100]; // Dossiers 104 et 105 à 100%
+
+      return encadrementActif.dossierMemoire.candidats.map((candidat, index) => ({
+        id: candidat.idCandidat,
+        etudiant: {
+          nom: candidat.nom,
+          prenom: candidat.prenom,
+          email: candidat.email || ''
+        },
+        dossierMemoire: {
+          id: (encadrementActif.dossierMemoire?.idDossierMemoire || 0) * 10 + candidat.idCandidat,
+          titre: titresMemoires[index % titresMemoires.length],
+          statut: statuts[index % statuts.length],
+          etape: etapes[index % etapes.length],
+          progression: progressions[index % progressions.length]
+        }
+      }));
+    }
+
+    // Sinon, utiliser des données mock pour démonstration
+    return [
+      {
+        id: 1,
+        etudiant: {
+          nom: 'Diallo',
+          prenom: 'Amadou',
+          email: 'amadou.diallo@isi.edu.sn'
+        },
+        dossierMemoire: {
+          id: 10,
+          titre: 'Système de recommandation basé sur l\'intelligence artificielle',
+          statut: StatutDossierMemoire.EN_COURS,
+          etape: EtapeDossier.EN_COURS_REDACTION,
+          progression: 75
+        }
+      },
+      {
+        id: 2,
+        etudiant: {
+          nom: 'Ndiaye',
+          prenom: 'Fatou',
+          email: 'fatou.ndiaye@isi.edu.sn'
+        },
+        dossierMemoire: {
+          id: 11,
+          titre: 'Application mobile de gestion de bibliothèque universitaire',
+          statut: StatutDossierMemoire.EN_COURS,
+          etape: EtapeDossier.DEPOT_INTERMEDIAIRE,
+          progression: 60
+        }
+      },
+      {
+        id: 3,
+        etudiant: {
+          nom: 'Ba',
+          prenom: 'Ibrahima',
+          email: 'ibrahima.ba@isi.edu.sn'
+        },
+        dossierMemoire: {
+          id: 12,
+          titre: 'Analyse de données massives avec Apache Spark',
+          statut: StatutDossierMemoire.EN_ATTENTE_VALIDATION,
+          etape: EtapeDossier.DEPOT_FINAL,
+          progression: 90
+        }
+      }
+    ];
+  }, [encadrementActif]);
+
+  // Handlers
+  const handleSendMessage = (messageData: Omit<Message, 'id' | 'date' | 'lu' | 'expediteur'>) => {
+    if (!messageData.contenu.trim()) return;
+    console.log('Envoi message:', messageData);
+    // TODO: Appel API
+  };
+
+  const handleAddTache = (tache: NewTache) => {
+    console.log('Ajout tâche commune:', tache);
+    setShowTacheModal(false);
+    // TODO: Appel API
+  };
+
+  const handleSupprimerTache = (tacheId: number) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette tâche commune ?')) {
+      console.log('Supprimer tâche:', tacheId);
+      // TODO: Appel API
+    }
+  };
+
+  const handleDesactiverTache = (tacheId: number) => {
+    console.log('Désactiver/Réactiver tâche:', tacheId);
+    // TODO: Appel API
+  };
+
+  // Récupérer les demandes de pré-lecture pour l'encadrant connecté (en tant que pré-lecteur)
+  const demandesPrelecture = useMemo(() => {
+    if (!user?.id) return [];
+    const idProfesseur = parseInt(user.id);
+    return getDemandesPrelectureByPrelecteur(idProfesseur);
+  }, [user?.id]);
+
+  // Récupérer les demandes de pré-lecture rejetées pour l'encadrant principal
+  const demandesPrelectureRejetees = useMemo(() => {
+    if (!user?.id) return [];
+    const idProfesseur = parseInt(user.id);
+    // Note: isOwner check removed as we assume active encadrement implies ownership or rights
+    return getDemandesPrelectureRejetees(idProfesseur);
+  }, [user?.id]);
+
+  // Calculer le nombre de demandes en attente
+  const prelectureCount = useMemo(() => {
+    return demandesPrelecture.filter(d => d.statut === StatutDemandePrelecture.EN_ATTENTE).length;
+  }, [demandesPrelecture]);
+
+  // Calculs pour les badges
+  const unreadMessagesCount = 0; // L'étudiant ne peut pas envoyer de messages, donc pas de messages non lus
+
+  // Handlers pour la pré-lecture
+  const handleConsultPrelecture = (demande: typeof demandesPrelecture[0]) => {
+    setSelectedPrelecture(demande.idDemandePrelecture);
+  };
+
+  const handleValiderPrelecture = (idDemande: number, commentaire?: string) => {
+    validerPrelecture(idDemande, commentaire);
+    setSelectedPrelecture(null);
+    // TODO: Appel API
+  };
+
+  const handleRejeterPrelecture = (idDemande: number, commentaire: string, corrections: string[]) => {
+    const demande = demandesPrelecture.find(d => d.idDemandePrelecture === idDemande);
+    if (!demande) return;
+
+    rejeterPrelecture(idDemande, commentaire, corrections);
+
+    // Si l'encadrant connecté est l'encadrant principal, créer des tickets spécifiques pour les corrections
+    if (demande.encadrantPrincipal?.idProfesseur === parseInt(user.id)) {
+      const dossier = getDossierById(demande.dossierMemoire.idDossierMemoire);
+      if (dossier && encadrementActif) {
+        corrections.forEach((correction, index) => {
+          createTicketForDossier(
+            encadrementActif,
+            dossier,
+            `Correction pré-lecture ${index + 1}: ${correction.substring(0, 50)}...`,
+            correction,
+            Priorite.HAUTE,
+            `Correction demandée suite au rejet de la pré-lecture. ${commentaire}`,
+            []
+          );
+        });
+      }
+    }
+
+    setSelectedPrelecture(null);
+    // TODO: Appel API
+  };
+
+  // Extraire la liste des étudiants pour le modal de tâches
+  const etudiantsPourModal = useMemo(() => {
+    return dossiersEtudiants.map(d => ({
+      id: d.id,
+      nom: d.etudiant.nom,
+      prenom: d.etudiant.prenom
+    }));
+  }, [dossiersEtudiants]);
+
   // Filtrer les demandes
   const demandesFiltrees = useMemo(() => {
     let filtered = demandes;
@@ -157,7 +453,7 @@ const Encadrements: React.FC = () => {
       filtered = filtered.filter(d => d.statut === filterStatutDemande);
     }
     if (searchQuery) {
-      filtered = filtered.filter(d => 
+      filtered = filtered.filter(d =>
         d.candidat?.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
         d.candidat?.prenom.toLowerCase().includes(searchQuery.toLowerCase()) ||
         d.dossierMemoire?.titre.toLowerCase().includes(searchQuery.toLowerCase())
@@ -239,7 +535,7 @@ const Encadrements: React.FC = () => {
   const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
   const estChef = user?.estChef;
   const hasRoleEncadrantActif = user?.estEncadrant && (!anneeTerminee || estChef);
-  
+
   if (!hasRoleEncadrantActif) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -247,7 +543,7 @@ const Encadrements: React.FC = () => {
           <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Accès restreint</h2>
           <p className="text-gray-600 mb-4">
-            {anneeTerminee 
+            {anneeTerminee
               ? 'L\'année académique est terminée. Vous n\'avez plus accès aux encadrements pour cette session.'
               : 'Cette page est réservée aux encadrants. Vous devez être encadrant pour accéder à cette fonctionnalité.'}
           </p>
@@ -271,10 +567,10 @@ const Encadrements: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Encadrements</h1>
               <p className="text-sm text-gray-600">
-                {user?.estEncadrant 
-                  ? (activeTab === 'demandes' 
-                      ? 'Gérez les demandes d\'encadrement des étudiants'
-                      : 'Consultez vos encadrements en cours')
+                {user?.estEncadrant
+                  ? (activeTab === 'demandes'
+                    ? 'Gérez les demandes d\'encadrement des étudiants'
+                    : 'Consultez vos encadrements en cours')
                   : 'Gérez les demandes d\'encadrement des étudiants'}
               </p>
               <div className="mt-2">
@@ -325,6 +621,13 @@ const Encadrements: React.FC = () => {
                   count={encadrementActif ? 1 : 0}
                 >
                   Mon encadrement
+                </TabButton>
+                <TabButton
+                  isActive={activeTab === 'historique'}
+                  onClick={() => setActiveTab('historique')}
+                  icon={<Calendar className="h-4 w-4" />}
+                >
+                  Historique
                 </TabButton>
               </nav>
             </div>
@@ -459,71 +762,97 @@ const Encadrements: React.FC = () => {
             </div>
           ) : null}
 
-          {/* Encadrement actif - Un encadrant ne peut avoir qu'un seul encadrement actif */}
-          {user?.estEncadrant && activeTab === 'encadrements' && encadrementActif ? (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className="p-6 border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
-              onClick={() => navigate(`/professeur/encadrements/${encadrementActif.idEncadrement}`)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start flex-1">
-                  <div className="p-3 rounded-lg bg-gray-50 mr-4">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-gray-900">
-                        Mon encadrement actif
-                      </h3>
-                      {getStatutEncadrementBadge(encadrementActif.statut)}
-                    </div>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      {encadrementActif.dossierMemoire && (
-                        <>
-                          <div className="flex items-center">
-                            <FileText className="h-4 w-4 mr-2" />
-                            <span className="font-medium">{encadrementActif.dossierMemoire.titre}</span>
-                          </div>
-                          {encadrementActif.dossierMemoire.candidats && encadrementActif.dossierMemoire.candidats.length > 0 && (
-                            <div className="flex items-center">
-                              <User className="h-4 w-4 mr-2" />
-                              <span>
-                                {encadrementActif.dossierMemoire.candidats.map(c => `${c.prenom} ${c.nom}`).join(', ')}
-                              </span>
-                            </div>
-                          )}
-                        </>
-                      )}
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        <span>Débuté le {formatDate(encadrementActif.dateDebut)}</span>
-                      </div>
-                      {encadrementActif.dateFin && (
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2" />
-                          <span>Terminé le {formatDate(encadrementActif.dateFin)}</span>
-                        </div>
-                      )}
-                    </div>
+          {/* Encadrement actif - Panel encadrant */}
+          {user?.estEncadrant && activeTab === 'encadrements' && (
+            encadrementActif ? (
+              <>
+                <div className="bg-white border border-gray-200 mb-6">
+                  <PanelTabs
+                    activeTab={activePanelTab}
+                    onTabChange={setActivePanelTab}
+                    unreadMessagesCount={unreadMessagesCount}
+                    tachesCount={tachesCommunes.length}
+                    dossiersCount={dossiersEtudiants.length}
+                    prelectureCount={prelectureCount}
+                  />
+
+                  {/* Contenu des onglets */}
+                  <div className="p-6">
+                    {activePanelTab === 'messages' && (
+                      <MessageList messages={messages} onSendMessage={handleSendMessage} />
+                    )}
+
+                    {activePanelTab === 'taches' && (
+                      <TacheCommuneList
+                        taches={tachesCommunes}
+                        onAddTache={() => setShowTacheModal(true)}
+                        onSupprimer={handleSupprimerTache}
+                        onDesactiver={handleDesactiverTache}
+                        canEdit={true}
+                      />
+                    )}
+
+                    {activePanelTab === 'dossiers' && (
+                      <DossierEtudiantList
+                        dossiers={dossiersEtudiants}
+                        encadrementId={encadrementActif.idEncadrement.toString()}
+                      />
+                    )}
+
+                    {activePanelTab === 'prelecture' && (
+                      <PrelectureList
+                        demandes={demandesPrelecture}
+                        onConsult={handleConsultPrelecture}
+                      />
+                    )}
                   </div>
                 </div>
-                <div className="ml-4">
-                  <ChevronRight className="h-5 w-5 text-gray-400" />
-                </div>
+
+                {/* Modal de détail de pré-lecture */}
+                {selectedPrelecture && demandesPrelecture.find(d => d.idDemandePrelecture === selectedPrelecture) && (
+                  <PrelectureDetail
+                    demande={demandesPrelecture.find(d => d.idDemandePrelecture === selectedPrelecture)!}
+                    onClose={() => setSelectedPrelecture(null)}
+                    onValider={handleValiderPrelecture}
+                    onRejeter={handleRejeterPrelecture}
+                  />
+                )}
+
+                {/* Modals */}
+                <AddTacheModal
+                  isOpen={showTacheModal}
+                  onClose={() => setShowTacheModal(false)}
+                  onAdd={handleAddTache}
+                  etudiants={etudiantsPourModal}
+                />
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-2">Aucun encadrement actif</p>
+                <p className="text-sm text-gray-500">
+                  Vous n'avez actuellement aucun encadrement en cours
+                </p>
               </div>
-            </motion.div>
-          ) : user?.estEncadrant && activeTab === 'encadrements' ? (
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">Aucun encadrement actif</p>
-              <p className="text-sm text-gray-500">
-                Vous n'avez actuellement aucun encadrement en cours
-              </p>
+            )
+          )}
+
+          {/* Onglet Historique */}
+          {user?.estEncadrant && activeTab === 'historique' && (
+            <div className="bg-white border border-gray-200 p-6">
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Historique des encadrements
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Consultez vos anciens encadrements terminés
+                </p>
+                {/* TODO: Implémenter la liste des encadrements historiques */}
+                <Badge variant="info">Fonctionnalité en développement</Badge>
+              </div>
             </div>
-          ) : null}
+          )}
         </div>
 
         {/* Modal de refus */}
@@ -599,7 +928,7 @@ const Encadrements: React.FC = () => {
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
                   Configuration de l'encadrement
                 </h3>
-                
+
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -620,8 +949,8 @@ const Encadrements: React.FC = () => {
                         className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer checked:right-0 right-6 checked:border-primary"
                         style={{ right: configEncadrement.illimite ? '0' : 'auto', left: configEncadrement.illimite ? 'auto' : '0' }}
                       />
-                      <label 
-                        htmlFor="illimite" 
+                      <label
+                        htmlFor="illimite"
                         className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${configEncadrement.illimite ? 'bg-primary' : 'bg-gray-300'}`}
                       ></label>
                     </div>

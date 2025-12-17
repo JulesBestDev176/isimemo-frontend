@@ -31,6 +31,7 @@ import { Professeur, mockProfesseurs } from '../../../models/acteurs/Professeur'
 import { DossierMemoire, mockDossiers } from '../../../models/dossier/DossierMemoire';
 import { MembreJury, RoleJury } from '../../../models/soutenance/MembreJury';
 import { useGenerationJurys, PropositionJury } from '../../../hooks/useGenerationJurys';
+import { EnhancedAutoGenerateJuryModal } from '../../../components/jury/EnhancedAutoGenerateJuryModal';
 
 // Interface locale pour l'affichage (adaptée aux modèles)
 interface JuryAffichage {
@@ -130,17 +131,17 @@ const JuryListTab: React.FC<{
   const [showFilters, setShowFilters] = useState(false);
 
   const filteredJurys = jurys.filter(jury => {
-    const matchesSearch = 
-      jury.nom.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch =
+      jury.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
       jury.specialite.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      jury.membres.some(membre => 
+      jury.membres.some(membre =>
         membre.professeur.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
         membre.professeur.prenom.toLowerCase().includes(searchQuery.toLowerCase())
       );
     const matchesStatus = statusFilter === 'all' || jury.statut === statusFilter;
     const matchesType = typeFilter === 'all' || jury.type === typeFilter;
     const matchesSession = sessionFilter === 'all' || jury.session === sessionFilter;
-    
+
     return matchesSearch && matchesStatus && matchesType && matchesSession;
   });
 
@@ -160,15 +161,15 @@ const JuryListTab: React.FC<{
           <h3 className="text-lg font-semibold text-gray-900">Actions</h3>
         </div>
         <div className="flex flex-wrap gap-3">
-          <SimpleButton 
-            variant="success" 
+          <SimpleButton
+            variant="primary"
             icon={<Shuffle className="h-4 w-4" />}
             onClick={onGenerateJury}
           >
-            Générer des jurys automatiquement
+            Générer des jurys
           </SimpleButton>
-          <SimpleButton 
-            variant="primary" 
+          <SimpleButton
+            variant="primary"
             icon={<Upload className="h-4 w-4" />}
             onClick={onImportCSV}
           >
@@ -195,7 +196,7 @@ const JuryListTab: React.FC<{
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
           <input
-                type="text"
+            type="text"
             placeholder="Rechercher un jury..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -205,7 +206,7 @@ const JuryListTab: React.FC<{
 
         <AnimatePresence>
           {showFilters && (
-            <motion.div 
+            <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -265,10 +266,10 @@ const JuryListTab: React.FC<{
         </div>
       ) : (
         <div className="bg-white border border-gray-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jury</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session</th>
@@ -276,13 +277,13 @@ const JuryListTab: React.FC<{
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Étudiants</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
+                </tr>
+              </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredJurys.map((jury, index) => {
                   const president = jury.membres.find(m => m.role === RoleJury.PRESIDENT);
                   return (
-                    <motion.tr 
+                    <motion.tr
                       key={jury.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -341,21 +342,21 @@ const JuryListTab: React.FC<{
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge variant={
-                          jury.statut === 'actif' ? 'secondary' : 
-                          jury.statut === 'inactif' ? 'destructive' : 'outline'
+                          jury.statut === 'actif' ? 'secondary' :
+                            jury.statut === 'inactif' ? 'destructive' : 'outline'
                         }>
                           {jury.statut}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex space-x-2">
-                          <button 
+                          <button
                             onClick={() => onViewDetails(jury)}
                             className="p-2 text-gray-600 hover:text-navy hover:bg-navy-light border border-gray-300 hover:border-navy transition-colors duration-200"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => onEditJury(jury)}
                             className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 border border-gray-300 hover:border-green-300 transition-colors duration-200"
                           >
@@ -381,7 +382,7 @@ const StatisticsTab: React.FC<{
 }> = ({ jurys }) => {
   const juryActifs = jurys.filter(j => j.statut === 'actif');
   const jurysAutoGeneres = jurys.filter(j => j.generationAuto);
-  
+
   const statsParType = ['licence', 'master'].map(type => {
     const jurysByType = jurys.filter(j => j.type === type);
     return {
@@ -438,8 +439,8 @@ const StatisticsTab: React.FC<{
                   <span className="text-sm text-gray-600">{type.name}</span>
                   <div className="flex items-center">
                     <div className="w-24 bg-gray-200 h-2 mr-3">
-                      <div 
-                        className="bg-navy h-2" 
+                      <div
+                        className="bg-navy h-2"
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
@@ -450,7 +451,7 @@ const StatisticsTab: React.FC<{
             })}
           </div>
         </div>
-        
+
         <div className="bg-white border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Répartition par session</h3>
           <div className="space-y-3">
@@ -461,8 +462,8 @@ const StatisticsTab: React.FC<{
                   <span className="text-sm text-gray-600">{session.name}</span>
                   <div className="flex items-center">
                     <div className="w-24 bg-gray-200 h-2 mr-3">
-                      <div 
-                        className="bg-green-500 h-2" 
+                      <div
+                        className="bg-green-500 h-2"
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
@@ -487,7 +488,7 @@ const StatisticsTab: React.FC<{
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Étudiants</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Membres</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                      </tr>
+              </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {jurys.map((jury) => (
@@ -507,19 +508,19 @@ const StatisticsTab: React.FC<{
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {jury.membres.length}
-                          </td>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Badge variant={
-                      jury.statut === 'actif' ? 'secondary' : 
-                      jury.statut === 'inactif' ? 'destructive' : 'outline'
+                      jury.statut === 'actif' ? 'secondary' :
+                        jury.statut === 'inactif' ? 'destructive' : 'outline'
                     }>
                       {jury.statut}
-                            </Badge>
-                          </td>
-                        </tr>
+                    </Badge>
+                  </td>
+                </tr>
               ))}
-                  </tbody>
-                </table>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -555,8 +556,8 @@ const JuryChef: React.FC = () => {
   };
 
   const toggleJuryStatus = (id: number) => {
-    setJurysState(prev => prev.map(jury => 
-      jury.id === id 
+    setJurysState(prev => prev.map(jury =>
+      jury.id === id
         ? { ...jury, statut: jury.statut === 'actif' ? 'inactif' : 'actif' }
         : jury
     ));
@@ -638,7 +639,7 @@ const JuryChef: React.FC = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <JuryListTab 
+                <JuryListTab
                   jurys={jurysState}
                   onViewDetails={openJuryDetails}
                   onEditJury={handleEditJury}
@@ -661,13 +662,13 @@ const JuryChef: React.FC = () => {
           </div>
         </div>
 
-        <JuryDetailsModal 
+        <JuryDetailsModal
           jury={selectedJury}
           isOpen={isModalOpen}
           onClose={closeModal}
         />
 
-        <AutoGenerateJuryModal
+        <EnhancedAutoGenerateJuryModal
           isOpen={showAutoGenerateModal}
           onClose={() => setShowAutoGenerateModal(false)}
           onGenerate={handleGenerateJurys}
@@ -741,8 +742,8 @@ const JuryDetailsModal: React.FC<{
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{jury.nom}</h2>
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant={
-                jury.statut === 'actif' ? 'secondary' : 
-                jury.statut === 'inactif' ? 'destructive' : 'outline'
+                jury.statut === 'actif' ? 'secondary' :
+                  jury.statut === 'inactif' ? 'destructive' : 'outline'
               }>
                 {jury.statut}
               </Badge>
@@ -872,30 +873,30 @@ const AutoGenerateJuryModal: React.FC<{
   // Idéalement, ces imports devraient être en haut du fichier, mais pour ce replace_content localisé :
   // On suppose que les mocks sont accessibles ou on les utilise directement via les props si on refactorisait tout.
   // Pour l'instant, on va utiliser des valeurs calculées simulées basées sur les mocks existants importés en haut ou ici.
-  
+
   // Note: Dans une vraie implémentation, on utiliserait des hooks pour récupérer ces infos.
   // Ici on va simuler la récupération de l'année active et session ouverte.
-  
+
   const [anneeAcademique, setAnneeAcademique] = useState('2024-2025'); // Sera écrasé par l'active
   const [selectedNiveau, setSelectedNiveau] = useState<'licence' | 'master'>('licence'); // Fixé à Licence
   const [selectedSession, setSelectedSession] = useState<string>('');
   const [propositions, setPropositions] = useState<PropositionJury[]>([]);
   const [configError, setConfigError] = useState<string | null>(null);
-  
+
   const { genererPropositions, isGenerating, error } = useGenerationJurys();
 
   useEffect(() => {
     if (isOpen) {
       // 1. Récupérer l'année active
       // Simulation : on prend la dernière année du mock ou une valeur fixe pour l'exemple
-      const anneeActive = '2024-2025'; 
+      const anneeActive = '2024-2025';
       setAnneeAcademique(anneeActive);
 
       // 2. Récupérer la session ouverte pour cette année
       // Simulation : on cherche une session ouverte
       // Dans le mock SessionSoutenance.mock.ts, la session 3 (Septembre 2025) est ouverte
       const sessionOuverte = 'Septembre'; // On simule qu'on a trouvé "Septembre"
-      
+
       if (sessionOuverte) {
         setSelectedSession(sessionOuverte);
         setConfigError(null);
@@ -982,7 +983,7 @@ const AutoGenerateJuryModal: React.FC<{
                   </p>
                 </div>
               </div>
-              
+
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
                 <p className="text-sm text-blue-800">
                   <strong>Dimensionnement automatique :</strong> Le système calcule le nombre optimal de jurys en fonction de l'effectif (max 10 étudiants/jury, sauf si reste ≤ 5).
@@ -990,48 +991,48 @@ const AutoGenerateJuryModal: React.FC<{
               </div>
 
               <div className="flex justify-end">
-                 <SimpleButton onClick={handlePreview} disabled={isGenerating || !selectedSession}>
-                    {isGenerating ? 'Calcul en cours...' : 'Prévisualiser les propositions'}
-                 </SimpleButton>
+                <SimpleButton onClick={handlePreview} disabled={isGenerating || !selectedSession}>
+                  {isGenerating ? 'Calcul en cours...' : 'Prévisualiser les propositions'}
+                </SimpleButton>
               </div>
 
               {error && (
-                 <div className="p-4 bg-red-50 text-red-600 border border-red-200 rounded">
-                    {error}
-                 </div>
+                <div className="p-4 bg-red-50 text-red-600 border border-red-200 rounded">
+                  {error}
+                </div>
               )}
 
               {propositions.length > 0 && (
                 <div className="space-y-4">
-                   <h3 className="font-semibold text-gray-900">Propositions ({propositions.length})</h3>
-                   {propositions.map((prop, idx) => (
-                      <div key={idx} className={`p-4 border rounded ${prop.valide ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                         <div className="flex justify-between items-start">
-                            <h4 className="font-medium">Jury {idx + 1} - {prop.dossiers.length} étudiants</h4>
-                            <Badge variant={prop.valide ? 'secondary' : 'destructive'}>
-                               {prop.valide ? 'Valide' : 'Invalide'}
-                            </Badge>
-                         </div>
-                         {!prop.valide && <p className="text-sm text-red-600 mt-1">{prop.messageErreur}</p>}
-                         
-                         <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                               <p className="font-semibold text-gray-700">Membres :</p>
-                               <ul className="list-disc list-inside">
-                                  {prop.membres.map((m, i) => (
-                                     <li key={i}>
-                                        {m.role} : {m.professeur.prenom} {m.professeur.nom}
-                                     </li>
-                                  ))}
-                               </ul>
-                            </div>
-                            <div>
-                               <p className="font-semibold text-gray-700">Étudiants :</p>
-                               <p className="text-gray-600">{prop.dossiers.length} dossier(s)</p>
-                            </div>
-                         </div>
+                  <h3 className="font-semibold text-gray-900">Propositions ({propositions.length})</h3>
+                  {propositions.map((prop, idx) => (
+                    <div key={idx} className={`p-4 border rounded ${prop.valide ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-medium">Jury {idx + 1} - {prop.dossiers.length} étudiants</h4>
+                        <Badge variant={prop.valide ? 'secondary' : 'destructive'}>
+                          {prop.valide ? 'Valide' : 'Invalide'}
+                        </Badge>
                       </div>
-                   ))}
+                      {!prop.valide && <p className="text-sm text-red-600 mt-1">{prop.messageErreur}</p>}
+
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="font-semibold text-gray-700">Membres :</p>
+                          <ul className="list-disc list-inside">
+                            {prop.membres.map((m, i) => (
+                              <li key={i}>
+                                {m.role} : {m.professeur.prenom} {m.professeur.nom}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-700">Étudiants :</p>
+                          <p className="text-gray-600">{prop.dossiers.length} dossier(s)</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </>
@@ -1042,8 +1043,8 @@ const AutoGenerateJuryModal: React.FC<{
           <SimpleButton variant="secondary" onClick={onClose}>
             Annuler
           </SimpleButton>
-          <SimpleButton 
-            variant="primary" 
+          <SimpleButton
+            variant="primary"
             onClick={handleConfirm}
             disabled={propositions.filter(p => p.valide).length === 0}
             icon={<Shuffle className="h-4 w-4" />}
@@ -1080,7 +1081,7 @@ const ImportCSVModal: React.FC<{
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
@@ -1167,12 +1168,11 @@ const ImportCSVModal: React.FC<{
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Type de données à importer</label>
             <div className="grid grid-cols-2 gap-4">
-              <div 
-                className={`p-4 border-2 cursor-pointer transition-colors ${
-                  importType === 'professeurs' 
-                    ? 'border-navy bg-navy-light' 
+              <div
+                className={`p-4 border-2 cursor-pointer transition-colors ${importType === 'professeurs'
+                    ? 'border-navy bg-navy-light'
                     : 'border-gray-300 hover:border-gray-400'
-                }`}
+                  }`}
                 onClick={() => setImportType('professeurs')}
               >
                 <div className="flex items-center">
@@ -1188,13 +1188,12 @@ const ImportCSVModal: React.FC<{
                   </div>
                 </div>
               </div>
-              
-              <div 
-                className={`p-4 border-2 cursor-pointer transition-colors ${
-                  importType === 'etudiants' 
-                    ? 'border-navy bg-navy-light' 
+
+              <div
+                className={`p-4 border-2 cursor-pointer transition-colors ${importType === 'etudiants'
+                    ? 'border-navy bg-navy-light'
                     : 'border-gray-300 hover:border-gray-400'
-                }`}
+                  }`}
                 onClick={() => setImportType('etudiants')}
               >
                 <div className="flex items-center">
@@ -1234,15 +1233,14 @@ const ImportCSVModal: React.FC<{
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Sélectionner le fichier CSV</label>
-            
+
             <div
-              className={`relative border-2 border-dashed p-8 text-center transition-colors ${
-                dragActive 
-                  ? 'border-navy bg-navy-light' 
-                  : selectedFile 
-                    ? 'border-green-400 bg-green-50' 
+              className={`relative border-2 border-dashed p-8 text-center transition-colors ${dragActive
+                  ? 'border-navy bg-navy-light'
+                  : selectedFile
+                    ? 'border-green-400 bg-green-50'
                     : 'border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
@@ -1254,7 +1252,7 @@ const ImportCSVModal: React.FC<{
                 onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              
+
               {selectedFile ? (
                 <div className="flex items-center justify-center">
                   <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
@@ -1284,8 +1282,8 @@ const ImportCSVModal: React.FC<{
           <SimpleButton variant="secondary" onClick={handleClose}>
             Annuler
           </SimpleButton>
-          <SimpleButton 
-            variant="primary" 
+          <SimpleButton
+            variant="primary"
             onClick={handleImport}
             disabled={!selectedFile}
             icon={<Upload className="h-4 w-4" />}

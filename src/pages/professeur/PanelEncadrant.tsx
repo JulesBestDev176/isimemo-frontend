@@ -47,7 +47,7 @@ const PanelEncadrant: React.FC = () => {
   const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
   const estChef = user?.estChef;
   const hasRoleEncadrantActif = user?.estEncadrant && (!anneeTerminee || estChef);
-  
+
   if (!hasRoleEncadrantActif) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -55,7 +55,7 @@ const PanelEncadrant: React.FC = () => {
           <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Accès restreint</h2>
           <p className="text-gray-600 mb-4">
-            {anneeTerminee 
+            {anneeTerminee
               ? 'L\'année académique est terminée. Vous n\'avez plus accès au panel encadrant pour cette session.'
               : 'Cette page est réservée aux encadrants.'}
           </p>
@@ -219,7 +219,7 @@ const PanelEncadrant: React.FC = () => {
         EtapeDossier.DEPOT_FINAL // Dossier 105 - Pré-lecture effectuée
       ];
       const progressions = [45, 60, 75, 100, 100]; // Dossiers 104 et 105 à 100%
-      
+
       return encadrement.dossierMemoire.candidats.map((candidat, index) => ({
         id: candidat.idCandidat,
         etudiant: {
@@ -236,7 +236,7 @@ const PanelEncadrant: React.FC = () => {
         }
       }));
     }
-    
+
     // Sinon, utiliser des données mock pour démonstration
     return [
       {
@@ -351,7 +351,7 @@ const PanelEncadrant: React.FC = () => {
     if (!demande) return;
 
     rejeterPrelecture(idDemande, commentaire, corrections);
-    
+
     // Si l'encadrant connecté est l'encadrant principal, créer des tickets spécifiques pour les corrections
     if (isOwner && demande.encadrantPrincipal?.idProfesseur === parseInt(user.id)) {
       const dossier = getDossierById(demande.dossierMemoire.idDossierMemoire);
@@ -369,10 +369,19 @@ const PanelEncadrant: React.FC = () => {
         });
       }
     }
-    
+
     setSelectedPrelecture(null);
     // TODO: Appel API
   };
+
+  // Extraire la liste des étudiants pour le modal de tâches
+  const etudiantsPourModal = useMemo(() => {
+    return dossiersEtudiants.map(d => ({
+      id: d.id,
+      nom: d.etudiant.nom,
+      prenom: d.etudiant.prenom
+    }));
+  }, [dossiersEtudiants]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -437,6 +446,7 @@ const PanelEncadrant: React.FC = () => {
           isOpen={showTacheModal}
           onClose={() => setShowTacheModal(false)}
           onAdd={handleAddTache}
+          etudiants={etudiantsPourModal}
         />
       </div>
     </div>

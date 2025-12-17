@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { 
+import React, { useState, useMemo, useEffect } from 'react';
+import {
   Star,
   Search,
   FileText,
@@ -15,32 +15,40 @@ import {
   GraduationCap,
   FileEdit,
   PlayCircle,
-  File
+  File,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockRessourcesMediatheque, RessourceMediatheque, TypeCategorieRessource } from '../../models';
-import { 
-  addRessourceSauvegardee, 
-  removeRessourceSauvegardee, 
+import {
+  addRessourceSauvegardee,
+  removeRessourceSauvegardee,
   isRessourceSauvegardee,
   getRessourcesSauvegardees,
   getRessourcesSauvegardeesProfesseur
 } from '../../models/ressource/RessourceSauvegardee';
+import { trackInteraction } from '../../models/tracking/UserInteraction';
+import { RecommendationEngine } from '../../models/recommendation/RecommendationEngine';
+import { SemanticSearchEngine } from '../../models/search/SemanticSearch';
+import SemanticSearchBar from '../../components/library/SemanticSearchBar';
+import { useSearchHistory, usePageTimer } from '../../hooks/usePageTimer';
 
 // Badge Component
 const Badge: React.FC<{
   children: React.ReactNode;
-  variant?: 'success' | 'warning' | 'info' | 'error' | 'primary';
+  variant?: 'success' | 'warning' | 'info' | 'error' | 'primary' | 'recommendation';
 }> = ({ children, variant = 'info' }) => {
   const variants = {
     success: 'bg-primary-100 text-primary-800',
     warning: 'bg-primary-100 text-primary-800',
     info: 'bg-primary-100 text-primary-800',
     error: 'bg-primary-100 text-primary-800',
-    primary: 'bg-primary-100 text-primary-800'
+    primary: 'bg-primary-100 text-primary-800',
+    recommendation: 'bg-blue-50 text-blue-700 border border-blue-100'
   };
-  
+
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]}`}>
       {children}
@@ -50,9 +58,9 @@ const Badge: React.FC<{
 
 // Formatage des dates
 const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('fr-FR', { 
-    day: 'numeric', 
-    month: 'long', 
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
     year: 'numeric'
   });
 };
@@ -81,9 +89,7 @@ const getRessourceColor = (type: RessourceMediatheque['typeRessource']) => {
   }
 };
 
-
-
-// Tab Button Component - Style simple comme dans departement
+// Tab Button Component
 const TabButton: React.FC<{
   children: React.ReactNode;
   isActive: boolean;
@@ -96,8 +102,8 @@ const TabButton: React.FC<{
       onClick={onClick}
       className={`
         flex items-center px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200
-        ${isActive 
-          ? 'border-navy text-navy bg-white' 
+        ${isActive
+          ? 'border-navy text-navy bg-white'
           : 'border-transparent text-slate-500 hover:text-navy-700 bg-slate-50'
         }
       `}
@@ -105,11 +111,10 @@ const TabButton: React.FC<{
       {icon && <span className="mr-2">{icon}</span>}
       {children}
       {count !== undefined && (
-        <span className={`ml-2 px-2 py-0.5 text-xs font-medium border ${
-          isActive 
-            ? 'bg-navy-50 text-navy-700 border-navy-200' 
-            : 'bg-navy-200 text-navy-600 border-navy-300'
-        }`}>
+        <span className={`ml-2 px-2 py-0.5 text-xs font-medium border ${isActive
+          ? 'bg-navy-50 text-navy-700 border-navy-200'
+          : 'bg-navy-200 text-navy-600 border-navy-300'
+          }`}>
           {count}
         </span>
       )}
@@ -121,11 +126,32 @@ const TabButton: React.FC<{
 const Mediatheque: React.FC = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<TypeCategorieRessource | 'tous'>('tous');
+  const [niveauFilter, setNiveauFilter] = useState<'tous' | 'licence' | 'master'>('tous');
+  const [filiereFilter, setFiliereFilter] = useState<'tous' | 'genie-logiciel' | 'iage' | 'multimedia' | 'gda' | 'mcd'>('tous');
   const [typeFilter, setTypeFilter] = useState<'tous' | 'pdf' | 'video'>('tous');
   const [selectedRessource, setSelectedRessource] = useState<RessourceMediatheque | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Hooks personnalisés
+  const { getHistory, addToHistory } = useSearchHistory();
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  // Charger l'historique de recherche
+  useEffect(() => {
+    setRecentSearches(getHistory());
+  }, []);
+
+  // Tracking du temps passé sur la ressource sélectionnée
+  usePageTimer(
+    user?.id ? parseInt(user.id) : undefined,
+    selectedRessource?.idRessource,
+    !!selectedRessource
+  );
+
   // Initialiser les ressources sauvegardées de l'utilisateur
   const savedResourcesIds = useMemo(() => {
     if (!user?.id) return [];
@@ -141,9 +167,7 @@ const Mediatheque: React.FC = () => {
 
   // Récupérer toutes les ressources de la médiathèque (uniquement les actives)
   const ressourcesMediatheque = useMemo(() => {
-    // Filtrer uniquement les ressources actives (estActif !== false)
-    // Par défaut, les ressources sans estActif sont considérées comme actives (rétrocompatibilité)
-    return mockRessourcesMediatheque.filter(r => r.estActif !== false);
+    return mockRessourcesMediatheque.filter(r => r.estActif !== false && r.categorie !== 'canevas');
   }, []);
 
   // Compter les ressources par catégorie
@@ -161,63 +185,160 @@ const Mediatheque: React.FC = () => {
     return counts;
   }, [ressourcesMediatheque]);
 
-  // Filtrage des ressources par onglet actif, type et recherche
-  const filteredRessources = useMemo(() => {
-    let filtered = ressourcesMediatheque;
-    
-    // Filtrer par catégorie
-    if (activeTab !== 'tous') {
-      filtered = filtered.filter(ressource => ressource.categorie === activeTab);
+  // Générer des recommandations (pour le tri)
+  const recommendations = useMemo(() => {
+    if (!user?.id) return [];
+    try {
+      const userId = parseInt(user.id);
+      return RecommendationEngine.getHybridRecommendations(
+        userId,
+        ressourcesMediatheque,
+        ressourcesMediatheque.length // Récupérer des scores pour tout
+      );
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      return [];
     }
-    
+  }, [user, ressourcesMediatheque, refreshKey]);
+
+  // Créer une map des scores de recommandation pour un accès rapide
+  const recommendationMap = useMemo(() => {
+    const map = new Map<number, { score: number; reason?: string; source: string }>();
+    recommendations.forEach(rec => {
+      map.set(rec.ressource.idRessource, {
+        score: rec.score,
+        reason: rec.reasons[0],
+        source: rec.source
+      });
+    });
+    return map;
+  }, [recommendations]);
+
+  // Filtrage et Tri des ressources
+  const filteredRessources = useMemo(() => {
+    let filtered = [...ressourcesMediatheque];
+
+    // Filtrer par niveau
+    if (niveauFilter !== 'tous') {
+      filtered = filtered.filter(ressource => {
+        const tags = ressource.tags.map(t => t.toLowerCase());
+        if (niveauFilter === 'licence') {
+          return tags.some(t => t.includes('licence') || t.includes('l3') || t.includes('l2') || t.includes('l1'));
+        } else if (niveauFilter === 'master') {
+          return tags.some(t => t.includes('master') || t.includes('m1') || t.includes('m2'));
+        }
+        return true;
+      });
+    }
+
+    // Filtrer par filière
+    if (filiereFilter !== 'tous') {
+      filtered = filtered.filter(ressource => {
+        const tags = ressource.tags.map(t => t.toLowerCase());
+        const titre = ressource.titre.toLowerCase();
+        const description = ressource.description.toLowerCase();
+        const searchIn = [...tags, titre, description].join(' ');
+
+        switch (filiereFilter) {
+          case 'genie-logiciel':
+            return searchIn.includes('génie logiciel') || searchIn.includes('genie logiciel') || searchIn.includes('gl');
+          case 'iage':
+            return searchIn.includes('iage') || searchIn.includes('informatique appliquée');
+          case 'multimedia':
+            return searchIn.includes('multimédia') || searchIn.includes('multimedia');
+          case 'gda':
+            return searchIn.includes('gda') || searchIn.includes('gestion des affaires');
+          case 'mcd':
+            return searchIn.includes('mcd') || searchIn.includes('management') || searchIn.includes('commerce digital');
+          default:
+            return true;
+        }
+      });
+    }
+
     // Filtrer par type (PDF uniquement maintenant)
     if (typeFilter === 'pdf') {
-      filtered = filtered.filter(ressource => 
-        ressource.typeRessource === 'document' && 
+      filtered = filtered.filter(ressource =>
+        ressource.typeRessource === 'document' &&
         (ressource.cheminFichier?.endsWith('.pdf') || ressource.cheminFichier?.endsWith('.PDF'))
       );
     }
-    
-    // Filtrer par recherche
+
+    // Filtrer par recherche (classique si pas de recherche sémantique)
     if (searchQuery) {
       filtered = filtered.filter(ressource => {
         return ressource.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-               ressource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-               ressource.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+          ressource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          ressource.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
       });
     }
-    
+
+    // TRI PAR DEFAUT : PERTINENCE (Score de recommandation)
+    filtered.sort((a, b) => {
+      const scoreA = recommendationMap.get(a.idRessource)?.score || 0;
+      const scoreB = recommendationMap.get(b.idRessource)?.score || 0;
+      return scoreB - scoreA;
+    });
+
     return filtered;
-  }, [ressourcesMediatheque, activeTab, typeFilter, searchQuery]);
+  }, [ressourcesMediatheque, niveauFilter, filiereFilter, typeFilter, searchQuery, recommendationMap]);
+
+  // Recherche sémantique
+  const semanticSearchResults = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    try {
+      return SemanticSearchEngine.search(
+        { query: searchQuery, limit: 50 },
+        ressourcesMediatheque
+      );
+    } catch (error) {
+      console.error('Error in semantic search:', error);
+      return null;
+    }
+  }, [searchQuery, ressourcesMediatheque]);
+
+  // Si recherche sémantique active, utiliser les résultats sémantiques
+  const displayedResources = useMemo(() => {
+    if (semanticSearchResults) {
+      return semanticSearchResults.map(result => result.ressource);
+    }
+    return filteredRessources;
+  }, [semanticSearchResults, filteredRessources]);
+
+  // Pagination Logic
+  const paginatedResources = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return displayedResources.slice(startIndex, startIndex + itemsPerPage);
+  }, [displayedResources, currentPage]);
+
+  const totalPages = Math.ceil(displayedResources.length / itemsPerPage);
 
   // Fonction pour sauvegarder/retirer une ressource
   const handleToggleSave = (idRessource: number) => {
     if (!user?.id) return;
-    
+
     const id = parseInt(user.id);
     const isCurrentlySaved = isRessourceSauvegardee(
       idRessource,
       user.type === 'professeur' ? undefined : id,
       user.type === 'professeur' ? id : undefined
     );
-    
+
     if (isCurrentlySaved) {
-      // Retirer de la sauvegarde
       removeRessourceSauvegardee(
         idRessource,
         user.type === 'professeur' ? undefined : id,
         user.type === 'professeur' ? id : undefined
       );
-      } else {
-      // Ajouter à la sauvegarde
+      trackInteraction(id, idRessource, 'unsave');
+    } else {
       addRessourceSauvegardee(
         idRessource,
         user.type === 'professeur' ? undefined : id,
         user.type === 'professeur' ? id : undefined
       );
-      }
-    
-    // Forcer le re-render en mettant à jour la clé de rafraîchissement
+      trackInteraction(id, idRessource, 'save');
+    }
     setRefreshKey(prev => prev + 1);
   };
 
@@ -232,6 +353,27 @@ const Mediatheque: React.FC = () => {
     );
   };
 
+  // Handler pour la recherche sémantique
+  const handleSemanticSearch = (query: string) => {
+    setSearchQuery(query);
+    addToHistory(query);
+    setRecentSearches(getHistory());
+    setCurrentPage(1);
+    if (user?.id) {
+      trackInteraction(parseInt(user.id), 0, 'search', { searchQuery: query });
+    }
+  };
+
+  // Handler pour ouvrir une ressource
+  const handleOpenResource = (resource: RessourceMediatheque) => {
+    setSelectedRessource(resource);
+    if (user?.id) {
+      trackInteraction(parseInt(user.id), resource.idRessource, 'view', {
+        clickSource: searchQuery ? 'search' : 'direct'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -240,7 +382,7 @@ const Mediatheque: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Bibliothèque numérique</h1>
             <p className="text-sm text-gray-600">
-              Explorez toutes les ressources disponibles : mémoires et canevas
+              Explorez toutes les ressources disponibles : mémoires et documents académiques
             </p>
           </div>
         </div>
@@ -248,167 +390,222 @@ const Mediatheque: React.FC = () => {
         {/* Recherche et Filtres */}
         <div className="bg-white border border-gray-200 p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Recherche */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher une ressource..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            <div className="flex-1">
+              <SemanticSearchBar
+                onSearch={handleSemanticSearch}
+                placeholder="Recherche sémantique intelligente..."
+                recentSearches={recentSearches}
+                onRecentSearchClick={handleSemanticSearch}
               />
             </div>
-
           </div>
         </div>
 
-        {/* Onglets */}
-        <div className="bg-white border border-gray-200 mb-6">
-          <div className="flex flex-wrap border-b border-gray-200">
-            <TabButton
-              isActive={activeTab === 'tous'}
-              onClick={() => setActiveTab('tous')}
-              count={countsByCategory.tous}
-            >
-              Tous
-            </TabButton>
+        {/* Filtres */}
+        <div className="bg-white border border-gray-200 p-4 mb-6">
+          <div className="flex flex-wrap gap-4">
+            {/* Filtre par niveau */}
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Niveau</label>
+              <select
+                value={niveauFilter}
+                onChange={(e) => { setNiveauFilter(e.target.value as any); setCurrentPage(1); }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="tous">Tous les niveaux</option>
+                <option value="licence">Licence</option>
+                <option value="master">Master</option>
+              </select>
+            </div>
 
-            <TabButton
-              isActive={activeTab === 'memoires'}
-              onClick={() => setActiveTab('memoires')}
-              icon={<GraduationCap className="h-4 w-4" />}
-              count={countsByCategory.memoires}
-            >
-              Mémoires
-            </TabButton>
-            <TabButton
-              isActive={activeTab === 'canevas'}
-              onClick={() => setActiveTab('canevas')}
-              icon={<FileEdit className="h-4 w-4" />}
-              count={countsByCategory.canevas}
-            >
-              Canevas
-            </TabButton>
+            {/* Filtre par filière */}
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Filière</label>
+              <select
+                value={filiereFilter}
+                onChange={(e) => { setFiliereFilter(e.target.value as any); setCurrentPage(1); }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="tous">Toutes les filières</option>
+                <option value="genie-logiciel">Génie Logiciel</option>
+                <option value="iage">IAGE</option>
+                <option value="multimedia">Multimédia</option>
+                <option value="gda">GDA</option>
+                <option value="mcd">MCD</option>
+              </select>
+            </div>
           </div>
+        </div>
 
-          {/* Contenu de l'onglet actif */}
+        {/* Liste des ressources */}
+        <div className="bg-white border border-gray-200 mb-6">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeTab}
+              key="resources"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {filteredRessources.length > 0 ? (
-                <div className="divide-y divide-gray-200">
-                  {filteredRessources.map((ressource, index) => {
-                    const saved = isSaved(ressource.idRessource);
-                    return (
-                      <motion.div
-                        key={ressource.idRessource}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2, delay: index * 0.05 }}
-                        className="p-4 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start flex-1">
-                            <div className={`p-3 rounded-lg mr-4 ${getRessourceColor(ressource.typeRessource)}`}>
-                              {getRessourceIcon(ressource.typeRessource)}
+              {paginatedResources.length > 0 ? (
+                <>
+                  <div className="divide-y divide-gray-200">
+                    {paginatedResources.map((ressource, index) => {
+                      const saved = isSaved(ressource.idRessource);
+
+                      return (
+                        <motion.div
+                          key={ressource.idRessource}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, delay: index * 0.05 }}
+                          className={`p-4 hover:bg-gray-50 transition-colors`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start flex-1">
+                              <div className={`p-3 rounded-lg mr-4 ${getRessourceColor(ressource.typeRessource)}`}>
+                                {getRessourceIcon(ressource.typeRessource)}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold text-gray-900">{ressource.titre}</h3>
+                                  {ressource.estImportant && (
+                                    <Badge variant="warning">Important</Badge>
+                                  )}
+                                </div>
+
+                                <p className="text-sm text-gray-600 mb-2">{ressource.description}</p>
+                                <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
+                                  <div className="flex items-center">
+                                    <User className="h-3 w-3 mr-1" />
+                                    <span>{ressource.auteur}</span>
+                                  </div>
+                                  {ressource.filiere && (
+                                    <div className="flex items-center">
+                                      <GraduationCap className="h-3 w-3 mr-1" />
+                                      <span>{ressource.filiere === 'genie-logiciel' ? 'Génie Logiciel' : ressource.filiere === 'iage' ? 'IAGE' : ressource.filiere === 'multimedia' ? 'Multimédia' : ressource.filiere === 'gda' ? 'GDA' : ressource.filiere === 'mcd' ? 'MCD' : ressource.filiere}</span>
+                                    </div>
+                                  )}
+                                  {ressource.niveau && ressource.niveau !== 'all' && (
+                                    <div className="flex items-center">
+                                      <BookOpen className="h-3 w-3 mr-1" />
+                                      <span>{ressource.niveau === 'licence' ? 'Licence' : ressource.niveau === 'master' ? 'Master' : ressource.niveau}</span>
+                                    </div>
+                                  )}
+                                  {ressource.anneeAcademique && (
+                                    <div className="flex items-center">
+                                      <Calendar className="h-3 w-3 mr-1" />
+                                      <span>{ressource.anneeAcademique}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+
+
+                              </div>
                             </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-gray-900">{ressource.titre}</h3>
-                                {ressource.estImportant && (
-                                  <Badge variant="warning">Important</Badge>
-                                )}
-                                <Badge variant="info">{ressource.categorie}</Badge>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">{ressource.description}</p>
-                              <div className="flex items-center gap-4 text-xs text-gray-500 mb-2">
-                                <div className="flex items-center">
-                                  <User className="h-3 w-3 mr-1" />
-                                  <span>{ressource.auteur}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <Calendar className="h-3 w-3 mr-1" />
-                                  <span>Publié le {formatDate(ressource.datePublication)}</span>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <div className="flex items-center gap-1">
-                                  {ressource.tags.map((tag, idx) => (
-                                    <Badge key={idx} variant="primary">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 ml-4">
-                            <button
-                              onClick={() => setSelectedRessource(ressource)}
-                              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
-                              title="Voir"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleToggleSave(ressource.idRessource)}
-                              className={`p-2 rounded-lg transition-colors ${
-                                saved
+                            <div className="flex items-center gap-2 ml-4">
+                              <button
+                                onClick={() => handleOpenResource(ressource)}
+                                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                                title="Voir"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleToggleSave(ressource.idRessource)}
+                                className={`p-2 rounded-lg transition-colors ${saved
                                   ? 'text-primary-500 hover:text-primary-600 hover:bg-primary-50'
                                   : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                              }`}
-                              title={saved ? 'Retirer des sauvegardes' : 'Sauvegarder'}
-                            >
-                              <Star className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
-                            </button>
+                                  }`}
+                                title={saved ? 'Retirer des sauvegardes' : 'Sauvegarder'}
+                              >
+                                <Star className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
+                              </button>
+                            </div>
                           </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
+                      <div className="flex flex-1 justify-between sm:hidden">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          Précédent
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          Suivant
+                        </button>
+                      </div>
+                      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm text-gray-700">
+                            Affichage de <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> à <span className="font-medium">{Math.min(currentPage * itemsPerPage, displayedResources.length)}</span> sur <span className="font-medium">{displayedResources.length}</span> résultats
+                          </p>
                         </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                        <div>
+                          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                            <button
+                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                              disabled={currentPage === 1}
+                              className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                            >
+                              <span className="sr-only">Précédent</span>
+                              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                              <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${currentPage === page
+                                  ? 'z-10 bg-primary-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600'
+                                  : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                                  }`}
+                              >
+                                {page}
+                              </button>
+                            ))}
+                            <button
+                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                              disabled={currentPage === totalPages}
+                              className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                            >
+                              <span className="sr-only">Suivant</span>
+                              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                          </nav>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-12">
                   <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-2">
-                    {activeTab === 'tous' 
-                      ? 'Aucune ressource trouvée'
-                      : `Aucune ressource trouvée dans la catégorie "${activeTab}"`
-                    }
+                    Aucune ressource trouvée
                   </p>
                   <p className="text-sm text-gray-500">
-                    {searchQuery 
+                    {searchQuery
                       ? 'Essayez de modifier vos critères de recherche'
-                      : activeTab === 'tous'
-                      ? 'Aucune ressource disponible dans la médiathèque.'
-                      : `Aucune ressource de type "${activeTab}" disponible.`
+                      : 'Aucune ressource disponible dans la médiathèque.'
                     }
                   </p>
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* Statistiques */}
-        <div className="mt-6">
-          <div className="bg-white border border-gray-200 p-4 max-w-xs">
-            <div className="flex items-center">
-              <div className="bg-primary-100 p-3 rounded-lg mr-4">
-                <FileText className="h-5 w-5 text-primary-700" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Ressources disponibles</p>
-                <p className="text-2xl font-bold text-gray-900">{ressourcesMediatheque.length}</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Modal de visualisation */}
@@ -466,60 +663,81 @@ const Mediatheque: React.FC = () => {
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex items-center mb-2">
                           <User className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-sm font-medium text-gray-700">Auteur</span>
+                          <span className="text-sm font-medium text-gray-700">Étudiant</span>
                         </div>
                         <p className="text-gray-900">{selectedRessource.auteur}</p>
                       </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-sm font-medium text-gray-700">Date de publication</span>
+                      {selectedRessource.auteurEmail && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-center mb-2">
+                            <FileText className="h-4 w-4 text-gray-500 mr-2" />
+                            <span className="text-sm font-medium text-gray-700">Email</span>
+                          </div>
+                          <p className="text-gray-900">{selectedRessource.auteurEmail}</p>
                         </div>
-                        <p className="text-gray-900">{formatDate(selectedRessource.datePublication)}</p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <FileText className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-sm font-medium text-gray-700">Type</span>
+                      )}
+                      {selectedRessource.filiere && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-center mb-2">
+                            <GraduationCap className="h-4 w-4 text-gray-500 mr-2" />
+                            <span className="text-sm font-medium text-gray-700">Filière</span>
+                          </div>
+                          <p className="text-gray-900">
+                            {selectedRessource.filiere === 'genie-logiciel' ? 'Génie Logiciel' :
+                              selectedRessource.filiere === 'iage' ? 'IAGE' :
+                                selectedRessource.filiere === 'multimedia' ? 'Multimédia' :
+                                  selectedRessource.filiere === 'gda' ? 'GDA' :
+                                    selectedRessource.filiere === 'mcd' ? 'MCD' : selectedRessource.filiere}
+                          </p>
                         </div>
-                        <p className="text-gray-900 capitalize">{selectedRessource.typeRessource}</p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-center mb-2">
-                          <Clock className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-sm font-medium text-gray-700">Vues</span>
+                      )}
+                      {selectedRessource.niveau && selectedRessource.niveau !== 'all' && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-center mb-2">
+                            <BookOpen className="h-4 w-4 text-gray-500 mr-2" />
+                            <span className="text-sm font-medium text-gray-700">Niveau d'études</span>
+                          </div>
+                          <p className="text-gray-900">{selectedRessource.niveau === 'licence' ? 'Licence' : selectedRessource.niveau === 'master' ? 'Master' : selectedRessource.niveau}</p>
                         </div>
-                        <p className="text-gray-900">{selectedRessource.vues} vues</p>
-                      </div>
+                      )}
+                      {selectedRessource.anneeAcademique && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-center mb-2">
+                            <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                            <span className="text-sm font-medium text-gray-700">Année académique</span>
+                          </div>
+                          <p className="text-gray-900">{selectedRessource.anneeAcademique}</p>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Tags */}
-                    {selectedRessource.tags.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Tags</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedRessource.tags.map((tag, idx) => (
-                            <Badge key={idx} variant="primary">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
 
-                      {/* Aperçu de la ressource */}
+
+
+                    {/* Aperçu de la ressource */}
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Accès à la ressource</h3>
                       {selectedRessource.cheminFichier && (selectedRessource.cheminFichier.endsWith('.pdf') || selectedRessource.cheminFichier.endsWith('.PDF')) ? (
-                        // Visualiseur PDF intégré
                         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                          <div className="w-full" style={{ height: '600px' }}>
-                            <iframe
-                              src={selectedRessource.cheminFichier}
-                              title={selectedRessource.titre}
+                          <div className="w-full h-[600px] bg-white rounded-lg shadow-inner flex items-center justify-center">
+                            <object
+                              data={selectedRessource.cheminFichier}
+                              type="application/pdf"
                               className="w-full h-full rounded-lg"
-                              style={{ border: 'none' }}
-                            />
+                            >
+                              <div className="text-center p-6">
+                                <p className="text-gray-600 mb-4">Impossible d'afficher le PDF directement.</p>
+                                <a
+                                  href={selectedRessource.cheminFichier}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn-primary inline-flex items-center"
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Télécharger le PDF
+                                </a>
+                              </div>
+                            </object>
                           </div>
                           <div className="flex justify-center gap-3 mt-4">
                             <button
@@ -537,11 +755,11 @@ const Mediatheque: React.FC = () => {
                         <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 text-center">
                           {getRessourceIcon(selectedRessource.typeRessource)}
                           <p className="text-gray-600 mb-4 mt-4">
-                            {selectedRessource.cheminFichier 
+                            {selectedRessource.cheminFichier
                               ? 'La ressource est disponible dans la médiathèque.'
                               : selectedRessource.url
-                              ? 'La ressource est accessible via un lien externe.'
-                              : 'La ressource est disponible dans la médiathèque.'
+                                ? 'La ressource est accessible via un lien externe.'
+                                : 'La ressource est disponible dans la médiathèque.'
                             }
                           </p>
                           <div className="flex justify-center gap-3">
@@ -567,11 +785,10 @@ const Mediatheque: React.FC = () => {
                 <div className="p-6 border-t border-gray-200 flex justify-between items-center">
                   <button
                     onClick={() => handleToggleSave(selectedRessource.idRessource)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                      isSaved(selectedRessource.idRessource)
-                        ? 'bg-primary-50 text-primary-700 border border-primary-200 hover:bg-primary-100'
-                        : 'bg-gray-50 text-gray-700 border border-gray-300 hover:bg-gray-100'
-                    }`}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${isSaved(selectedRessource.idRessource)
+                      ? 'bg-primary-50 text-primary-700 border border-primary-200 hover:bg-primary-100'
+                      : 'bg-gray-50 text-gray-700 border border-gray-300 hover:bg-gray-100'
+                      }`}
                   >
                     <Star className={`h-4 w-4 ${isSaved(selectedRessource.idRessource) ? 'fill-current' : ''}`} />
                     {isSaved(selectedRessource.idRessource) ? 'Retirer des sauvegardes' : 'Sauvegarder'}
@@ -587,10 +804,9 @@ const Mediatheque: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
 export default Mediatheque;
-

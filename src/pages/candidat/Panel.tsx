@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
+import {
   MessageSquare,
   Filter,
   Video,
@@ -218,22 +218,22 @@ const Panel: React.FC = () => {
 
   const getTypeNotificationColor = (type: string) => {
     switch (type) {
-      case 'Meet': return 'bg-blue-100 text-blue-800';
-      case 'Pré-soutenance': return 'bg-purple-100 text-purple-800';
-      case 'Document': return 'bg-green-100 text-green-800';
-      case 'Feedback': return 'bg-yellow-100 text-yellow-800';
-      case 'Rappel': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Meet': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Pré-soutenance': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Document': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Feedback': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Rappel': return 'bg-blue-50 text-blue-700 border-blue-200';
+      default: return 'bg-blue-50 text-blue-700 border-blue-200';
     }
   };
 
   const getTypeMessageColor = (type: string) => {
     switch (type) {
-      case 'texte': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'reunion-meet': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'presentiel': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'document': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'texte': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'reunion-meet': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'presentiel': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'document': return 'bg-blue-50 text-blue-700 border-blue-200';
+      default: return 'bg-blue-50 text-blue-700 border-blue-200';
     }
   };
 
@@ -340,7 +340,7 @@ const Panel: React.FC = () => {
               <span>{candidat.progressionGlobale}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
+              <div
                 className="bg-primary h-3 rounded-full transition-all duration-300"
                 style={{ width: `${candidat.progressionGlobale}%` }}
               ></div>
@@ -356,7 +356,7 @@ const Panel: React.FC = () => {
           <div className="flex items-center space-x-3">
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <select 
+              <select
                 value={filtreMessage}
                 onChange={(e) => setFiltreMessage(e.target.value as any)}
                 className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary"
@@ -414,13 +414,13 @@ const Panel: React.FC = () => {
                           {item.messageType === 'presentiel' && <MapPin className="h-3 w-3" />}
                           {item.messageType === 'document' && <FileText className="h-3 w-3" />}
                           {item.messageType === 'texte' && <MessageSquare className="h-3 w-3" />}
-                          {item.messageType === 'reunion-meet' ? 'Réunion Meet' : 
-                           item.messageType === 'presentiel' ? 'Présentiel' :
-                           item.messageType === 'document' ? 'Document PDF' : 'Texte'}
+                          {item.messageType === 'reunion-meet' ? 'Réunion Meet' :
+                            item.messageType === 'presentiel' ? 'Présentiel' :
+                              item.messageType === 'document' ? 'Document PDF' : 'Texte'}
                         </span>
                       )}
                       {item.urgent && (
-                        <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                        <span className="px-2 py-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded-full">
                           Urgent
                         </span>
                       )}
@@ -433,7 +433,7 @@ const Panel: React.FC = () => {
                       <h4 className="font-semibold text-gray-900 mb-2">{item.titre}</h4>
                     )}
                     <p className="text-sm mb-3">{item.contenu}</p>
-                      
+
                     {item.lienMeet && (
                       <div className={`${item.lu ? 'bg-white' : 'bg-white/90'} border border-gray-200 p-3 mt-3 rounded`}>
                         <div className="flex items-center space-x-2 mb-2">
@@ -450,21 +450,20 @@ const Panel: React.FC = () => {
                           <div className="pt-2 border-t border-gray-200">
                             <p className="font-medium mb-2 text-gray-900">Lien de la réunion:</p>
                             <div className="flex items-center space-x-2 flex-wrap">
-                              <a 
-                                href={item.lienMeet} 
-                                target="_blank" 
+                              <a
+                                href={item.lienMeet}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-primary hover:text-primary-700 underline break-all flex-1 min-w-0"
                               >
                                 {item.lienMeet}
                               </a>
-                              <button 
+                              <button
                                 onClick={() => copierLien(item.lienMeet || '', item.id)}
-                                className={`px-2 py-1 text-xs rounded flex-shrink-0 transition-colors flex items-center space-x-1 ${
-                                  lienCopie === item.id
+                                className={`px-2 py-1 text-xs rounded flex-shrink-0 transition-colors flex items-center space-x-1 ${lienCopie === item.id
                                     ? 'bg-green-600 text-white'
                                     : 'bg-primary text-white hover:bg-primary-700'
-                                }`}
+                                  }`}
                                 title="Copier le lien"
                               >
                                 {lienCopie === item.id ? (
@@ -477,9 +476,9 @@ const Panel: React.FC = () => {
                                 )}
                               </button>
                             </div>
-                            <a 
-                              href={item.lienMeet} 
-                              target="_blank" 
+                            <a
+                              href={item.lienMeet}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center space-x-2 mt-2 px-3 py-2 bg-primary text-white rounded hover:bg-primary-700 transition-colors text-sm font-medium"
                             >
@@ -525,7 +524,7 @@ const Panel: React.FC = () => {
                               )}
                             </div>
                           </div>
-                          <button 
+                          <button
                             onClick={() => window.open(item.cheminDocument, '_blank')}
                             className="px-2 py-1.5 bg-primary text-white rounded hover:bg-primary-700 transition-colors flex items-center space-x-2 text-xs"
                           >

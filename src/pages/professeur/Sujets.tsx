@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FileText, Search, Filter, Plus, 
+import {
+  FileText, Search, Filter, Plus,
   Edit, Trash2, Eye, Calendar, Users,
   X, BookOpen, Target, Save, Info, Download, User
 } from 'lucide-react';
@@ -261,6 +261,287 @@ export const TOUS_LES_SUJETS: Sujet[] = [
     dateModification: "2024-11-18",
     professeurId: 1,
     professeurNom: "Prof. Martin Dubois"
+  },
+  // Sujets des années précédentes (Historique)
+  {
+    id: 6,
+    titre: "Système de Recommandation E-Commerce",
+    description: "Développement d'un système de recommandation basé sur le filtrage collaboratif pour une plateforme e-commerce.",
+    type: "memoire",
+    niveau: "Licence 3",
+    departement: "Génie Informatique",
+    filieres: ["GL", "IAGE"],
+    nombreMaxEtudiants: 2,
+    nombreEtudiantsActuels: 2,
+    statut: "soumis",
+    dateSoumission: "2023-09-10",
+    dateApprobation: "2023-09-15",
+    anneeAcademique: "2023-2024",
+    motsCles: ["Recommandation", "E-commerce", "Machine Learning", "Filtrage collaboratif"],
+    prerequis: "Connaissances en algorithmes et bases de données",
+    objectifs: "Développer un système de recommandation performant",
+    dateCreation: "2023-09-05",
+    dateModification: "2023-09-10",
+    professeurId: 1,
+    professeurNom: "Prof. Martin Dubois",
+    etudiants: [
+      {
+        id: 7,
+        nom: "Fall",
+        prenom: "Moustapha",
+        email: "moustapha.fall@isi.edu.sn",
+        numeroEtudiant: "ETU2023001",
+        dateAttribution: "2023-09-20",
+        documentMemoire: {
+          id: 7,
+          titre: "Mémoire - Système de Recommandation E-Commerce",
+          cheminFichier: "/assets/documents/Memoire_Final_Corrigé.pdf",
+          dateDepot: "2024-06-10",
+          tailleFichier: 2856123,
+          format: "pdf"
+        }
+      },
+      {
+        id: 8,
+        nom: "Seck",
+        prenom: "Aminata",
+        email: "aminata.seck@isi.edu.sn",
+        numeroEtudiant: "ETU2023002",
+        dateAttribution: "2023-09-20",
+        documentMemoire: {
+          id: 8,
+          titre: "Mémoire - Système de Recommandation E-Commerce",
+          cheminFichier: "/assets/documents/doc.pdf",
+          dateDepot: "2024-06-10",
+          tailleFichier: 2745891,
+          format: "pdf"
+        }
+      }
+    ]
+  },
+  {
+    id: 7,
+    titre: "Application de Gestion Hospitalière",
+    description: "Conception et développement d'un système de gestion hospitalière incluant la gestion des patients, rendez-vous et dossiers médicaux.",
+    type: "memoire",
+    niveau: "Licence 3",
+    departement: "Génie Informatique",
+    filieres: ["GL", "GDA"],
+    nombreMaxEtudiants: 3,
+    nombreEtudiantsActuels: 1,
+    statut: "soumis",
+    dateSoumission: "2023-10-01",
+    dateApprobation: "2023-10-08",
+    anneeAcademique: "2023-2024",
+    motsCles: ["Santé", "Gestion", "Base de données", "Sécurité"],
+    prerequis: "Maîtrise des bases de données et développement web",
+    objectifs: "Développer une application de gestion complète et sécurisée",
+    dateCreation: "2023-09-25",
+    dateModification: "2023-10-01",
+    professeurId: 2,
+    professeurNom: "Prof. Sophie Martin",
+    etudiants: [
+      {
+        id: 9,
+        nom: "Cisse",
+        prenom: "Omar",
+        email: "omar.cisse@isi.edu.sn",
+        numeroEtudiant: "ETU2023003",
+        dateAttribution: "2023-10-15",
+        documentMemoire: {
+          id: 9,
+          titre: "Mémoire - Application de Gestion Hospitalière",
+          cheminFichier: "/assets/documents/Memoire_Final_Corrigé.pdf",
+          dateDepot: "2024-06-15",
+          tailleFichier: 3245678,
+          format: "pdf"
+        }
+      }
+    ]
+  },
+  {
+    id: 8,
+    titre: "Plateforme d'Apprentissage en Ligne",
+    description: "Développement d'une plateforme LMS (Learning Management System) avec fonctionnalités de suivi des apprenants et gestion de contenu.",
+    type: "memoire",
+    niveau: "Licence 3",
+    departement: "Génie Informatique",
+    filieres: ["GL", "Multimedia"],
+    nombreMaxEtudiants: 2,
+    nombreEtudiantsActuels: 2,
+    statut: "soumis",
+    dateSoumission: "2022-09-15",
+    dateApprobation: "2022-09-20",
+    anneeAcademique: "2022-2023",
+    motsCles: ["E-learning", "LMS", "Education", "Web"],
+    prerequis: "Développement web fullstack",
+    objectifs: "Créer une plateforme d'apprentissage complète et interactive",
+    dateCreation: "2022-09-10",
+    dateModification: "2022-09-15",
+    professeurId: 1,
+    professeurNom: "Prof. Martin Dubois",
+    etudiants: [
+      {
+        id: 10,
+        nom: "Gueye",
+        prenom: "Cheikh",
+        email: "cheikh.gueye@isi.edu.sn",
+        numeroEtudiant: "ETU2022001",
+        dateAttribution: "2022-09-25",
+        documentMemoire: {
+          id: 10,
+          titre: "Mémoire - Plateforme d'Apprentissage en Ligne",
+          cheminFichier: "/assets/documents/doc.pdf",
+          dateDepot: "2023-06-10",
+          tailleFichier: 2934567,
+          format: "pdf"
+        }
+      },
+      {
+        id: 11,
+        nom: "Ly",
+        prenom: "Mariama",
+        email: "mariama.ly@isi.edu.sn",
+        numeroEtudiant: "ETU2022002",
+        dateAttribution: "2022-09-25",
+        documentMemoire: {
+          id: 11,
+          titre: "Mémoire - Plateforme d'Apprentissage en Ligne",
+          cheminFichier: "/assets/documents/Memoire_Final_Corrigé.pdf",
+          dateDepot: "2023-06-10",
+          tailleFichier: 3012345,
+          format: "pdf"
+        }
+      }
+    ]
+  },
+  {
+    id: 9,
+    titre: "Système de Détection d'Intrusion Réseau",
+    description: "Conception d'un système IDS (Intrusion Detection System) utilisant l'apprentissage automatique pour détecter les comportements anormaux dans le trafic réseau.",
+    type: "memoire",
+    niveau: "Licence 3",
+    departement: "Génie Informatique",
+    filieres: ["GL", "IAGE"],
+    nombreMaxEtudiants: 2,
+    nombreEtudiantsActuels: 2,
+    statut: "soumis",
+    dateSoumission: "2023-08-25",
+    dateApprobation: "2023-09-01",
+    anneeAcademique: "2023-2024",
+    motsCles: ["Cybersécurité", "IDS", "Machine Learning", "Réseau"],
+    prerequis: "Connaissances en réseaux informatiques et sécurité",
+    objectifs: "Maîtriser les techniques de détection d'intrusion modernes",
+    dateCreation: "2023-08-20",
+    dateModification: "2023-08-25",
+    professeurId: 1,
+    professeurNom: "Prof. Martin Dubois",
+    etudiants: [
+      {
+        id: 12,
+        nom: "Ndoye",
+        prenom: "Salif",
+        email: "salif.ndoye@isi.edu.sn",
+        numeroEtudiant: "ETU2023004",
+        dateAttribution: "2023-09-10",
+        documentMemoire: {
+          id: 12,
+          titre: "Mémoire - Système de Détection d'Intrusion Réseau",
+          cheminFichier: "/assets/documents/doc.pdf",
+          dateDepot: "2024-06-05",
+          tailleFichier: 3456789,
+          format: "pdf"
+        }
+      },
+      {
+        id: 13,
+        nom: "Faye",
+        prenom: "Khady",
+        email: "khady.faye@isi.edu.sn",
+        numeroEtudiant: "ETU2023005",
+        dateAttribution: "2023-09-10",
+        documentMemoire: {
+          id: 13,
+          titre: "Mémoire - Système de Détection d'Intrusion Réseau",
+          cheminFichier: "/assets/documents/Memoire_Final_Corrigé.pdf",
+          dateDepot: "2024-06-05",
+          tailleFichier: 3398765,
+          format: "pdf"
+        }
+      }
+    ]
+  },
+  {
+    id: 10,
+    titre: "Application Mobile de Suivi Agricole",
+    description: "Développement d'une application mobile pour aider les agriculteurs à suivre leurs cultures, prévoir les rendements et optimiser l'irrigation grâce à l'IoT.",
+    type: "memoire",
+    niveau: "Licence 3",
+    departement: "Génie Informatique",
+    filieres: ["GL", "Multimedia", "GDA"],
+    nombreMaxEtudiants: 3,
+    nombreEtudiantsActuels: 3,
+    statut: "soumis",
+    dateSoumission: "2022-10-05",
+    dateApprobation: "2022-10-10",
+    anneeAcademique: "2022-2023",
+    motsCles: ["Agriculture", "IoT", "Mobile", "Smart Farming"],
+    prerequis: "Développement mobile et connaissances en IoT",
+    objectifs: "Créer une solution innovante pour l'agriculture intelligente",
+    dateCreation: "2022-10-01",
+    dateModification: "2022-10-05",
+    professeurId: 2,
+    professeurNom: "Prof. Sophie Martin",
+    etudiants: [
+      {
+        id: 14,
+        nom: "Sow",
+        prenom: "Modou",
+        email: "modou.sow@isi.edu.sn",
+        numeroEtudiant: "ETU2022003",
+        dateAttribution: "2022-10-15",
+        documentMemoire: {
+          id: 14,
+          titre: "Mémoire - Application Mobile de Suivi Agricole",
+          cheminFichier: "/assets/documents/Memoire_Final_Corrigé.pdf",
+          dateDepot: "2023-06-08",
+          tailleFichier: 2789456,
+          format: "pdf"
+        }
+      },
+      {
+        id: 15,
+        nom: "Mbaye",
+        prenom: "Sokhna",
+        email: "sokhna.mbaye@isi.edu.sn",
+        numeroEtudiant: "ETU2022004",
+        dateAttribution: "2022-10-15",
+        documentMemoire: {
+          id: 15,
+          titre: "Mémoire - Application Mobile de Suivi Agricole",
+          cheminFichier: "/assets/documents/doc.pdf",
+          dateDepot: "2023-06-08",
+          tailleFichier: 2845123,
+          format: "pdf"
+        }
+      },
+      {
+        id: 16,
+        nom: "Diouf",
+        prenom: "Malick",
+        email: "malick.diouf@isi.edu.sn",
+        numeroEtudiant: "ETU2022005",
+        dateAttribution: "2022-10-15",
+        documentMemoire: {
+          id: 16,
+          titre: "Mémoire - Application Mobile de Suivi Agricole",
+          cheminFichier: "/assets/documents/Memoire_Final_Corrigé.pdf",
+          dateDepot: "2023-06-08",
+          tailleFichier: 2912678,
+          format: "pdf"
+        }
+      }
+    ]
   }
 ];
 
@@ -280,7 +561,7 @@ const Badge: React.FC<{
     info: "bg-gray-50 text-gray-700 border border-gray-200",
     primary: "bg-blue-50 text-blue-700 border border-blue-200"
   };
-  
+
   return (
     <span className={`inline-flex px-2 py-1 text-xs font-medium ${styles[variant]} ${className}`}>
       {children}
@@ -295,33 +576,33 @@ const Button: React.FC<{
   icon?: React.ReactNode;
   disabled?: boolean;
   type?: 'button' | 'submit';
-}> = ({ 
-  children, 
-  onClick, 
-  variant = 'primary', 
+}> = ({
+  children,
+  onClick,
+  variant = 'primary',
   icon,
   disabled = false,
   type = 'button'
 }) => {
-  const styles = {
-    primary: `bg-navy text-white border border-navy hover:bg-navy-dark ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`,
-    secondary: `bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`,
-    ghost: `bg-transparent text-gray-600 border border-transparent hover:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`,
-    danger: `bg-red-600 text-white border border-red-600 hover:bg-red-700 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`
+    const styles = {
+      primary: `bg-navy text-white border border-navy hover:bg-navy-dark ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`,
+      secondary: `bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`,
+      ghost: `bg-transparent text-gray-600 border border-transparent hover:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`,
+      danger: `bg-red-600 text-white border border-red-600 hover:bg-red-700 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`
+    };
+
+    return (
+      <button
+        onClick={disabled ? undefined : onClick}
+        disabled={disabled}
+        type={type}
+        className={`px-4 py-2 text-sm font-medium transition-colors duration-200 flex items-center ${styles[variant]}`}
+      >
+        {icon && <span className="mr-2">{icon}</span>}
+        {children}
+      </button>
+    );
   };
-  
-  return (
-    <button 
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      type={type}
-      className={`px-4 py-2 text-sm font-medium transition-colors duration-200 flex items-center ${styles[variant]}`}
-    >
-      {icon && <span className="mr-2">{icon}</span>}
-      {children}
-    </button>
-  );
-};
 
 // Modal pour voir les détails d'un sujet
 const ModalDetailsSujet: React.FC<{
@@ -334,19 +615,19 @@ const ModalDetailsSujet: React.FC<{
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-white shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-        >
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+      >
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">{sujet.titre}</h2>
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant={sujet.statut}>
-                  {sujet.statut === 'soumis' ? 'Soumis' : 
-                   sujet.statut === 'brouillon' ? 'Brouillon' : 'Rejeté'}
+                  {sujet.statut === 'soumis' ? 'Soumis' :
+                    sujet.statut === 'brouillon' ? 'Brouillon' : 'Rejeté'}
                 </Badge>
                 <Badge variant="primary">{sujet.niveau}</Badge>
                 {sujet.filieres && sujet.filieres.length > 0 && (
@@ -493,8 +774,8 @@ const ModalDetailsSujet: React.FC<{
                                       {etudiant.documentMemoire.titre}
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                      Déposé le {etudiant.documentMemoire.dateDepot} • 
-                                      {(etudiant.documentMemoire.tailleFichier / 1024 / 1024).toFixed(2)} Mo • 
+                                      Déposé le {etudiant.documentMemoire.dateDepot} •
+                                      {(etudiant.documentMemoire.tailleFichier / 1024 / 1024).toFixed(2)} Mo •
                                       {etudiant.documentMemoire.format.toUpperCase()}
                                     </p>
                                   </div>
@@ -585,7 +866,7 @@ const ModalNouveauSujet: React.FC<{
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.titre || !formData.description || !formData.objectifs || !formData.prerequis || formData.filieres.length === 0) {
       setAlertMessage('Veuillez remplir tous les champs obligatoires et sélectionner au moins une filière.');
       setShowAlertModal(true);
@@ -846,32 +1127,36 @@ const ModalNouveauSujet: React.FC<{
 // Composant principal
 const Sujets: React.FC = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'mes-sujets' | 'sujets-disponibles'>('mes-sujets');
+  const [activeTab, setActiveTab] = useState<'mes-sujets' | 'sujets-disponibles' | 'historique'>('mes-sujets');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filiereFilter, setFiliereFilter] = useState<string>('all');
   const [selectedSujet, setSelectedSujet] = useState<Sujet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalNouveauSujetOpen, setIsModalNouveauSujetOpen] = useState(false);
-  
+
   // Simuler l'ID du professeur connecté (dans un vrai app, cela viendrait de l'auth)
   const professeurId = 1; // user?.id ou similaire
-  
+
   const [sujets, setSujets] = useState(TOUS_LES_SUJETS);
 
   // Filtrer les sujets selon l'onglet actif
-  const mesSujets = sujets.filter(s => s.professeurId === professeurId);
-  const sujetsDisponibles = sujets.filter(s => s.statut === 'soumis');
+  const anneeCourante = '2024-2025';
+  const mesSujets = sujets.filter(s => s.professeurId === professeurId && s.anneeAcademique === anneeCourante);
+  const sujetsDisponibles = sujets.filter(s => s.statut === 'soumis' && s.anneeAcademique === anneeCourante);
+  const sujetsHistorique = sujets.filter(s => s.anneeAcademique !== anneeCourante);
 
-  const sujetsAffiches = activeTab === 'mes-sujets' ? mesSujets : sujetsDisponibles;
+  const sujetsAffiches = activeTab === 'mes-sujets' ? mesSujets :
+    activeTab === 'historique' ? sujetsHistorique :
+      sujetsDisponibles;
 
   const filteredSujets = sujetsAffiches.filter(sujet => {
     const matchesSearch = sujet.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         sujet.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         sujet.motsCles.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+      sujet.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sujet.motsCles.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()));
+
     const matchesFiliere = filiereFilter === 'all' || (sujet.filieres && sujet.filieres.includes(filiereFilter));
-    
+
     return matchesSearch && matchesFiliere;
   });
 
@@ -896,7 +1181,7 @@ const Sujets: React.FC = () => {
       professeurId: professeurId,
       professeurNom: user?.name || 'Prof. Inconnu'
     };
-    
+
     setSujets([...sujets, sujetComplet]);
     setIsModalNouveauSujetOpen(false);
   };
@@ -927,23 +1212,30 @@ const Sujets: React.FC = () => {
             <nav className="flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('mes-sujets')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'mes-sujets'
-                    ? 'border-navy text-navy'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'mes-sujets'
+                  ? 'border-navy text-navy'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 Mes sujets ({mesSujets.length})
               </button>
               <button
                 onClick={() => setActiveTab('sujets-disponibles')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'sujets-disponibles'
-                    ? 'border-navy text-navy'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'sujets-disponibles'
+                  ? 'border-navy text-navy'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 Liste des sujets disponibles ({sujetsDisponibles.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('historique')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'historique'
+                  ? 'border-navy text-navy'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                Historique ({sujetsHistorique.length})
               </button>
             </nav>
           </div>
@@ -964,7 +1256,7 @@ const Sujets: React.FC = () => {
                     className="block w-full pl-10 pr-4 py-3 border border-gray-300 focus:outline-none focus:border-navy focus:ring-1 focus:ring-navy"
                   />
                 </div>
-                
+
                 <Button
                   variant="ghost"
                   onClick={() => setShowFilters(!showFilters)}
@@ -973,10 +1265,10 @@ const Sujets: React.FC = () => {
                   {showFilters ? 'Masquer' : 'Filtres'}
                 </Button>
               </div>
-              
+
               <AnimatePresence>
                 {showFilters && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -1030,8 +1322,8 @@ const Sujets: React.FC = () => {
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-lg font-semibold text-gray-900">{sujet.titre}</h3>
                             <Badge variant={sujet.statut}>
-                              {sujet.statut === 'soumis' ? 'Soumis' : 
-                               sujet.statut === 'brouillon' ? 'Brouillon' : 'Rejeté'}
+                              {sujet.statut === 'soumis' ? 'Soumis' :
+                                sujet.statut === 'brouillon' ? 'Brouillon' : 'Rejeté'}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -1060,7 +1352,7 @@ const Sujets: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="ml-6 text-center">
                           <div className="bg-blue-50 border border-blue-200 p-4">
                             <div className="text-2xl font-bold text-blue-600 mb-1">
@@ -1107,7 +1399,7 @@ const Sujets: React.FC = () => {
         </div>
 
         {/* Modal des détails */}
-        <ModalDetailsSujet 
+        <ModalDetailsSujet
           sujet={selectedSujet}
           isOpen={isModalOpen}
           onClose={closeModal}

@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Users, 
-  Grid, 
-  BookOpen, 
-  Bell, 
-  Calendar, 
+import {
+  Users,
+  Grid,
+  BookOpen,
+  Bell,
+  Calendar,
   ArrowUpRight,
   ArrowDownRight,
   MessageSquare,
@@ -66,7 +66,7 @@ const Badge: React.FC<{
     error: "bg-red-50 text-red-600 border border-red-200",
     primary: "bg-navy bg-opacity-10 text-navy border border-navy border-opacity-20"
   };
-  
+
   return (
     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${styles[variant]}`}>
       {children}
@@ -87,12 +87,12 @@ const SimpleButton: React.FC<{
     secondary: 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-50',
     ghost: 'bg-transparent text-gray-600 border border-transparent hover:bg-gray-50'
   };
-  
+
   const sizeStyles = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2 text-sm'
   };
-  
+
   return (
     <button
       onClick={onClick}
@@ -114,17 +114,17 @@ type DashboardCardProps = {
   onClick?: () => void;
 };
 
-const DashboardCard: React.FC<DashboardCardProps> = ({ 
-  title, 
-  value, 
-  icon, 
-  iconColor, 
+const DashboardCard: React.FC<DashboardCardProps> = ({
+  title,
+  value,
+  icon,
+  iconColor,
   trend,
   delay = 0,
-  onClick 
+  onClick
 }) => {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
@@ -146,7 +146,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
           </div>
         )}
       </div>
-      
+
       <div>
         <p className="text-sm text-gray-500 mb-1">{title}</p>
         <p className="text-3xl font-bold text-gray-900">{value}</p>
@@ -164,7 +164,7 @@ const QuickActionCard: React.FC<{
   badge?: string;
 }> = ({ title, description, icon, iconColor, onClick, badge }) => {
   return (
-    <div 
+    <div
       className="bg-white border border-gray-200 p-4 hover:shadow-md transition-all duration-200 cursor-pointer group"
       onClick={onClick}
     >
@@ -242,16 +242,16 @@ const Dashboard: React.FC = () => {
     // Cartes pour Étudiant - Basées sur le diagramme de classes
     if (user?.type === 'etudiant') {
       const stats = getDashboardStats();
-      
+
       // Cartes spécifiques pour Candidat
       if (user?.estCandidat) {
         // 1. Tickets en cours
         cards.push(
-          <DashboardCard 
+          <DashboardCard
             key="tickets"
-            title="Tickets actifs" 
-            value="3" 
-            icon={<AlertCircle className="h-6 w-6" />} 
+            title="Tickets actifs"
+            value="3"
+            icon={<AlertCircle className="h-6 w-6" />}
             iconColor="bg-primary-100 text-primary-700"
             delay={delay}
             onClick={() => navigate('/etudiant/dossiers')}
@@ -261,11 +261,11 @@ const Dashboard: React.FC = () => {
 
         // 2. Dossiers en cours
         cards.push(
-          <DashboardCard 
+          <DashboardCard
             key="dossiers-candidat"
-            title="Dossiers en cours" 
-            value={stats.dossiersCount.toString()} 
-            icon={<Folder className="h-6 w-6" />} 
+            title="Dossiers en cours"
+            value={stats.dossiersCount.toString()}
+            icon={<Folder className="h-6 w-6" />}
             iconColor="bg-primary-100 text-primary-700"
             delay={delay}
             onClick={() => navigate('/etudiant/dossiers')}
@@ -275,11 +275,11 @@ const Dashboard: React.FC = () => {
 
         // 3. Documents administratifs
         cards.push(
-          <DashboardCard 
+          <DashboardCard
             key="documents-admin"
-            title="Documents administratifs" 
-            value={stats.documentsCount.toString()} 
-            icon={<FileCheck className="h-6 w-6" />} 
+            title="Documents administratifs"
+            value={stats.documentsCount.toString()}
+            icon={<FileCheck className="h-6 w-6" />}
             iconColor="bg-primary-100 text-primary-700"
             delay={delay}
           />
@@ -289,11 +289,11 @@ const Dashboard: React.FC = () => {
         // Cartes pour étudiant normal
         // 1. Dossiers/Mémoires actifs
         cards.push(
-          <DashboardCard 
+          <DashboardCard
             key="dossiers"
-            title="Mes Dossiers" 
-            value={stats.dossiersCount.toString()} 
-            icon={<FileText className="h-6 w-6" />} 
+            title="Mes Dossiers"
+            value={stats.dossiersCount.toString()}
+            icon={<FileText className="h-6 w-6" />}
             iconColor="bg-primary-100 text-primary-700"
             delay={delay}
             onClick={() => navigate('/etudiant/dossiers')}
@@ -304,11 +304,11 @@ const Dashboard: React.FC = () => {
         // 2. Documents déposés
         const nouveauxDocuments = 2; // À remplacer par calcul réel depuis l'historique
         cards.push(
-          <DashboardCard 
+          <DashboardCard
             key="documents"
-            title="Documents déposés" 
-            value={stats.documentsCount.toString()} 
-            icon={<FileCheck className="h-6 w-6" />} 
+            title="Documents déposés"
+            value={stats.documentsCount.toString()}
+            icon={<FileCheck className="h-6 w-6" />}
             iconColor="bg-primary-100 text-primary-700"
             trend={{ value: `+${nouveauxDocuments}`, up: true }}
             delay={delay}
@@ -318,11 +318,11 @@ const Dashboard: React.FC = () => {
 
         // 3. Échéances à venir
         cards.push(
-          <DashboardCard 
+          <DashboardCard
             key="echeances"
-            title="Échéances" 
-            value={stats.echeancesCount.toString()} 
-            icon={<Clock className="h-6 w-6" />} 
+            title="Échéances"
+            value={stats.echeancesCount.toString()}
+            icon={<Clock className="h-6 w-6" />}
             iconColor="bg-primary-100 text-primary-700"
             delay={delay}
           />
@@ -336,11 +336,11 @@ const Dashboard: React.FC = () => {
 
 
       cards.push(
-        <DashboardCard 
+        <DashboardCard
           key="professeurs"
-          title="Professeurs" 
-          value="18" 
-          icon={<Users className="h-6 w-6" />} 
+          title="Professeurs"
+          value="18"
+          icon={<Users className="h-6 w-6" />}
           iconColor="bg-orange-100 text-orange-600"
           trend={{ value: "+2", up: true }}
           delay={delay}
@@ -349,11 +349,11 @@ const Dashboard: React.FC = () => {
       delay += 0.1;
 
       cards.push(
-        <DashboardCard 
+        <DashboardCard
           key="etudiants-dept"
-          title="Étudiants département" 
-          value="156" 
-          icon={<GraduationCap className="h-6 w-6" />} 
+          title="Étudiants département"
+          value="156"
+          icon={<GraduationCap className="h-6 w-6" />}
           iconColor="bg-purple-100 text-purple-600"
           trend={{ value: "+12", up: true }}
           delay={delay}
@@ -399,11 +399,11 @@ const Dashboard: React.FC = () => {
     // Cartes pour Assistant
     if (user?.type === 'assistant') {
       cards.push(
-        <DashboardCard 
+        <DashboardCard
           key="documents"
-          title="Documents traités" 
-          value="42" 
-          icon={<FileText className="h-6 w-6" />} 
+          title="Documents traités"
+          value="42"
+          icon={<FileText className="h-6 w-6" />}
           iconColor="bg-slate-100 text-slate-600"
           trend={{ value: "+8", up: true }}
           delay={delay}
@@ -412,11 +412,11 @@ const Dashboard: React.FC = () => {
       delay += 0.1;
 
       cards.push(
-        <DashboardCard 
+        <DashboardCard
           key="convocations"
-          title="Convocations envoyées" 
-          value="28" 
-          icon={<Send className="h-6 w-6" />} 
+          title="Convocations envoyées"
+          value="28"
+          icon={<Send className="h-6 w-6" />}
           iconColor="bg-pink-100 text-pink-600"
           delay={delay}
         />
@@ -424,11 +424,11 @@ const Dashboard: React.FC = () => {
       delay += 0.1;
 
       cards.push(
-        <DashboardCard 
+        <DashboardCard
           key="salles-reservees"
-          title="Salles réservées" 
-          value="15" 
-          icon={<Building className="h-6 w-6" />} 
+          title="Salles réservées"
+          value="15"
+          icon={<Building className="h-6 w-6" />}
           iconColor="bg-violet-100 text-violet-600"
           delay={delay}
         />
@@ -612,22 +612,6 @@ const Dashboard: React.FC = () => {
           onClick={() => navigate('/professeur/encadrements')}
         />,
         <QuickActionCard
-          key="disponibilites"
-          title="Mes disponibilités"
-          description="Renseigner mes créneaux pour les jurys"
-          icon={<Calendar className="h-5 w-5" />}
-          iconColor="bg-purple-100 text-purple-600"
-          onClick={() => navigate('/professeur/disponibilites')}
-        />,
-        <QuickActionCard
-          key="proposer-sujet"
-          title="Proposer un sujet"
-          description="Ajouter un nouveau sujet de mémoire"
-          icon={<BookOpen className="h-5 w-5" />}
-          iconColor="bg-amber-100 text-amber-600"
-          onClick={() => navigate('/professeur/sujets')}
-        />,
-        <QuickActionCard
           key="calendrier"
           title="Calendrier"
           description="Voir mes soutenances à venir"
@@ -700,29 +684,7 @@ const Dashboard: React.FC = () => {
       );
     }
 
-    // Actions pour Commission (professeur avec rôle commission)
-    if (user?.type === 'professeur' && user?.estCommission) {
-      actions.push(
-        <QuickActionCard
-          key="validation-sujets"
-          title="Validation des sujets"
-          description="Valider les nouveaux sujets de mémoire"
-          icon={<BookOpen className="h-5 w-5" />}
-          iconColor="bg-amber-100 text-amber-600"
-          badge="8"
-          onClick={() => navigate('/commission/sujets')}
-        />,
-        <QuickActionCard
-          key="memoires-corriges"
-          title="Mémoires corrigés"
-          description="Valider les mémoires corrigés (basé sur PV)"
-          icon={<FileCheck className="h-5 w-5" />}
-          iconColor="bg-indigo-100 text-indigo-600"
-          badge="5"
-          onClick={() => navigate('/commission/memoires')}
-        />
-      );
-    }
+
 
     // Actions pour Assistant
     if (user?.type === 'assistant') {
@@ -765,7 +727,7 @@ const Dashboard: React.FC = () => {
         const diffMs = now.getTime() - date.getTime();
         const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
         const diffDays = Math.floor(diffHours / 24);
-        
+
         if (diffDays > 0) {
           return `Il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
         } else if (diffHours > 0) {
@@ -775,42 +737,42 @@ const Dashboard: React.FC = () => {
           return `Il y a ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''}`;
         }
       };
-      
+
       // Formatage pour les dates futures
       const formatTimeUntil = (date: Date) => {
         const now = new Date();
         const diffMs = date.getTime() - now.getTime();
         const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays < 0) return 'Passé';
         if (diffDays === 0) return 'Aujourd\'hui';
         if (diffDays === 1) return 'Demain';
         return `Dans ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
       };
-      
+
       // Documents validés récemment
       const documentsValidesRecents = mockDocuments
         .filter(doc => doc.statut === StatutDocument.VALIDE)
         .sort((a, b) => b.dateCreation.getTime() - a.dateCreation.getTime())
         .slice(0, 1);
-      
+
       // Messages récents
       const messagesRecents = mockMessages
         .sort((a, b) => b.dateEnvoi.getTime() - a.dateEnvoi.getTime())
         .slice(0, 1);
-      
+
       // Échéances proches
       const echeancesProches = mockEvenements
         .filter(event => event.type === TypeEvenement.ECHANCE && event.dateDebut >= new Date())
         .sort((a, b) => a.dateDebut.getTime() - b.dateDebut.getTime())
         .slice(0, 1);
-      
+
       // Soutenances
       const soutenances = mockEvenements
         .filter(event => event.type === TypeEvenement.SOUTENANCE)
         .sort((a, b) => a.dateDebut.getTime() - b.dateDebut.getTime())
         .slice(0, 1);
-      
+
       // Activités spécifiques pour Candidat
       if (user?.estCandidat) {
         // Activités basées sur les cas d'utilisation du candidat
@@ -850,7 +812,7 @@ const Dashboard: React.FC = () => {
             time="Il y a 2 jours"
           />
         );
-        
+
         // Documents validés récents
         documentsValidesRecents.forEach((doc) => {
           activities.push(
@@ -879,7 +841,7 @@ const Dashboard: React.FC = () => {
             />
           );
         });
-        
+
         messagesRecents.forEach((message) => {
           activities.push(
             <ActivityItem
@@ -893,7 +855,7 @@ const Dashboard: React.FC = () => {
             />
           );
         });
-        
+
         echeancesProches.forEach((event) => {
           const joursRestants = Math.ceil((event.dateDebut.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
           activities.push(
@@ -908,7 +870,7 @@ const Dashboard: React.FC = () => {
             />
           );
         });
-        
+
         soutenances.forEach((event) => {
           activities.push(
             <ActivityItem
@@ -1089,7 +1051,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Stats Cards */}
         {statsCards.length > 0 && (
           <div className="mb-6">
@@ -1098,7 +1060,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         {/* Quick Actions */}
         {quickActions.length > 0 && (
           <motion.div
@@ -1113,23 +1075,23 @@ const Dashboard: React.FC = () => {
             </div>
           </motion.div>
         )}
-        
+
         {/* Section spécifique pour les encadrants */}
         {user?.type === 'professeur' && user?.estEncadrant && (() => {
           const idProfesseur = user?.id ? parseInt(user.id) : 0;
           const encadrementsActifs = idProfesseur > 0 ? getEncadrementsActifs(idProfesseur) : [];
           const encadrementActif = encadrementsActifs.length > 0 ? encadrementsActifs[0] : null;
-          
+
           if (!encadrementActif) return null;
-          
+
           const tickets = getTicketsByEncadrement(encadrementActif.idEncadrement);
           const ticketsEnCours = tickets.filter(t => t.phase === PhaseTicket.EN_COURS).length;
           const ticketsEnRevision = tickets.filter(t => t.phase === PhaseTicket.EN_REVISION).length;
           const ticketsAfaire = tickets.filter(t => t.phase === PhaseTicket.A_FAIRE).length;
-          
+
           const dossiers = encadrementActif.dossierMemoire?.candidats || [];
           const dossiersAttention = dossiers.slice(0, 2);
-          
+
           return (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1146,7 +1108,7 @@ const Dashboard: React.FC = () => {
                   Voir le panel <ChevronRight className="h-4 w-4 ml-1" />
                 </SimpleButton>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-blue-50 border border-blue-200 p-4 rounded">
                   <div className="flex items-center justify-between">
@@ -1157,7 +1119,7 @@ const Dashboard: React.FC = () => {
                     <AlertCircle className="h-6 w-6 text-blue-600" />
                   </div>
                 </div>
-                
+
                 <div className="bg-orange-50 border border-orange-200 p-4 rounded">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1167,7 +1129,7 @@ const Dashboard: React.FC = () => {
                     <Clock className="h-6 w-6 text-orange-600" />
                   </div>
                 </div>
-                
+
                 <div className="bg-gray-50 border border-gray-200 p-4 rounded">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1178,7 +1140,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               {dossiersAttention.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Dossiers nécessitant attention</h3>
@@ -1208,7 +1170,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               {ticketsEnRevision > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Tickets nécessitant validation</h3>
@@ -1231,7 +1193,7 @@ const Dashboard: React.FC = () => {
             </motion.div>
           );
         })()}
-        
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Recent Activities */}
@@ -1246,13 +1208,13 @@ const Dashboard: React.FC = () => {
                 <h2 className="text-xl font-bold text-gray-900">Activités récentes</h2>
                 <SimpleButton variant="ghost">Voir tout</SimpleButton>
               </div>
-              
+
               <div className="space-y-4">
                 {recentActivities}
               </div>
             </motion.div>
           )}
-          
+
           {/* Messages récents pour autres rôles (pas pour étudiant) */}
           {user?.type !== 'etudiant' && (
             <motion.div
@@ -1265,10 +1227,10 @@ const Dashboard: React.FC = () => {
                 <h2 className="text-xl font-bold text-gray-900">Messages récents</h2>
                 <Badge variant="info">3 non lus</Badge>
               </div>
-              
+
               <div className="space-y-4">
               </div>
-              
+
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <SimpleButton variant="secondary" size="md" icon={<MessageSquare className="h-4 w-4" />}>
                   Voir tous les messages
@@ -1286,7 +1248,7 @@ const Dashboard: React.FC = () => {
           className="bg-white border border-gray-200 p-6"
         >
           <h2 className="text-xl font-bold text-gray-900 mb-6">Calendrier - {new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</h2>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Calendar Grid */}
             <div>
@@ -1297,7 +1259,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               <div className="grid grid-cols-7 gap-1 text-center">
                 {/* Empty days */}
                 {[...Array(2)].map((_, i) => (
@@ -1305,23 +1267,22 @@ const Dashboard: React.FC = () => {
                     <div className="h-8 w-8"></div>
                   </div>
                 ))}
-                
+
                 {/* Calendar days */}
                 {[...Array(31)].map((_, i) => {
                   const day = i + 1;
                   const isToday = day === new Date().getDate();
                   const hasEvent = [15, 21, 25, 27, 30].includes(day);
-                  
+
                   return (
                     <div key={day} className="p-1">
-                      <div 
-                        className={`h-8 w-8 flex items-center justify-center text-sm transition-colors duration-200 rounded ${
-                          isToday 
-                            ? 'bg-navy text-white' 
-                            : hasEvent 
-                              ? 'border-2 border-navy text-navy hover:bg-navy hover:text-white' 
+                      <div
+                        className={`h-8 w-8 flex items-center justify-center text-sm transition-colors duration-200 rounded ${isToday
+                            ? 'bg-navy text-white'
+                            : hasEvent
+                              ? 'border-2 border-navy text-navy hover:bg-navy hover:text-white'
                               : 'text-gray-700 hover:bg-gray-100'
-                        }`}
+                          }`}
                       >
                         {day}
                       </div>
@@ -1330,7 +1291,7 @@ const Dashboard: React.FC = () => {
                 })}
               </div>
             </div>
-            
+
             {/* Upcoming Events */}
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-3">Événements à venir</h3>
@@ -1360,7 +1321,7 @@ const Dashboard: React.FC = () => {
                               return 'bg-gray-50 border-gray-200 text-gray-900';
                           }
                         };
-                        
+
                         const getEventDotColor = (type: TypeEvenement) => {
                           switch (type) {
                             case TypeEvenement.SOUTENANCE:
@@ -1373,17 +1334,17 @@ const Dashboard: React.FC = () => {
                               return 'bg-gray-500';
                           }
                         };
-                        
+
                         const formatEventDate = (date: Date) => {
-                          return date.toLocaleDateString('fr-FR', { 
-                            day: 'numeric', 
-                            month: date.getMonth() === new Date().getMonth() ? 'short' : 'long', 
+                          return date.toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: date.getMonth() === new Date().getMonth() ? 'short' : 'long',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
                           });
                         };
-                        
+
                         return (
                           <div key={event.idEvenement} className={`flex items-center p-3 ${getEventColor(event.type)} border rounded`}>
                             <div className={`w-2 h-2 ${getEventDotColor(event.type)} rounded-full mr-3`}></div>
@@ -1399,7 +1360,7 @@ const Dashboard: React.FC = () => {
                       })}
                   </>
                 )}
-                
+
                 {user?.type === 'professeur' && user?.estChef && (
                   <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
@@ -1409,8 +1370,8 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
-                
+
+
                 {user?.type === 'professeur' && user?.estEncadrant && (
                   <div className="flex items-center p-3 bg-emerald-50 border border-emerald-200 rounded">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
@@ -1420,7 +1381,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {user?.type === 'professeur' && user?.estJurie && (
                   <div className="flex items-center p-3 bg-red-50 border border-red-200 rounded">
                     <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
@@ -1430,7 +1391,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {user?.type === 'professeur' && user?.estCommission && (
                   <div className="flex items-center p-3 bg-amber-50 border border-amber-200 rounded">
                     <div className="w-2 h-2 bg-amber-500 rounded-full mr-3"></div>
@@ -1440,7 +1401,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {user?.type === 'assistant' && (
                   <div className="flex items-center p-3 bg-violet-50 border border-violet-200 rounded">
                     <div className="w-2 h-2 bg-violet-500 rounded-full mr-3"></div>
@@ -1450,7 +1411,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Événement commun */}
                 <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded">
                   <div className="w-2 h-2 bg-gray-500 rounded-full mr-3"></div>

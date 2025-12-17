@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { 
-  BookOpen, 
-  FileCheck, 
+import {
+  BookOpen,
+  FileCheck,
   AlertCircle,
   Search,
   CheckCircle,
@@ -24,11 +24,11 @@ import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { mockSujets, type Sujet } from '../../models/pipeline/SujetMemoire';
 import { mockDossiers, type DossierMemoire, EtapeDossier, StatutDossierMemoire } from '../../models/dossier/DossierMemoire';
-import { 
-  mockDocuments, 
-  StatutDocument, 
+import {
+  mockDocuments,
+  StatutDocument,
   TypeDocument,
-  type Document 
+  type Document
 } from '../../models/dossier/Document';
 import { mockProfesseurs } from '../../models/acteurs/Professeur';
 import { mockCandidats } from '../../models/acteurs/Candidat';
@@ -37,22 +37,22 @@ import { fr } from 'date-fns/locale';
 import { activerRessource } from '../../models/ressource/RessourceMediatheque';
 import { mockRessourcesMediatheque } from '../../models/ressource/RessourceMediatheque';
 import { getEncadrementsByDossier, StatutEncadrement } from '../../models/dossier/Encadrement';
-import { 
-  mettreDepotEnPhasePublique, 
-  getDepotsEnPhasePublique 
+import {
+  mettreDepotEnPhasePublique,
+  getDepotsEnPhasePublique
 } from '../../models/dossier/DossierMemoire';
-import { 
-  mettreDocumentEnPhasePublique, 
-  getDocumentsEnPhasePublique 
+import {
+  mettreDocumentEnPhasePublique,
+  getDocumentsEnPhasePublique
 } from '../../models/dossier/Document';
-import { 
-  mockAvisPublics, 
-  getAvisPublicsByElement, 
+import {
+  mockAvisPublics,
+  getAvisPublicsByElement,
   ajouterAvisPublic,
-  type AvisPublic 
+  type AvisPublic
 } from '../../models/commission/AvisPublic';
-import { 
-  getTypePeriodeActive, 
+import {
+  getTypePeriodeActive,
   TypePeriodeValidation,
   estPeriodeValidationSujets,
   estPeriodeValidationCorrections,
@@ -61,37 +61,37 @@ import {
 
 const EspaceCommission: React.FC = () => {
   const { user } = useAuth();
-  
+
   // State pour forcer le re-render lors du changement de période
   const [refreshKey, setRefreshKey] = useState(0);
-  
+
   // Recalculer la période active à chaque changement (dépend de refreshKey)
   const periodeActive = useMemo(() => getTypePeriodeActive(), [refreshKey]);
-  
+
   // Déterminer l'onglet initial selon la période active
   const initialTab = useMemo(() => {
-    return periodeActive === TypePeriodeValidation.VALIDATION_SUJETS 
-      ? 'sujets' 
+    return periodeActive === TypePeriodeValidation.VALIDATION_SUJETS
+      ? 'sujets'
       : periodeActive === TypePeriodeValidation.VALIDATION_CORRECTIONS
-      ? 'documents'
-      : periodeActive === TypePeriodeValidation.AUCUNE
-      ? 'sujets' // Par défaut, mais ne sera pas affiché
-      : 'phase_publique';
+        ? 'documents'
+        : periodeActive === TypePeriodeValidation.AUCUNE
+          ? 'sujets' // Par défaut, mais ne sera pas affiché
+          : 'phase_publique';
   }, [periodeActive]);
-  
+
   // Sous-onglets pour les sujets
   const [sousOngletSujets, setSousOngletSujets] = useState<'en_attente' | 'valides' | 'rejetes'>('en_attente');
-  
+
   // Sous-onglets pour les documents
   const [sousOngletDocuments, setSousOngletDocuments] = useState<'en_attente' | 'valides' | 'rejetes'>('en_attente');
-  
+
   const [activeTab, setActiveTab] = useState<'sujets' | 'documents' | 'phase_publique'>(initialTab);
-  
+
   // Mettre à jour l'onglet actif si la période change
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
-  
+
   // États pour la validation des dépôts de sujets
   const [searchQuerySujets, setSearchQuerySujets] = useState('');
   const [selectedDepot, setSelectedDepot] = useState<DossierMemoire | null>(null);
@@ -118,6 +118,17 @@ const EspaceCommission: React.FC = () => {
   const [showPhasePubliqueModal, setShowPhasePubliqueModal] = useState(false);
   const [nouvelAvis, setNouvelAvis] = useState('');
 
+  // États pour la pagination
+  const [currentPageSujets, setCurrentPageSujets] = useState(1);
+  const [currentPageDocuments, setCurrentPageDocuments] = useState(1);
+  const [currentPagePhasePublique, setCurrentPagePhasePublique] = useState(1);
+
+  const [currentPageAvisModalSujet, setCurrentPageAvisModalSujet] = useState(1);
+  const [currentPageAvisModalDocument, setCurrentPageAvisModalDocument] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+  const AVIS_PER_PAGE = 5;
+
+
   // Vérifier que l'utilisateur est membre de la commission
   if (!user || user.type !== 'professeur' || !user.estCommission) {
     return (
@@ -137,29 +148,29 @@ const EspaceCommission: React.FC = () => {
 
   // Récupérer les dépôts de sujets selon le sous-onglet
   const depotsEnAttente = useMemo(() => {
-    return mockDossiers.filter(d => 
-      d.etape === EtapeDossier.VALIDATION_SUJET && 
-      d.encadrant && 
+    return mockDossiers.filter(d =>
+      d.etape === EtapeDossier.VALIDATION_SUJET &&
+      d.encadrant &&
       (d.statut === StatutDossierMemoire.EN_ATTENTE_VALIDATION || d.statut === StatutDossierMemoire.EN_CREATION)
     );
   }, [refreshKey]);
-  
+
   const depotsValides = useMemo(() => {
-    return mockDossiers.filter(d => 
-      d.etape === EtapeDossier.EN_COURS_REDACTION && 
+    return mockDossiers.filter(d =>
+      d.etape === EtapeDossier.EN_COURS_REDACTION &&
       d.statut === StatutDossierMemoire.EN_COURS &&
       d.encadrant // Avoir un encadrant signifie qu'il a été validé
     );
   }, [refreshKey]);
-  
+
   const depotsRejetes = useMemo(() => {
-    return mockDossiers.filter(d => 
-      d.etape === EtapeDossier.CHOIX_SUJET && 
+    return mockDossiers.filter(d =>
+      d.etape === EtapeDossier.CHOIX_SUJET &&
       d.statut === StatutDossierMemoire.EN_CREATION &&
       d.encadrant === undefined // Pas d'encadrant après rejet (ou encadrant retiré)
     );
   }, [refreshKey]);
-  
+
   // Filtrer selon le sous-onglet actif
   const depotsFiltresParSousOnglet = useMemo(() => {
     if (sousOngletSujets === 'en_attente') return depotsEnAttente;
@@ -175,11 +186,11 @@ const EspaceCommission: React.FC = () => {
     return depotsFiltresParSousOnglet.filter(d => {
       const titreMatch = d.titre.toLowerCase().includes(query);
       const descriptionMatch = d.description.toLowerCase().includes(query);
-      const candidatMatch = d.candidats?.some(c => 
+      const candidatMatch = d.candidats?.some(c =>
         `${c.prenom} ${c.nom}`.toLowerCase().includes(query) ||
         c.email.toLowerCase().includes(query)
       ) || false;
-      const encadrantMatch = d.encadrant ? 
+      const encadrantMatch = d.encadrant ?
         `${d.encadrant.prenom} ${d.encadrant.nom}`.toLowerCase().includes(query) ||
         d.encadrant.email.toLowerCase().includes(query) : false;
       return titreMatch || descriptionMatch || candidatMatch || encadrantMatch;
@@ -235,26 +246,26 @@ const EspaceCommission: React.FC = () => {
 
   // Récupérer les documents selon le sous-onglet
   const documentsEnAttente = useMemo(() => {
-    return mockDocuments.filter(d => 
-      d.statut === StatutDocument.EN_ATTENTE_VALIDATION && 
+    return mockDocuments.filter(d =>
+      d.statut === StatutDocument.EN_ATTENTE_VALIDATION &&
       d.typeDocument === TypeDocument.CHAPITRE
     );
   }, [refreshKey]);
-  
+
   const documentsValides = useMemo(() => {
-    return mockDocuments.filter(d => 
-      d.statut === StatutDocument.VALIDE && 
+    return mockDocuments.filter(d =>
+      d.statut === StatutDocument.VALIDE &&
       d.typeDocument === TypeDocument.CHAPITRE
     );
   }, [refreshKey]);
-  
+
   const documentsRejetes = useMemo(() => {
-    return mockDocuments.filter(d => 
-      d.statut === StatutDocument.REJETE && 
+    return mockDocuments.filter(d =>
+      d.statut === StatutDocument.REJETE &&
       d.typeDocument === TypeDocument.CHAPITRE
     );
   }, [refreshKey]);
-  
+
   // Filtrer selon le sous-onglet actif
   const documentsFiltresParSousOnglet = useMemo(() => {
     if (sousOngletDocuments === 'en_attente') return documentsEnAttente;
@@ -271,7 +282,7 @@ const EspaceCommission: React.FC = () => {
       const dossier = d.dossierMemoire;
       const titreMatch = d.titre.toLowerCase().includes(query);
       const dossierTitreMatch = dossier?.titre?.toLowerCase().includes(query) || false;
-      const candidatsMatch = dossier?.candidats?.some(c => 
+      const candidatsMatch = dossier?.candidats?.some(c =>
         `${c.prenom} ${c.nom}`.toLowerCase().includes(query) ||
         c.email.toLowerCase().includes(query)
       ) || false;
@@ -306,9 +317,9 @@ const EspaceCommission: React.FC = () => {
 
     if (validationActionDocument === 'valider') {
       mockDocuments[docIndex].statut = StatutDocument.VALIDE;
-      
+
       // Activer la ressource dans la bibliothèque numérique
-      const ressource = mockRessourcesMediatheque.find(r => 
+      const ressource = mockRessourcesMediatheque.find(r =>
         r.cheminFichier === selectedDocument.cheminFichier
       );
       if (ressource) {
@@ -346,23 +357,23 @@ const EspaceCommission: React.FC = () => {
   // Filtrer les éléments en phase publique par recherche
   const elementsPhasePubliqueFiltres = useMemo(() => {
     const elements: Array<{ type: 'depot_sujet' | 'document_corrige'; depot?: DossierMemoire; document?: Document }> = [];
-    
+
     depotsPhasePublique.forEach(depot => {
       elements.push({ type: 'depot_sujet', depot });
     });
-    
+
     documentsPhasePublique.forEach(document => {
       elements.push({ type: 'document_corrige', document });
     });
 
     if (!searchQueryPhasePublique.trim()) return elements;
-    
+
     const query = searchQueryPhasePublique.toLowerCase();
     return elements.filter(el => {
       if (el.type === 'depot_sujet' && el.depot) {
         const titreMatch = el.depot.titre.toLowerCase().includes(query);
         const descriptionMatch = el.depot.description.toLowerCase().includes(query);
-        const candidatMatch = el.depot.candidats?.some(c => 
+        const candidatMatch = el.depot.candidats?.some(c =>
           `${c.prenom} ${c.nom}`.toLowerCase().includes(query)
         ) || false;
         return titreMatch || descriptionMatch || candidatMatch;
@@ -398,15 +409,15 @@ const EspaceCommission: React.FC = () => {
   const handleAjouterAvis = () => {
     if (!selectedElementPhasePublique || !nouvelAvis.trim() || !user) return;
 
-    const idElement = selectedElementPhasePublique.type === 'depot_sujet' 
-      ? selectedElementPhasePublique.depot?.idDossierMemoire 
+    const idElement = selectedElementPhasePublique.type === 'depot_sujet'
+      ? selectedElementPhasePublique.depot?.idDossierMemoire
       : selectedElementPhasePublique.document?.idDocument;
 
     if (!idElement) return;
 
     // Trouver l'auteur dans les mocks basé sur l'utilisateur connecté
     let auteur: any = null;
-    
+
     if (user.type === 'professeur') {
       // Chercher le professeur correspondant dans les mocks
       const professeur = mockProfesseurs.find(p => p.email === user.email);
@@ -452,6 +463,93 @@ const EspaceCommission: React.FC = () => {
     }
   };
 
+  // ============================================================================
+  // FONCTIONS ET COMPOSANT DE PAGINATION
+  // ============================================================================
+
+  const paginateItems = <T,>(items: T[], currentPage: number, itemsPerPage: number = ITEMS_PER_PAGE): T[] => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return items.slice(startIndex, endIndex);
+  };
+
+  const Pagination: React.FC<{
+    currentPage: number;
+    totalItems: number;
+    itemsPerPage: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalItems, itemsPerPage, onPageChange }) => {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    if (totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+      const pages: number[] = [];
+      const maxPagesToShow = 5;
+
+      if (totalPages <= maxPagesToShow) {
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        if (currentPage <= 3) {
+          pages.push(1, 2, 3, 4, -1, totalPages);
+        } else if (currentPage >= totalPages - 2) {
+          pages.push(1, -1, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+        } else {
+          pages.push(1, -1, currentPage - 1, currentPage, currentPage + 1, -2, totalPages);
+        }
+      }
+
+      return pages;
+    };
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-6">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Précédent
+        </Button>
+
+        {getPageNumbers().map((pageNum, index) => {
+          if (pageNum === -1 || pageNum === -2) {
+            return (
+              <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                ...
+              </span>
+            );
+          }
+
+          return (
+            <Button
+              key={pageNum}
+              variant={currentPage === pageNum ? "default" : "outline"}
+              size="sm"
+              onClick={() => onPageChange(pageNum)}
+              className={currentPage === pageNum ? "bg-primary text-white" : ""}
+            >
+              {pageNum}
+            </Button>
+          );
+        })}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Suivant
+        </Button>
+      </div>
+    );
+  };
+
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -461,12 +559,12 @@ const EspaceCommission: React.FC = () => {
         </div>
         {/* Bouton de simulation pour changer de période - À RETIRER */}
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-            Période: {periodeActive === TypePeriodeValidation.VALIDATION_SUJETS 
-              ? 'Validation Sujets' 
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            Période: {periodeActive === TypePeriodeValidation.VALIDATION_SUJETS
+              ? 'Validation Sujets'
               : periodeActive === TypePeriodeValidation.VALIDATION_CORRECTIONS
-              ? 'Validation Corrections'
-              : 'Aucune'}
+                ? 'Validation Corrections'
+                : 'Aucune'}
           </Badge>
           <div className="flex gap-1 border rounded-lg p-1 bg-gray-50">
             <Button
@@ -493,18 +591,18 @@ const EspaceCommission: React.FC = () => {
             >
               Corrections
             </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  changerPeriodeActive(TypePeriodeValidation.AUCUNE);
-                  setActiveTab('sujets'); // Par défaut, mais ne sera pas affiché
-                  setRefreshKey(prev => prev + 1); // Force le re-render
-                }}
-                className={`text-xs ${periodeActive === TypePeriodeValidation.AUCUNE ? 'bg-primary text-white' : ''}`}
-              >
-                Aucune
-              </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                changerPeriodeActive(TypePeriodeValidation.AUCUNE);
+                setActiveTab('sujets'); // Par défaut, mais ne sera pas affiché
+                setRefreshKey(prev => prev + 1); // Force le re-render
+              }}
+              className={`text-xs ${periodeActive === TypePeriodeValidation.AUCUNE ? 'bg-primary text-white' : ''}`}
+            >
+              Aucune
+            </Button>
           </div>
         </div>
       </div>
@@ -515,11 +613,10 @@ const EspaceCommission: React.FC = () => {
         {periodeActive === TypePeriodeValidation.VALIDATION_SUJETS && (
           <button
             onClick={() => setActiveTab('sujets')}
-            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'sujets'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'sujets'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
           >
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
@@ -532,16 +629,15 @@ const EspaceCommission: React.FC = () => {
             </div>
           </button>
         )}
-        
+
         {/* Onglet Validation des documents - Seulement si période de validation des corrections */}
         {periodeActive === TypePeriodeValidation.VALIDATION_CORRECTIONS && (
           <button
             onClick={() => setActiveTab('documents')}
-            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'documents'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'documents'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
           >
             <div className="flex items-center gap-2">
               <FileCheck className="h-4 w-4" />
@@ -554,16 +650,15 @@ const EspaceCommission: React.FC = () => {
             </div>
           </button>
         )}
-        
+
         {/* Onglet Phase publique - Seulement si une période est active */}
         {periodeActive !== TypePeriodeValidation.AUCUNE && (
           <button
             onClick={() => setActiveTab('phase_publique')}
-            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'phase_publique'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+            className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'phase_publique'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
           >
             <div className="flex items-center gap-2">
               <Globe className="h-4 w-4" />
@@ -577,7 +672,7 @@ const EspaceCommission: React.FC = () => {
           </button>
         )}
       </div>
-      
+
       {/* Message si aucune période n'est active */}
       {periodeActive === TypePeriodeValidation.AUCUNE && (
         <Card className="bg-yellow-50 border-yellow-200">
@@ -587,7 +682,7 @@ const EspaceCommission: React.FC = () => {
               <div>
                 <p className="font-medium text-yellow-900">Aucune période de validation active</p>
                 <p className="text-sm text-yellow-700 mt-1">
-                  Aucune période de validation des sujets ou des corrections n'est actuellement active. 
+                  Aucune période de validation des sujets ou des corrections n'est actuellement active.
                   Veuillez contacter le chef de département pour activer une période de validation.
                 </p>
               </div>
@@ -610,11 +705,10 @@ const EspaceCommission: React.FC = () => {
             <div className="flex gap-2 border-b">
               <button
                 onClick={() => setSousOngletSujets('en_attente')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  sousOngletSujets === 'en_attente'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${sousOngletSujets === 'en_attente'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 En attente
                 {depotsEnAttente.length > 0 && (
@@ -625,11 +719,10 @@ const EspaceCommission: React.FC = () => {
               </button>
               <button
                 onClick={() => setSousOngletSujets('valides')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  sousOngletSujets === 'valides'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${sousOngletSujets === 'valides'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 Validés
                 {depotsValides.length > 0 && (
@@ -640,11 +733,10 @@ const EspaceCommission: React.FC = () => {
               </button>
               <button
                 onClick={() => setSousOngletSujets('rejetes')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  sousOngletSujets === 'rejetes'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${sousOngletSujets === 'rejetes'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 Rejetés
                 {depotsRejetes.length > 0 && (
@@ -654,7 +746,7 @@ const EspaceCommission: React.FC = () => {
                 )}
               </button>
             </div>
-            
+
             {/* Recherche */}
             <Card>
               <CardContent className="pt-6">
@@ -681,143 +773,161 @@ const EspaceCommission: React.FC = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
-                {depotsFiltres.map((depot) => {
-                  // Récupérer les candidats : soit depuis le binôme, soit directement depuis le dossier
-                  const candidats = depot.binome?.candidats || depot.candidats || [];
-                  const estBinome = depot.binome && depot.binome.candidats && depot.binome.candidats.length > 1;
-                  return (
-                    <motion.div
-                      key={depot.idDossierMemoire}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-xl mb-2">{depot.titre}</CardTitle>
-                              <CardDescription className="mt-2">
-                                <div className="flex flex-wrap gap-2 items-center">
-                                  {estBinome && (
-                                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                                      Binôme
-                                    </Badge>
-                                  )}
-                                  {candidats.map((candidat, idx) => (
-                                    <Badge key={idx} variant="outline">
-                                      {candidat.prenom} {candidat.nom}
-                                    </Badge>
-                                  ))}
-                                  {depot.encadrant && (
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                      Encadrant: {depot.encadrant.prenom} {depot.encadrant.nom}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </CardDescription>
+              <>
+                <div className="space-y-4">
+                  {paginateItems(depotsFiltres, currentPageSujets).map((depot) => {
+                    // Récupérer les candidats : soit depuis le binôme, soit directement depuis le dossier
+                    const candidats = depot.binome?.candidats || depot.candidats || [];
+                    const estBinome = depot.binome && depot.binome.candidats && depot.binome.candidats.length > 1;
+                    return (
+                      <motion.div
+                        key={depot.idDossierMemoire}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Card className="hover:shadow-lg transition-shadow">
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-xl mb-2">{depot.titre}</CardTitle>
+                                <CardDescription className="mt-2">
+                                  <div className="flex flex-wrap gap-2 items-center">
+                                    {estBinome && (
+                                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                        Binôme
+                                      </Badge>
+                                    )}
+                                    {candidats.map((candidat, idx) => (
+                                      <Badge key={idx} variant="outline">
+                                        {candidat.prenom} {candidat.nom}
+                                      </Badge>
+                                    ))}
+                                    {depot.encadrant && (
+                                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                        Encadrant: {depot.encadrant.prenom} {depot.encadrant.nom}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </CardDescription>
+                              </div>
+                              {sousOngletSujets === 'en_attente' && (
+                                <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                                  En attente
+                                </Badge>
+                              )}
+                              {sousOngletSujets === 'valides' && (
+                                <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                                  Validé
+                                </Badge>
+                              )}
+                              {sousOngletSujets === 'rejetes' && (
+                                <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                                  Rejeté
+                                </Badge>
+                              )}
                             </div>
-                            {sousOngletSujets === 'en_attente' && (
-                              <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                                En attente
-                              </Badge>
-                            )}
-                            {sousOngletSujets === 'valides' && (
-                              <Badge className="bg-green-50 text-green-700 border-green-200">
-                                Validé
-                              </Badge>
-                            )}
-                            {sousOngletSujets === 'rejetes' && (
-                              <Badge className="bg-red-50 text-red-700 border-red-200">
-                                Rejeté
-                              </Badge>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div>
-                              <p className="text-sm text-gray-600 mb-1">Description</p>
-                              <p className="text-gray-700">{depot.description}</p>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {candidats.length > 0 && (
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              <div>
+                                <p className="text-sm text-gray-600 mb-1">Description</p>
+                                <p className="text-gray-700">{depot.description}</p>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {candidats.length > 0 && (
+                                  <div className="flex items-center text-sm text-gray-600">
+                                    <User className="h-4 w-4 mr-2 text-gray-400" />
+                                    <span className="font-medium">{estBinome ? 'Binôme:' : 'Candidat(s):'}</span>
+                                    <span className="ml-2">
+                                      {candidats.map(c => `${c.prenom} ${c.nom}`).join(', ')}
+                                    </span>
+                                  </div>
+                                )}
+                                {depot.encadrant && (
+                                  <div className="flex items-center text-sm text-gray-600">
+                                    <User className="h-4 w-4 mr-2 text-gray-400" />
+                                    <span className="font-medium">Encadrant choisi:</span>
+                                    <span className="ml-2">
+                                      {depot.encadrant.prenom} {depot.encadrant.nom}
+                                      {depot.encadrant.email && ` (${depot.encadrant.email})`}
+                                    </span>
+                                  </div>
+                                )}
                                 <div className="flex items-center text-sm text-gray-600">
-                                  <User className="h-4 w-4 mr-2 text-gray-400" />
-                                  <span className="font-medium">{estBinome ? 'Binôme:' : 'Candidat(s):'}</span>
+                                  <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                                  <span className="font-medium">Date de dépôt:</span>
                                   <span className="ml-2">
-                                    {candidats.map(c => `${c.prenom} ${c.nom}`).join(', ')}
+                                    {format(depot.dateCreation, 'dd/MM/yyyy', { locale: fr })}
                                   </span>
                                 </div>
-                              )}
-                              {depot.encadrant && (
-                                <div className="flex items-center text-sm text-gray-600">
-                                  <User className="h-4 w-4 mr-2 text-gray-400" />
-                                  <span className="font-medium">Encadrant choisi:</span>
-                                  <span className="ml-2">
-                                    {depot.encadrant.prenom} {depot.encadrant.nom}
-                                    {depot.encadrant.email && ` (${depot.encadrant.email})`}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center text-sm text-gray-600">
-                                <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                                <span className="font-medium">Date de dépôt:</span>
-                                <span className="ml-2">
-                                  {format(depot.dateCreation, 'dd/MM/yyyy', { locale: fr })}
-                                </span>
+                              </div>
+                              <div className="flex gap-2 pt-4 border-t">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleConsulterDepot(depot)}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  Consulter
+                                </Button>
+                                {sousOngletSujets === 'en_attente' && (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => {
+                                        mettreDepotEnPhasePublique(depot.idDossierMemoire);
+                                      }}
+                                      className="flex items-center gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                                    >
+                                      <Globe className="h-4 w-4" />
+                                      Mettre en phase publique
+                                    </Button>
+                                    <Button
+                                      variant="default"
+                                      onClick={() => {
+                                        handleConsulterDepot(depot);
+                                        setTimeout(() => {
+                                          setShowConsultationModalSujet(false);
+                                          handleValiderDepot();
+                                        }, 100);
+                                      }}
+                                      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                                    >
+                                      <CheckCircle className="h-4 w-4" />
+                                      Valider
+                                    </Button>
+                                    <Button
+                                      variant="default"
+                                      onClick={() => {
+                                        handleConsulterDepot(depot);
+                                        setTimeout(() => {
+                                          setShowConsultationModalSujet(false);
+                                          handleRejeterDepot();
+                                        }, 100);
+                                      }}
+                                      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                                    >
+                                      <XCircle className="h-4 w-4" />
+                                      Rejeter
+                                    </Button>
+                                  </>
+                                )}
                               </div>
                             </div>
-                            <div className="flex gap-2 pt-4 border-t">
-                              <Button
-                                variant="outline"
-                                onClick={() => handleConsulterDepot(depot)}
-                                className="flex items-center gap-2"
-                              >
-                                <Eye className="h-4 w-4" />
-                                Consulter
-                              </Button>
-                              {sousOngletSujets === 'en_attente' && (
-                                <>
-                                  <Button
-                                    variant="default"
-                                    onClick={() => {
-                                      handleConsulterDepot(depot);
-                                      setTimeout(() => {
-                                        setShowConsultationModalSujet(false);
-                                        handleValiderDepot();
-                                      }, 100);
-                                    }}
-                                    className="flex items-center gap-2 bg-primary hover:bg-primary/90"
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                    Valider
-                                  </Button>
-                                  <Button
-                                    variant="default"
-                                    onClick={() => {
-                                      handleConsulterDepot(depot);
-                                      setTimeout(() => {
-                                        setShowConsultationModalSujet(false);
-                                        handleRejeterDepot();
-                                      }, 100);
-                                    }}
-                                    className="flex items-center gap-2 bg-destructive hover:bg-destructive/90"
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                    Rejeter
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                <Pagination
+                  currentPage={currentPageSujets}
+                  totalItems={depotsFiltres.length}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  onPageChange={(page) => setCurrentPageSujets(page)}
+                />
+              </>
             )}
           </div>
         )}
@@ -829,11 +939,10 @@ const EspaceCommission: React.FC = () => {
             <div className="flex gap-2 border-b">
               <button
                 onClick={() => setSousOngletDocuments('en_attente')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  sousOngletDocuments === 'en_attente'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${sousOngletDocuments === 'en_attente'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 En attente
                 {documentsEnAttente.length > 0 && (
@@ -844,11 +953,10 @@ const EspaceCommission: React.FC = () => {
               </button>
               <button
                 onClick={() => setSousOngletDocuments('valides')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  sousOngletDocuments === 'valides'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${sousOngletDocuments === 'valides'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 Validés
                 {documentsValides.length > 0 && (
@@ -859,11 +967,10 @@ const EspaceCommission: React.FC = () => {
               </button>
               <button
                 onClick={() => setSousOngletDocuments('rejetes')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  sousOngletDocuments === 'rejetes'
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${sousOngletDocuments === 'rejetes'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 Rejetés
                 {documentsRejetes.length > 0 && (
@@ -873,7 +980,7 @@ const EspaceCommission: React.FC = () => {
                 )}
               </button>
             </div>
-            
+
             {/* Recherche */}
             <Card>
               <CardContent className="pt-6">
@@ -908,130 +1015,148 @@ const EspaceCommission: React.FC = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
-                {documentsFiltres.map((document) => {
-                  const dossier = document.dossierMemoire;
-                  const candidats = dossier?.candidats || [];
-                  
-                  return (
-                    <motion.div
-                      key={document.idDocument}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-xl mb-2">{document.titre}</CardTitle>
-                              <CardDescription className="mt-2">
-                                {dossier && (
-                                  <div className="flex flex-wrap gap-2 items-center">
-                                    <Badge variant="outline">Dossier: {dossier.titre}</Badge>
-                                    {candidats.map((candidat, idx) => (
-                                      <Badge key={idx} variant="outline">
-                                        {candidat.prenom} {candidat.nom}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                )}
-                              </CardDescription>
-                            </div>
-                            {sousOngletDocuments === 'en_attente' && (
-                              <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                                En attente
-                              </Badge>
-                            )}
-                            {sousOngletDocuments === 'valides' && (
-                              <Badge className="bg-green-50 text-green-700 border-green-200">
-                                Validé
-                              </Badge>
-                            )}
-                            {sousOngletDocuments === 'rejetes' && (
-                              <Badge className="bg-red-50 text-red-700 border-red-200">
-                                Rejeté
-                              </Badge>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="flex items-center text-sm text-gray-600">
-                                <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                                <span className="font-medium">Date de dépôt:</span>
-                                <span className="ml-2">
-                                  {format(document.dateCreation, 'dd/MM/yyyy', { locale: fr })}
-                                </span>
+              <>
+                <div className="space-y-4">
+                  {paginateItems(documentsFiltres, currentPageDocuments).map((document) => {
+                    const dossier = document.dossierMemoire;
+                    const candidats = dossier?.candidats || [];
+
+                    return (
+                      <motion.div
+                        key={document.idDocument}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Card className="hover:shadow-lg transition-shadow">
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-xl mb-2">{document.titre}</CardTitle>
+                                <CardDescription className="mt-2">
+                                  {dossier && (
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                      <Badge variant="outline">Dossier: {dossier.titre}</Badge>
+                                      {candidats.map((candidat, idx) => (
+                                        <Badge key={idx} variant="outline">
+                                          {candidat.prenom} {candidat.nom}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </CardDescription>
                               </div>
-                              {document.dateModification && (
+                              {sousOngletDocuments === 'en_attente' && (
+                                <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                                  En attente
+                                </Badge>
+                              )}
+                              {sousOngletDocuments === 'valides' && (
+                                <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                                  Validé
+                                </Badge>
+                              )}
+                              {sousOngletDocuments === 'rejetes' && (
+                                <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                                  Rejeté
+                                </Badge>
+                              )}
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="flex items-center text-sm text-gray-600">
                                   <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                                  <span className="font-medium">Dernière modification:</span>
+                                  <span className="font-medium">Date de dépôt:</span>
                                   <span className="ml-2">
-                                    {format(document.dateModification, 'dd/MM/yyyy', { locale: fr })}
+                                    {format(document.dateCreation, 'dd/MM/yyyy', { locale: fr })}
                                   </span>
                                 </div>
-                              )}
-                            </div>
-                            {document.commentaire && (
-                              <div>
-                                <p className="text-sm text-gray-600 mb-1">Commentaire précédent</p>
-                                <p className="text-gray-700 bg-gray-50 p-3 rounded border">
-                                  {document.commentaire}
-                                </p>
+                                {document.dateModification && (
+                                  <div className="flex items-center text-sm text-gray-600">
+                                    <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                                    <span className="font-medium">Dernière modification:</span>
+                                    <span className="ml-2">
+                                      {format(document.dateModification, 'dd/MM/yyyy', { locale: fr })}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            <div className="flex gap-2 pt-4 border-t">
-                              <Button
-                                variant="outline"
-                                onClick={() => handleConsulterDocument(document)}
-                                className="flex items-center gap-2"
-                              >
-                                <Eye className="h-4 w-4" />
-                                Consulter
-                              </Button>
-                              {sousOngletDocuments === 'en_attente' && (
-                                <>
-                                  <Button
-                                    variant="default"
-                                    onClick={() => {
-                                      handleConsulterDocument(document);
-                                      setTimeout(() => {
-                                        setShowConsultationModalDocument(false);
-                                        handleValiderDocument();
-                                      }, 100);
-                                    }}
-                                    className="flex items-center gap-2 bg-primary hover:bg-primary/90"
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                    Valider
-                                  </Button>
-                                  <Button
-                                    variant="default"
-                                    onClick={() => {
-                                      handleConsulterDocument(document);
-                                      setTimeout(() => {
-                                        setShowConsultationModalDocument(false);
-                                        handleRejeterDocument();
-                                      }, 100);
-                                    }}
-                                    className="flex items-center gap-2 bg-destructive hover:bg-destructive/90"
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                    Rejeter
-                                  </Button>
-                                </>
+                              {document.commentaire && (
+                                <div>
+                                  <p className="text-sm text-gray-600 mb-1">Commentaire précédent</p>
+                                  <p className="text-gray-700 bg-gray-50 p-3 rounded border">
+                                    {document.commentaire}
+                                  </p>
+                                </div>
                               )}
+                              <div className="flex gap-2 pt-4 border-t">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleConsulterDocument(document)}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  Consulter
+                                </Button>
+                                {sousOngletDocuments === 'en_attente' && (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => {
+                                        mettreDocumentEnPhasePublique(document.idDocument);
+                                      }}
+                                      className="flex items-center gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                                    >
+                                      <Globe className="h-4 w-4" />
+                                      Mettre en phase publique
+                                    </Button>
+                                    <Button
+                                      variant="default"
+                                      onClick={() => {
+                                        handleConsulterDocument(document);
+                                        setTimeout(() => {
+                                          setShowConsultationModalDocument(false);
+                                          handleValiderDocument();
+                                        }, 100);
+                                      }}
+                                      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                                    >
+                                      <CheckCircle className="h-4 w-4" />
+                                      Valider
+                                    </Button>
+                                    <Button
+                                      variant="default"
+                                      onClick={() => {
+                                        handleConsulterDocument(document);
+                                        setTimeout(() => {
+                                          setShowConsultationModalDocument(false);
+                                          handleRejeterDocument();
+                                        }, 100);
+                                      }}
+                                      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                                    >
+                                      <XCircle className="h-4 w-4" />
+                                      Rejeter
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                <Pagination
+                  currentPage={currentPageDocuments}
+                  totalItems={documentsFiltres.length}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  onPageChange={(page) => setCurrentPageDocuments(page)}
+                />
+              </>
             )}
           </div>
         )}
@@ -1065,143 +1190,151 @@ const EspaceCommission: React.FC = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
-                {elementsPhasePubliqueFiltres.map((element, index) => {
-                  if (element.type === 'depot_sujet' && element.depot) {
-                    const depot = element.depot;
-                    const candidats = depot.binome?.candidats || depot.candidats || [];
-                    const estBinome = depot.binome && depot.binome.candidats && depot.binome.candidats.length > 1;
-                    const avis = getAvisPublicsByElement('depot_sujet', depot.idDossierMemoire);
-                    
-                    return (
-                      <motion.div
-                        key={`depot-${depot.idDossierMemoire}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                      >
-                        <Card className="hover:shadow-lg transition-shadow border-blue-200">
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <CardTitle className="text-xl mb-2 flex items-center gap-2">
-                                  {depot.titre}
-                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                    <Globe className="h-3 w-3 mr-1" />
-                                    Phase publique
-                                  </Badge>
-                                </CardTitle>
-                                <CardDescription className="mt-2">
-                                  <div className="flex flex-wrap gap-2 items-center">
-                                    {estBinome && (
-                                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                                        Binôme
-                                      </Badge>
-                                    )}
-                                    {candidats.map((candidat, idx) => (
-                                      <Badge key={idx} variant="outline">
-                                        {candidat.prenom} {candidat.nom}
-                                      </Badge>
-                                    ))}
-                                    {depot.encadrant && (
-                                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                        Encadrant: {depot.encadrant.prenom} {depot.encadrant.nom}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </CardDescription>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              <div>
-                                <p className="text-sm text-gray-600 mb-1">Description</p>
-                                <p className="text-gray-700">{depot.description}</p>
-                              </div>
-                              <div className="flex items-center justify-between pt-4 border-t">
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                  <MessageSquare className="h-4 w-4" />
-                                  <span>{avis.length} avis</span>
-                                </div>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => handleConsulterPhasePublique(element)}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                  Consulter et donner un avis
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    );
-                  } else if (element.type === 'document_corrige' && element.document) {
-                    const document = element.document;
-                    const dossier = document.dossierMemoire;
-                    const candidats = dossier?.candidats || [];
-                    const avis = getAvisPublicsByElement('document_corrige', document.idDocument);
-                    
-                    return (
-                      <motion.div
-                        key={`document-${document.idDocument}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                      >
-                        <Card className="hover:shadow-lg transition-shadow border-blue-200">
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <CardTitle className="text-xl mb-2 flex items-center gap-2">
-                                  {document.titre}
-                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                    <Globe className="h-3 w-3 mr-1" />
-                                    Phase publique
-                                  </Badge>
-                                </CardTitle>
-                                <CardDescription className="mt-2">
-                                  {dossier && (
+              <>
+                <div className="space-y-4">
+                  {paginateItems(elementsPhasePubliqueFiltres, currentPagePhasePublique).map((element, index) => {
+                    if (element.type === 'depot_sujet' && element.depot) {
+                      const depot = element.depot;
+                      const candidats = depot.binome?.candidats || depot.candidats || [];
+                      const estBinome = depot.binome && depot.binome.candidats && depot.binome.candidats.length > 1;
+                      const avis = getAvisPublicsByElement('depot_sujet', depot.idDossierMemoire);
+
+                      return (
+                        <motion.div
+                          key={`depot-${depot.idDossierMemoire}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                        >
+                          <Card className="hover:shadow-lg transition-shadow border-blue-200">
+                            <CardHeader>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <CardTitle className="text-xl mb-2 flex items-center gap-2">
+                                    {depot.titre}
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                      <Globe className="h-3 w-3 mr-1" />
+                                      Phase publique
+                                    </Badge>
+                                  </CardTitle>
+                                  <CardDescription className="mt-2">
                                     <div className="flex flex-wrap gap-2 items-center">
-                                      <Badge variant="outline">Dossier: {dossier.titre}</Badge>
+                                      {estBinome && (
+                                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                          Binôme
+                                        </Badge>
+                                      )}
                                       {candidats.map((candidat, idx) => (
                                         <Badge key={idx} variant="outline">
                                           {candidat.prenom} {candidat.nom}
                                         </Badge>
                                       ))}
+                                      {depot.encadrant && (
+                                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                          Encadrant: {depot.encadrant.prenom} {depot.encadrant.nom}
+                                        </Badge>
+                                      )}
                                     </div>
-                                  )}
-                                </CardDescription>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              <div className="flex items-center justify-between pt-4 border-t">
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                  <MessageSquare className="h-4 w-4" />
-                                  <span>{avis.length} avis</span>
+                                  </CardDescription>
                                 </div>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => handleConsulterPhasePublique(element)}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                  Consulter et donner un avis
-                                </Button>
                               </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                <div>
+                                  <p className="text-sm text-gray-600 mb-1">Description</p>
+                                  <p className="text-gray-700">{depot.description}</p>
+                                </div>
+                                <div className="flex items-center justify-between pt-4 border-t">
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span>{avis.length} avis</span>
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => handleConsulterPhasePublique(element)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    Consulter et donner un avis
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      );
+                    } else if (element.type === 'document_corrige' && element.document) {
+                      const document = element.document;
+                      const dossier = document.dossierMemoire;
+                      const candidats = dossier?.candidats || [];
+                      const avis = getAvisPublicsByElement('document_corrige', document.idDocument);
+
+                      return (
+                        <motion.div
+                          key={`document-${document.idDocument}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                        >
+                          <Card className="hover:shadow-lg transition-shadow border-blue-200">
+                            <CardHeader>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <CardTitle className="text-xl mb-2 flex items-center gap-2">
+                                    {document.titre}
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                      <Globe className="h-3 w-3 mr-1" />
+                                      Phase publique
+                                    </Badge>
+                                  </CardTitle>
+                                  <CardDescription className="mt-2">
+                                    {dossier && (
+                                      <div className="flex flex-wrap gap-2 items-center">
+                                        <Badge variant="outline">Dossier: {dossier.titre}</Badge>
+                                        {candidats.map((candidat, idx) => (
+                                          <Badge key={idx} variant="outline">
+                                            {candidat.prenom} {candidat.nom}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </CardDescription>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between pt-4 border-t">
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span>{avis.length} avis</span>
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => handleConsulterPhasePublique(element)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    Consulter et donner un avis
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+                <Pagination
+                  currentPage={currentPagePhasePublique}
+                  totalItems={elementsPhasePubliqueFiltres.length}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  onPageChange={(page) => setCurrentPagePhasePublique(page)}
+                />
+              </>
             )}
           </div>
         )}
@@ -1209,15 +1342,18 @@ const EspaceCommission: React.FC = () => {
 
       {/* Modal de consultation pour les dépôts de sujets */}
       {showConsultationModalSujet && selectedDepot && (() => {
-        const candidats = selectedDepot.binome?.candidats || selectedDepot.candidats || [];
-        const estBinome = selectedDepot.binome && selectedDepot.binome.candidats && selectedDepot.binome.candidats.length > 1;
+        const avis = getAvisPublicsByElement('depot_sujet', selectedDepot.idDossierMemoire);
+        const paginatedAvis = paginateItems(avis, currentPageAvisModalSujet, AVIS_PER_PAGE);
+
         return (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowConsultationModalSujet(false)}
+            onClick={() => {
+              setShowConsultationModalSujet(false);
+            }}
           >
             <motion.div
               initial={{ scale: 0.95 }}
@@ -1228,123 +1364,45 @@ const EspaceCommission: React.FC = () => {
             >
               <h3 className="text-xl font-bold mb-4">Détails du dépôt de sujet</h3>
               <div className="space-y-4">
-                {/* Avis publics existants */}
-                {(() => {
-                  const avis = getAvisPublicsByElement('depot_sujet', selectedDepot.idDossierMemoire);
-                  if (avis.length > 0) {
-                    return (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-blue-900">
-                          <MessageSquare className="h-4 w-4" />
-                          Avis publics ({avis.length})
-                        </h4>
-                        <div className="space-y-3 max-h-40 overflow-y-auto">
-                          {avis.map((avisItem) => (
-                            <div key={avisItem.idAvis} className="bg-white p-3 rounded border">
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <User className="h-3 w-3 text-gray-400" />
-                                  <span className="font-medium text-xs">
-                                    {'nom' in avisItem.auteur 
-                                      ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
-                                      : 'Utilisateur'}
-                                  </span>
-                                </div>
-                                <span className="text-xs text-gray-500">
-                                  {format(avisItem.dateCreation, 'dd/MM/yyyy', { locale: fr })}
-                                </span>
-                              </div>
-                              <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
+                {/* UNIQUEMENT  Avis publics avec pagination */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-blue-900">
+                    <MessageSquare className="h-4 w-4" />
+                    Avis publics ({avis.length})
+                  </h4>
+                  {avis.length > 0 ? (
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                      {avis.map((avisItem) => (
+                        <div key={avisItem.idAvis} className="bg-white p-3 rounded border">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <User className="h-3 w-3 text-gray-400" />
+                              <span className="font-medium text-xs">
+                                {'nom' in avisItem.auteur
+                                  ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
+                                  : 'Utilisateur'}
+                              </span>
                             </div>
-                          ))}
+                            <span className="text-xs text-gray-500">
+                              {format(avisItem.dateCreation, 'dd/MM/yyyy', { locale: fr })}
+                            </span>
+                          </div>
+                          <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
                         </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-                <div>
-                  <p className="text-sm font-medium mb-1 text-gray-600">Sujet choisi</p>
-                  <p className="text-gray-900 text-lg">{selectedDepot.titre}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium mb-1 text-gray-600">Description</p>
-                  <p className="text-gray-700">{selectedDepot.description}</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {candidats.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-1 text-gray-600">{estBinome ? 'Binôme' : 'Candidat(s)'}</p>
-                      {estBinome && (
-                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 mb-2">
-                          Binôme
-                        </Badge>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        {candidats.map((candidat, idx) => (
-                          <Badge key={idx} variant="outline">
-                            {candidat.prenom} {candidat.nom}
-                            {candidat.email && ` (${candidat.email})`}
-                          </Badge>
-                        ))}
-                      </div>
+                      ))}
                     </div>
-                  )}
-                  {selectedDepot.encadrant && (
-                    <div>
-                      <p className="text-sm font-medium mb-1 text-gray-600">Encadrant choisi</p>
-                      <p className="text-gray-700">
-                        {selectedDepot.encadrant.prenom} {selectedDepot.encadrant.nom}
-                        {selectedDepot.encadrant.email && ` (${selectedDepot.encadrant.email})`}
-                      </p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium mb-1 text-gray-600">Date de dépôt</p>
-                    <p className="text-gray-700">
-                      {format(selectedDepot.dateCreation, 'dd/MM/yyyy', { locale: fr })}
+                  ) : (
+                    <p className="text-gray-600 text-sm text-center py-4">
+                      Aucun avis public pour le moment
                     </p>
-                  </div>
-                  {selectedDepot.anneeAcademique && (
-                    <div>
-                      <p className="text-sm font-medium mb-1 text-gray-600">Année académique</p>
-                      <p className="text-gray-700">{selectedDepot.anneeAcademique}</p>
-                    </div>
                   )}
                 </div>
-                <div className="flex justify-end gap-2 pt-4 border-t">
-                  <Button variant="outline" onClick={() => setShowConsultationModalSujet(false)}>
+
+                <div className="flex justify-end pt-4 border-t">
+                  <Button variant="outline" onClick={() => {
+                    setShowConsultationModalSujet(false);
+                  }}>
                     Fermer
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleMettreEnPhasePubliqueDepot}
-                    className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                  >
-                    <Globe className="h-4 w-4 mr-2" />
-                    Mettre en phase publique
-                  </Button>
-                  <Button
-                    variant="default"
-                    onClick={() => {
-                      setShowConsultationModalSujet(false);
-                      handleValiderDepot();
-                    }}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Valider
-                  </Button>
-                  <Button
-                    variant="default"
-                    onClick={() => {
-                      setShowConsultationModalSujet(false);
-                      handleRejeterDepot();
-                    }}
-                    className="bg-destructive hover:bg-destructive/90"
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Rejeter
                   </Button>
                 </div>
               </div>
@@ -1352,6 +1410,7 @@ const EspaceCommission: React.FC = () => {
           </motion.div>
         );
       })()}
+
 
       {/* Modal de validation/rejet pour les dépôts de sujets */}
       {showValidationModalSujet && selectedDepot && (
@@ -1404,8 +1463,8 @@ const EspaceCommission: React.FC = () => {
                 <Textarea
                   value={commentaireSujet}
                   onChange={(e) => setCommentaireSujet(e.target.value)}
-                  placeholder={validationActionSujet === 'valider' 
-                    ? 'Commentaire optionnel...' 
+                  placeholder={validationActionSujet === 'valider'
+                    ? 'Commentaire optionnel...'
                     : 'Veuillez indiquer la raison du rejet...'}
                   rows={4}
                   required={validationActionSujet === 'rejeter'}
@@ -1423,9 +1482,9 @@ const EspaceCommission: React.FC = () => {
                 <Button
                   onClick={handleConfirmValidationDepot}
                   disabled={validationActionSujet === 'rejeter' && !commentaireSujet.trim()}
-                  className={validationActionSujet === 'valider' 
-                    ? 'bg-primary hover:bg-primary/90' 
-                    : 'bg-destructive hover:bg-destructive/90'}
+                  className={validationActionSujet === 'valider'
+                    ? 'bg-primary hover:bg-primary/90'
+                    : 'bg-primary hover:bg-primary/90'}
                 >
                   {validationActionSujet === 'valider' ? (
                     <>
@@ -1443,51 +1502,51 @@ const EspaceCommission: React.FC = () => {
             </div>
           </motion.div>
         </motion.div>
-      )}
+      )
+      }
 
       {/* Modal de consultation pour les documents */}
-      {showConsultationModalDocument && selectedDocument && (() => {
-        const dossier = selectedDocument.dossierMemoire;
-        const encadrements = dossier ? getEncadrementsByDossier(dossier.idDossierMemoire) : [];
-        const encadrementActif = encadrements.find(e => e.statut === StatutEncadrement.ACTIF);
-        const encadrant = encadrementActif?.professeur || dossier?.encadrant;
-        const candidats = dossier?.candidats || [];
-        
-        return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowConsultationModalDocument(false)}
-          >
+      {
+        showConsultationModalDocument && selectedDocument && (() => {
+          const avis = getAvisPublicsByElement('document_corrige', selectedDocument.idDocument);
+          const paginatedAvis = paginateItems(avis, currentPageAvisModalDocument, AVIS_PER_PAGE);
+
+          return (
             <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white max-w-4xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={() => {
+                setShowConsultationModalDocument(false);
+                setCurrentPageAvisModalDocument(1);
+              }}
             >
-              <h3 className="text-xl font-bold mb-4">Détails du document</h3>
-              <div className="space-y-4">
-                {/* Avis publics existants */}
-                {(() => {
-                  const avis = getAvisPublicsByElement('document_corrige', selectedDocument.idDocument);
-                  if (avis.length > 0) {
-                    return (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-blue-900">
-                          <MessageSquare className="h-4 w-4" />
-                          Avis publics ({avis.length})
-                        </h4>
-                        <div className="space-y-3 max-h-40 overflow-y-auto">
-                          {avis.map((avisItem) => (
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white max-w-4xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
+              >
+                <h3 className="text-xl font-bold mb-4">Détails du document</h3>
+                <div className="space-y-4">
+                  {/* UNIQUEMENT Avis publics avec pagination */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-blue-900">
+                      <MessageSquare className="h-4 w-4" />
+                      Avis publics ({avis.length})
+                    </h4>
+                    {avis.length > 0 ? (
+                      <>
+                        <div className="space-y-3">
+                          {paginatedAvis.map((avisItem) => (
                             <div key={avisItem.idAvis} className="bg-white p-3 rounded border">
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex items-center gap-2">
                                   <User className="h-3 w-3 text-gray-400" />
                                   <span className="font-medium text-xs">
-                                    {'nom' in avisItem.auteur 
+                                    {'nom' in avisItem.auteur
                                       ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
                                       : 'Utilisateur'}
                                   </span>
@@ -1500,328 +1559,25 @@ const EspaceCommission: React.FC = () => {
                             </div>
                           ))}
                         </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-                <div>
-                  <p className="text-sm font-medium mb-1 text-gray-600">Titre du document</p>
-                  <p className="text-gray-900 text-lg">{selectedDocument.titre}</p>
-                </div>
-                {dossier && (
-                  <>
-                    <div>
-                      <p className="text-sm font-medium mb-1 text-gray-600">Dossier</p>
-                      <p className="text-gray-700">{dossier.titre}</p>
-                    </div>
-                    {candidats.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium mb-1 text-gray-600">Candidat(s)</p>
-                        <div className="flex flex-wrap gap-2">
-                          {candidats.map((candidat, idx) => (
-                            <Badge key={idx} variant="outline">
-                              {candidat.prenom} {candidat.nom}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {encadrant && (
-                      <div>
-                        <p className="text-sm font-medium mb-1 text-gray-600">Encadrant</p>
-                        <p className="text-gray-700">
-                          {encadrant.prenom} {encadrant.nom}
-                          {encadrant.email && ` (${encadrant.email})`}
-                        </p>
-                      </div>
-                    )}
-                  </>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium mb-1 text-gray-600">Date de dépôt</p>
-                    <p className="text-gray-700">
-                      {format(selectedDocument.dateCreation, 'dd/MM/yyyy', { locale: fr })}
-                    </p>
-                  </div>
-                  {selectedDocument.dateModification && (
-                    <div>
-                      <p className="text-sm font-medium mb-1 text-gray-600">Dernière modification</p>
-                      <p className="text-gray-700">
-                        {format(selectedDocument.dateModification, 'dd/MM/yyyy', { locale: fr })}
+                        <Pagination
+                          currentPage={currentPageAvisModalDocument}
+                          totalItems={avis.length}
+                          itemsPerPage={AVIS_PER_PAGE}
+                          onPageChange={(page) => setCurrentPageAvisModalDocument(page)}
+                        />
+                      </>
+                    ) : (
+                      <p className="text-gray-600 text-sm text-center py-4">
+                        Aucun avis public pour le moment
                       </p>
-                    </div>
-                  )}
-                </div>
-                {selectedDocument.commentaire && (
-                  <div>
-                    <p className="text-sm font-medium mb-1 text-gray-600">Commentaire précédent</p>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded border">
-                      {selectedDocument.commentaire}
-                    </p>
-                  </div>
-                )}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => window.open(selectedDocument.cheminFichier, '_blank')}
-                    className="flex items-center gap-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    Visualiser
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      const link = window.document.createElement('a');
-                      link.href = selectedDocument.cheminFichier;
-                      link.download = selectedDocument.titre;
-                      window.document.body.appendChild(link);
-                      link.click();
-                      window.document.body.removeChild(link);
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Télécharger
-                  </Button>
-                </div>
-                <div className="flex justify-end gap-2 pt-4 border-t">
-                  <Button variant="outline" onClick={() => setShowConsultationModalDocument(false)}>
-                    Fermer
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleMettreEnPhasePubliqueDocument}
-                    className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                  >
-                    <Globe className="h-4 w-4 mr-2" />
-                    Mettre en phase publique
-                  </Button>
-                  <Button
-                    variant="default"
-                    onClick={() => {
-                      setShowConsultationModalDocument(false);
-                      handleValiderDocument();
-                    }}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Valider
-                  </Button>
-                  <Button
-                    variant="default"
-                    onClick={() => {
-                      setShowConsultationModalDocument(false);
-                      handleRejeterDocument();
-                    }}
-                    className="bg-destructive hover:bg-destructive/90"
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Rejeter
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        );
-      })()}
-
-      {/* Modal de validation/rejet pour les documents */}
-      {showValidationModalDocument && selectedDocument && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowValidationModalDocument(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.95 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0.95 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white max-w-2xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
-          >
-            <h3 className="text-xl font-bold mb-4">
-              {validationActionDocument === 'valider' ? 'Valider le document' : 'Rejeter le document'}
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium mb-1">Document</p>
-                <p className="text-gray-700">{selectedDocument.titre}</p>
-              </div>
-              {selectedDocument.dossierMemoire && (
-                <div>
-                  <p className="text-sm font-medium mb-1">Dossier</p>
-                  <p className="text-gray-700">{selectedDocument.dossierMemoire.titre}</p>
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Commentaire {validationActionDocument === 'rejeter' && '(obligatoire)'}
-                </label>
-                <Textarea
-                  value={commentaireDocument}
-                  onChange={(e) => setCommentaireDocument(e.target.value)}
-                  placeholder={validationActionDocument === 'valider' 
-                    ? 'Commentaire optionnel...' 
-                    : 'Veuillez indiquer la raison du rejet...'}
-                  rows={4}
-                  required={validationActionDocument === 'rejeter'}
-                />
-                {validationActionDocument === 'valider' && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Si validé, le document sera activé dans la bibliothèque numérique.
-                  </p>
-                )}
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowValidationModalDocument(false)}>
-                  Annuler
-                </Button>
-                <Button
-                  onClick={handleConfirmValidationDocument}
-                  disabled={validationActionDocument === 'rejeter' && !commentaireDocument.trim()}
-                  className={validationActionDocument === 'valider' 
-                    ? 'bg-primary hover:bg-primary/90' 
-                    : 'bg-destructive hover:bg-destructive/90'}
-                >
-                  {validationActionDocument === 'valider' ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Confirmer la validation
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Confirmer le rejet
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-
-      {/* Modal de consultation pour la phase publique */}
-      {showPhasePubliqueModal && selectedElementPhasePublique && (() => {
-        const avis = selectedElementPhasePublique.type === 'depot_sujet'
-          ? getAvisPublicsByElement('depot_sujet', selectedElementPhasePublique.depot?.idDossierMemoire || 0)
-          : getAvisPublicsByElement('document_corrige', selectedElementPhasePublique.document?.idDocument || 0);
-
-        if (selectedElementPhasePublique.type === 'depot_sujet' && selectedElementPhasePublique.depot) {
-          const depot = selectedElementPhasePublique.depot;
-          const candidats = depot.binome?.candidats || depot.candidats || [];
-          const estBinome = depot.binome && depot.binome.candidats && depot.binome.candidats.length > 1;
-
-          return (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-              onClick={() => setShowPhasePubliqueModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.95 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white max-w-4xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
-              >
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-blue-600" />
-                  Dépôt de sujet en phase publique
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium mb-1 text-gray-600">Sujet</p>
-                    <p className="text-gray-900 text-lg">{depot.titre}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-1 text-gray-600">Description</p>
-                    <p className="text-gray-700">{depot.description}</p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {candidats.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium mb-1 text-gray-600">{estBinome ? 'Binôme' : 'Candidat(s)'}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {candidats.map((candidat, idx) => (
-                            <Badge key={idx} variant="outline">
-                              {candidat.prenom} {candidat.nom}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {depot.encadrant && (
-                      <div>
-                        <p className="text-sm font-medium mb-1 text-gray-600">Encadrant</p>
-                        <p className="text-gray-700">
-                          {depot.encadrant.prenom} {depot.encadrant.nom}
-                        </p>
-                      </div>
                     )}
                   </div>
 
-                  {/* Section des avis */}
-                  <div className="pt-4 border-t">
-                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      Avis publics ({avis.length})
-                    </h4>
-                    <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
-                      {avis.length === 0 ? (
-                        <p className="text-gray-500 text-sm italic">Aucun avis pour le moment.</p>
-                      ) : (
-                        avis.map((avisItem) => (
-                          <div key={avisItem.idAvis} className="bg-gray-50 p-3 rounded border">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-gray-400" />
-                                <span className="font-medium text-sm">
-                                  {'nom' in avisItem.auteur 
-                                    ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
-                                    : 'Utilisateur'}
-                                </span>
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                {format(avisItem.dateCreation, 'dd/MM/yyyy à HH:mm', { locale: fr })}
-                              </span>
-                            </div>
-                            <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Formulaire pour ajouter un avis */}
-                    <div className="pt-4 border-t">
-                      <label className="block text-sm font-medium mb-2">Ajouter votre avis</label>
-                      <Textarea
-                        value={nouvelAvis}
-                        onChange={(e) => setNouvelAvis(e.target.value)}
-                        placeholder="Partagez votre point de vue sur ce dépôt de sujet..."
-                        rows={3}
-                        className="mb-2"
-                      />
-                      <Button
-                        onClick={handleAjouterAvis}
-                        disabled={!nouvelAvis.trim()}
-                        className="w-full"
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        Publier mon avis
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setShowPhasePubliqueModal(false)}>
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button variant="outline" onClick={() => {
+                      setShowConsultationModalDocument(false);
+                      setCurrentPageAvisModalDocument(1);
+                    }}>
                       Fermer
                     </Button>
                   </div>
@@ -1829,47 +1585,133 @@ const EspaceCommission: React.FC = () => {
               </motion.div>
             </motion.div>
           );
-        } else if (selectedElementPhasePublique.type === 'document_corrige' && selectedElementPhasePublique.document) {
-          const document = selectedElementPhasePublique.document;
-          const dossier = document.dossierMemoire;
-          const candidats = dossier?.candidats || [];
-          const encadrements = dossier ? getEncadrementsByDossier(dossier.idDossierMemoire) : [];
-          const encadrementActif = encadrements.find(e => e.statut === StatutEncadrement.ACTIF);
-          const encadrant = encadrementActif?.professeur || dossier?.encadrant;
+        })()
+      }
 
-          return (
+      {/* Modal de validation/rejet pour les documents */}
+      {
+        showValidationModalDocument && selectedDocument && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowValidationModalDocument(false)}
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-              onClick={() => setShowPhasePubliqueModal(false)}
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white max-w-2xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
             >
-              <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.95 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white max-w-4xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
-              >
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-blue-600" />
-                  Document corrigé en phase publique
-                </h3>
-                <div className="space-y-4">
+              <h3 className="text-xl font-bold mb-4">
+                {validationActionDocument === 'valider' ? 'Valider le document' : 'Rejeter le document'}
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium mb-1">Document</p>
+                  <p className="text-gray-700">{selectedDocument.titre}</p>
+                </div>
+                {selectedDocument.dossierMemoire && (
                   <div>
-                    <p className="text-sm font-medium mb-1 text-gray-600">Titre du document</p>
-                    <p className="text-gray-900 text-lg">{document.titre}</p>
+                    <p className="text-sm font-medium mb-1">Dossier</p>
+                    <p className="text-gray-700">{selectedDocument.dossierMemoire.titre}</p>
                   </div>
-                  {dossier && (
-                    <>
-                      <div>
-                        <p className="text-sm font-medium mb-1 text-gray-600">Dossier</p>
-                        <p className="text-gray-700">{dossier.titre}</p>
-                      </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Commentaire {validationActionDocument === 'rejeter' && '(obligatoire)'}
+                  </label>
+                  <Textarea
+                    value={commentaireDocument}
+                    onChange={(e) => setCommentaireDocument(e.target.value)}
+                    placeholder={validationActionDocument === 'valider'
+                      ? 'Commentaire optionnel...'
+                      : 'Veuillez indiquer la raison du rejet...'}
+                    rows={4}
+                    required={validationActionDocument === 'rejeter'}
+                  />
+                  {validationActionDocument === 'valider' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Si validé, le document sera activé dans la bibliothèque numérique.
+                    </p>
+                  )}
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowValidationModalDocument(false)}>
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={handleConfirmValidationDocument}
+                    disabled={validationActionDocument === 'rejeter' && !commentaireDocument.trim()}
+                    className={validationActionDocument === 'valider'
+                      ? 'bg-primary hover:bg-primary/90'
+                      : 'bg-primary hover:bg-primary/90'}
+                  >
+                    {validationActionDocument === 'valider' ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Confirmer la validation
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Confirmer le rejet
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )
+      }
+
+      {/* Modal de consultation pour la phase publique */}
+      {
+        showPhasePubliqueModal && selectedElementPhasePublique && (() => {
+          const avis = selectedElementPhasePublique.type === 'depot_sujet'
+            ? getAvisPublicsByElement('depot_sujet', selectedElementPhasePublique.depot?.idDossierMemoire || 0)
+            : getAvisPublicsByElement('document_corrige', selectedElementPhasePublique.document?.idDocument || 0);
+
+          if (selectedElementPhasePublique.type === 'depot_sujet' && selectedElementPhasePublique.depot) {
+            const depot = selectedElementPhasePublique.depot;
+            const candidats = depot.binome?.candidats || depot.candidats || [];
+            const estBinome = depot.binome && depot.binome.candidats && depot.binome.candidats.length > 1;
+
+            return (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                onClick={() => setShowPhasePubliqueModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0.95 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white max-w-4xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
+                >
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-blue-600" />
+                    Dépôt de sujet en phase publique
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1 text-gray-600">Sujet</p>
+                      <p className="text-gray-900 text-lg">{depot.titre}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1 text-gray-600">Description</p>
+                      <p className="text-gray-700">{depot.description}</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {candidats.length > 0 && (
                         <div>
-                          <p className="text-sm font-medium mb-1 text-gray-600">Candidat(s)</p>
+                          <p className="text-sm font-medium mb-1 text-gray-600">{estBinome ? 'Binôme' : 'Candidat(s)'}</p>
                           <div className="flex flex-wrap gap-2">
                             {candidats.map((candidat, idx) => (
                               <Badge key={idx} variant="outline">
@@ -1879,107 +1721,229 @@ const EspaceCommission: React.FC = () => {
                           </div>
                         </div>
                       )}
-                      {encadrant && (
+                      {depot.encadrant && (
                         <div>
                           <p className="text-sm font-medium mb-1 text-gray-600">Encadrant</p>
                           <p className="text-gray-700">
-                            {encadrant.prenom} {encadrant.nom}
+                            {depot.encadrant.prenom} {depot.encadrant.nom}
                           </p>
                         </div>
                       )}
-                    </>
-                  )}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => window.open(document.cheminFichier, '_blank')}
-                      className="flex items-center gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Visualiser
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        const link = window.document.createElement('a');
-                        link.href = document.cheminFichier;
-                        link.download = document.titre;
-                        window.document.body.appendChild(link);
-                        link.click();
-                        window.document.body.removeChild(link);
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Télécharger
-                    </Button>
-                  </div>
-
-                  {/* Section des avis */}
-                  <div className="pt-4 border-t">
-                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      Avis publics ({avis.length})
-                    </h4>
-                    <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
-                      {avis.length === 0 ? (
-                        <p className="text-gray-500 text-sm italic">Aucun avis pour le moment.</p>
-                      ) : (
-                        avis.map((avisItem) => (
-                          <div key={avisItem.idAvis} className="bg-gray-50 p-3 rounded border">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-gray-400" />
-                                <span className="font-medium text-sm">
-                                  {'nom' in avisItem.auteur 
-                                    ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
-                                    : 'Utilisateur'}
-                                </span>
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                {format(avisItem.dateCreation, 'dd/MM/yyyy à HH:mm', { locale: fr })}
-                              </span>
-                            </div>
-                            <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
-                          </div>
-                        ))
-                      )}
                     </div>
 
-                    {/* Formulaire pour ajouter un avis */}
+                    {/* Section des avis */}
                     <div className="pt-4 border-t">
-                      <label className="block text-sm font-medium mb-2">Ajouter votre avis</label>
-                      <Textarea
-                        value={nouvelAvis}
-                        onChange={(e) => setNouvelAvis(e.target.value)}
-                        placeholder="Partagez votre point de vue sur ce document..."
-                        rows={3}
-                        className="mb-2"
-                      />
-                      <Button
-                        onClick={handleAjouterAvis}
-                        disabled={!nouvelAvis.trim()}
-                        className="w-full"
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        Publier mon avis
+                      <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5" />
+                        Avis publics ({avis.length})
+                      </h4>
+                      <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
+                        {avis.length === 0 ? (
+                          <p className="text-gray-500 text-sm italic">Aucun avis pour le moment.</p>
+                        ) : (
+                          avis.map((avisItem) => (
+                            <div key={avisItem.idAvis} className="bg-gray-50 p-3 rounded border">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4 text-gray-400" />
+                                  <span className="font-medium text-sm">
+                                    {'nom' in avisItem.auteur
+                                      ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
+                                      : 'Utilisateur'}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500">
+                                  {format(avisItem.dateCreation, 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Formulaire pour ajouter un avis */}
+                      <div className="pt-4 border-t">
+                        <label className="block text-sm font-medium mb-2">Ajouter votre avis</label>
+                        <Textarea
+                          value={nouvelAvis}
+                          onChange={(e) => setNouvelAvis(e.target.value)}
+                          placeholder="Partagez votre point de vue sur ce dépôt de sujet..."
+                          rows={3}
+                          className="mb-2"
+                        />
+                        <Button
+                          onClick={handleAjouterAvis}
+                          disabled={!nouvelAvis.trim()}
+                          className="w-full"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          Publier mon avis
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4 border-t">
+                      <Button variant="outline" onClick={() => setShowPhasePubliqueModal(false)}>
+                        Fermer
                       </Button>
                     </div>
                   </div>
-
-                  <div className="flex justify-end gap-2 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setShowPhasePubliqueModal(false)}>
-                      Fermer
-                    </Button>
-                  </div>
-                </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          );
-        }
-        return null;
-      })()}
-    </div>
+            );
+          } else if (selectedElementPhasePublique.type === 'document_corrige' && selectedElementPhasePublique.document) {
+            const document = selectedElementPhasePublique.document;
+            const dossier = document.dossierMemoire;
+            const candidats = dossier?.candidats || [];
+            const encadrements = dossier ? getEncadrementsByDossier(dossier.idDossierMemoire) : [];
+            const encadrementActif = encadrements.find(e => e.statut === StatutEncadrement.ACTIF);
+            const encadrant = encadrementActif?.professeur || dossier?.encadrant;
+
+            return (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                onClick={() => setShowPhasePubliqueModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0.95 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white max-w-4xl w-full p-6 rounded-lg max-h-[90vh] overflow-y-auto"
+                >
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-blue-600" />
+                    Document corrigé en phase publique
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1 text-gray-600">Titre du document</p>
+                      <p className="text-gray-900 text-lg">{document.titre}</p>
+                    </div>
+                    {dossier && (
+                      <>
+                        <div>
+                          <p className="text-sm font-medium mb-1 text-gray-600">Dossier</p>
+                          <p className="text-gray-700">{dossier.titre}</p>
+                        </div>
+                        {candidats.length > 0 && (
+                          <div>
+                            <p className="text-sm font-medium mb-1 text-gray-600">Candidat(s)</p>
+                            <div className="flex flex-wrap gap-2">
+                              {candidats.map((candidat, idx) => (
+                                <Badge key={idx} variant="outline">
+                                  {candidat.prenom} {candidat.nom}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {encadrant && (
+                          <div>
+                            <p className="text-sm font-medium mb-1 text-gray-600">Encadrant</p>
+                            <p className="text-gray-700">
+                              {encadrant.prenom} {encadrant.nom}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => window.open(document.cheminFichier, '_blank')}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Visualiser
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const link = window.document.createElement('a');
+                          link.href = document.cheminFichier;
+                          link.download = document.titre;
+                          window.document.body.appendChild(link);
+                          link.click();
+                          window.document.body.removeChild(link);
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Télécharger
+                      </Button>
+                    </div>
+
+                    {/* Section des avis */}
+                    <div className="pt-4 border-t">
+                      <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5" />
+                        Avis publics ({avis.length})
+                      </h4>
+                      <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
+                        {avis.length === 0 ? (
+                          <p className="text-gray-500 text-sm italic">Aucun avis pour le moment.</p>
+                        ) : (
+                          avis.map((avisItem) => (
+                            <div key={avisItem.idAvis} className="bg-gray-50 p-3 rounded border">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4 text-gray-400" />
+                                  <span className="font-medium text-sm">
+                                    {'nom' in avisItem.auteur
+                                      ? `${avisItem.auteur.prenom} ${avisItem.auteur.nom}`
+                                      : 'Utilisateur'}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500">
+                                  {format(avisItem.dateCreation, 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm">{avisItem.contenu}</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Formulaire pour ajouter un avis */}
+                      <div className="pt-4 border-t">
+                        <label className="block text-sm font-medium mb-2">Ajouter votre avis</label>
+                        <Textarea
+                          value={nouvelAvis}
+                          onChange={(e) => setNouvelAvis(e.target.value)}
+                          placeholder="Partagez votre point de vue sur ce document..."
+                          rows={3}
+                          className="mb-2"
+                        />
+                        <Button
+                          onClick={handleAjouterAvis}
+                          disabled={!nouvelAvis.trim()}
+                          className="w-full"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          Publier mon avis
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4 border-t">
+                      <Button variant="outline" onClick={() => setShowPhasePubliqueModal(false)}>
+                        Fermer
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            );
+          }
+          return null;
+        })()
+      }
+    </div >
   );
 };
 

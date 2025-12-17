@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   ArrowLeft,
   User,
   FileText,
@@ -20,13 +20,13 @@ import {
   AlertCircle,
   RefreshCw,
   X,
-  Circle,
   Plus,
   Trash2,
   Check,
   XCircle,
   FileText as FileTextIcon,
-  ExternalLink
+  ExternalLink,
+  Circle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Badge } from '../../components/ui/badge';
@@ -61,8 +61,7 @@ import {
   SousTache,
   FeedbackRejet,
   getTicketsByEncadrement,
-  hasTicketEnCours,
-  canAvancerTicket
+  hasTicketEnCours
 } from '../../models';
 import { StatutLivrable } from '../../models';
 import {
@@ -86,8 +85,8 @@ const TabButton: React.FC<TabButtonProps> = ({ children, isActive, onClick, icon
       onClick={onClick}
       className={`
         flex items-center px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200
-        ${isActive 
-          ? 'border-primary text-primary bg-white' 
+        ${isActive
+          ? 'border-primary text-primary bg-white'
           : 'border-transparent text-gray-500 hover:text-primary bg-gray-50'
         }
       `}
@@ -95,11 +94,10 @@ const TabButton: React.FC<TabButtonProps> = ({ children, isActive, onClick, icon
       {icon && <span className="mr-2">{icon}</span>}
       {children}
       {count !== undefined && (
-        <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full ${
-          isActive 
-            ? 'bg-primary-50 text-primary-700' 
-            : 'bg-gray-200 text-gray-600'
-        }`}>
+        <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full ${isActive
+          ? 'bg-primary-50 text-primary-700'
+          : 'bg-gray-200 text-gray-600'
+          }`}>
           {count}
         </span>
       )}
@@ -155,6 +153,7 @@ const getDocumentTypeLabel = (type: TypeDocument) => {
     [TypeDocument.ANNEXE]: 'Annexe',
     [TypeDocument.FICHE_SUIVI]: 'Fiche de suivi',
     [TypeDocument.DOCUMENT_ADMINISTRATIF]: 'Document administratif',
+    [TypeDocument.PRESENTATION]: 'Présentation',
     [TypeDocument.AUTRE]: 'Autre'
   };
   return types[type] || type;
@@ -189,6 +188,7 @@ const DossierEtudiantDetail: React.FC = () => {
   const [showConfirmPrelectureModal, setShowConfirmPrelectureModal] = useState(false);
   const [showConfirmSoutenanceModal, setShowConfirmSoutenanceModal] = useState(false);
 
+
   // Récupérer l'encadrement
   const encadrement = id ? getEncadrementById(parseInt(id)) : null;
 
@@ -198,14 +198,14 @@ const DossierEtudiantDetail: React.FC = () => {
   const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
   const estChef = user?.estChef;
   const hasRoleEncadrantActif = user?.estEncadrant && (!anneeTerminee || estChef);
-  
+
   if (!hasRoleEncadrantActif) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Accès non autorisé</h2>
           <p className="text-gray-600">
-            {anneeTerminee 
+            {anneeTerminee
               ? 'L\'année académique est terminée. Vous n\'avez plus accès aux dossiers étudiants pour cette session.'
               : 'Vous devez être un encadrant pour accéder à cette page.'}
           </p>
@@ -232,7 +232,7 @@ const DossierEtudiantDetail: React.FC = () => {
   // Récupérer le dossier
   // Les dossiers étudiants ont maintenant les IDs 101, 102, 103 directement dans mockDossiers
   const dossier = dossierId ? getDossierById(parseInt(dossierId)) : null;
-  
+
   if (!dossier) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -258,8 +258,8 @@ const DossierEtudiantDetail: React.FC = () => {
   }
 
   // Récupérer le candidat (premier candidat du dossier)
-  const candidat = dossier.candidats && dossier.candidats.length > 0 
-    ? dossier.candidats[0] 
+  const candidat = dossier.candidats && dossier.candidats.length > 0
+    ? dossier.candidats[0]
     : null;
 
   // Récupérer les documents du dossier
@@ -275,7 +275,7 @@ const DossierEtudiantDetail: React.FC = () => {
     // Utiliser la fonction helper qui trie par phase, puis filtrer par dossier
     const ticketsEncadrement = getTicketsByEncadrement(encadrement.idEncadrement);
     // Filtrer les tickets pour ne garder que ceux associés au dossier actuel
-    return ticketsEncadrement.filter(t => 
+    return ticketsEncadrement.filter(t =>
       t.dossierMemoire?.idDossierMemoire === dossier.idDossierMemoire
     );
   }, [encadrement.idEncadrement, dossier.idDossierMemoire]);
@@ -325,7 +325,7 @@ const DossierEtudiantDetail: React.FC = () => {
       alert('Veuillez saisir une note de suivi.');
       return;
     }
-    
+
     if (!user?.id) {
       alert('Erreur : Utilisateur non identifié.');
       return;
@@ -397,12 +397,12 @@ const DossierEtudiantDetail: React.FC = () => {
         phase: PhaseTicket.TERMINE,
         progression: 100
       };
-      
+
       // Mettre à jour le livrable si présent
       if (mockTickets[ticketIndex].livrables && mockTickets[ticketIndex].livrables!.length > 0) {
         mockTickets[ticketIndex].livrables![0].statut = StatutLivrable.VALIDE;
       }
-      
+
       // Mettre à jour le ticket sélectionné
       setSelectedTicket(mockTickets[ticketIndex]);
     }
@@ -411,7 +411,7 @@ const DossierEtudiantDetail: React.FC = () => {
   // Fonction pour rejeter un ticket en révision
   const handleRejeterTicket = () => {
     if (!selectedTicket) return;
-    
+
     // Vérifier que le commentaire est rempli
     if (!rejetCommentaire.trim()) {
       alert('Veuillez saisir un commentaire de rejet.');
@@ -426,10 +426,10 @@ const DossierEtudiantDetail: React.FC = () => {
     if (ticketIndex !== -1) {
       // Ajouter les corrections comme nouvelles sous-tâches
       const nouvellesSousTaches = [...(selectedTicket.sousTaches || [])];
-      const maxId = nouvellesSousTaches.length > 0 
+      const maxId = nouvellesSousTaches.length > 0
         ? Math.max(...nouvellesSousTaches.map(st => st.id))
         : 0;
-      
+
       correctionsValides.forEach((correction, index) => {
         nouvellesSousTaches.push({
           id: maxId + index + 1,
@@ -457,12 +457,12 @@ const DossierEtudiantDetail: React.FC = () => {
         sousTaches: nouvellesSousTaches,
         progression: nouvelleProgression
       };
-      
+
       // Mettre à jour le livrable si présent
       if (mockTickets[ticketIndex].livrables && mockTickets[ticketIndex].livrables!.length > 0) {
         mockTickets[ticketIndex].livrables![0].statut = StatutLivrable.REJETE;
       }
-      
+
       // Fermer les modals et réinitialiser
       setShowRejetModal(false);
       setSelectedTicket(mockTickets[ticketIndex]);
@@ -523,7 +523,7 @@ const DossierEtudiantDetail: React.FC = () => {
   // Calculer la progression du dossier basée sur les tickets
   const progression = useMemo(() => {
     if (allTickets.length === 0) return 0;
-    
+
     // Calculer la progression moyenne des tickets
     // Les tickets terminés comptent pour 100%, les autres utilisent leur progression
     const progressionTotale = allTickets.reduce((sum, ticket) => {
@@ -533,7 +533,7 @@ const DossierEtudiantDetail: React.FC = () => {
         return sum + ticket.progression;
       }
     }, 0);
-    
+
     return Math.round(progressionTotale / allTickets.length);
   }, [allTickets]);
 
@@ -543,123 +543,14 @@ const DossierEtudiantDetail: React.FC = () => {
         {/* Bouton retour */}
         <Button
           variant="ghost"
-          onClick={() => navigate(`/professeur/encadrements/${id}/panel`)}
+          onClick={() => navigate(`/professeur/encadrements`)}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour au panel
         </Button>
 
-        {/* En-tête avec informations du candidat */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex items-start flex-1">
-                <div className="w-16 h-16 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-semibold text-xl mr-4">
-                  {candidat ? `${candidat.prenom.charAt(0)}${candidat.nom.charAt(0)}` : '??'}
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-2xl mb-2">
-                    {candidat ? `${candidat.prenom} ${candidat.nom}` : 'Étudiant'}
-                  </CardTitle>
-                  <div className="space-y-2 mb-4">
-                    {candidat && (
-                      <>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-4 w-4 mr-2" />
-                          {candidat.email}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <User className="h-4 w-4 mr-2" />
-                          Matricule: {candidat.numeroMatricule}
-                        </div>
-                        {candidat.niveau && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <GraduationCap className="h-4 w-4 mr-2" />
-                            {candidat.niveau}
-                          </div>
-                        )}
-                        {candidat.filiere && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <BookOpen className="h-4 w-4 mr-2" />
-                            {candidat.filiere}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge className={getStatutBadgeColor(dossier.statut)}>
-                      {getStatutLabel(dossier.statut)}
-                    </Badge>
-                    <Badge variant="outline">
-                      {getEtapeLabel(dossier.etape)}
-                    </Badge>
-                    {dossier.anneeAcademique && (
-                      <span className="text-xs text-gray-500">
-                        Année: {dossier.anneeAcademique}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
 
-        {/* Informations du mémoire */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileText className="h-5 w-5 mr-2" />
-              Informations du mémoire
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">{dossier.titre}</h3>
-                <p className="text-sm text-gray-600">{dossier.description}</p>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Date de création</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {dossier.dateCreation.toLocaleDateString('fr-FR')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Dernière modification</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {dossier.dateModification.toLocaleDateString('fr-FR')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Progression</p>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-primary h-2 rounded-full transition-all"
-                        style={{ width: `${progression}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-900">{progression}%</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Complétude</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {dossier.estComplet ? (
-                      <span className="text-green-600">Complet</span>
-                    ) : (
-                      <span className="text-yellow-600">En cours</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Onglets */}
         <Card>
@@ -911,15 +802,14 @@ const DossierEtudiantDetail: React.FC = () => {
                                 <Badge variant="outline" className="text-xs">
                                   {getDocumentTypeLabel(document.typeDocument)}
                                 </Badge>
-                                <Badge className={`text-xs ${
-                                  document.statut === StatutDocument.VALIDE
-                                    ? 'bg-green-50 text-green-700 border-green-200'
-                                    : document.statut === StatutDocument.EN_ATTENTE_VALIDATION
+                                <Badge className={`text-xs ${document.statut === StatutDocument.VALIDE
+                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  : document.statut === StatutDocument.EN_ATTENTE_VALIDATION
                                     ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
                                     : document.statut === StatutDocument.REJETE
-                                    ? 'bg-red-50 text-red-700 border-red-200'
-                                    : 'bg-gray-50 text-gray-700 border-gray-200'
-                                }`}>
+                                      ? 'bg-red-50 text-red-700 border-red-200'
+                                      : 'bg-gray-50 text-gray-700 border-gray-200'
+                                  }`}>
                                   {getDocumentStatutLabel(document.statut)}
                                 </Badge>
                               </div>
@@ -1011,6 +901,8 @@ const DossierEtudiantDetail: React.FC = () => {
                     </div>
                   </div>
 
+
+
                   <div className="space-y-4">
                     {tickets.length === 0 ? (
                       <div className="text-center py-12 text-gray-500">
@@ -1019,92 +911,89 @@ const DossierEtudiantDetail: React.FC = () => {
                       </div>
                     ) : (
                       tickets.map((ticket) => (
-                          <div
-                            key={ticket.idTicket}
-                            className={`bg-white border p-4 hover:shadow-md transition-shadow cursor-pointer ${
-                              ticket.phase === PhaseTicket.EN_COURS
-                                ? 'border-blue-300 shadow-md'
-                                : ticket.phase === PhaseTicket.EN_REVISION
-                                ? 'border-orange-300'
-                                : 'border-gray-200'
+                        <div
+                          key={ticket.idTicket}
+                          className={`bg-white border p-4 hover:shadow-md transition-shadow cursor-pointer ${ticket.phase === PhaseTicket.EN_COURS
+                            ? 'border-blue-300 shadow-md'
+                            : ticket.phase === PhaseTicket.EN_REVISION
+                              ? 'border-orange-300'
+                              : 'border-gray-200'
                             }`}
-                            onClick={() => setSelectedTicket(ticket)}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                  <TicketIcon className="h-5 w-5 text-gray-400" />
-                                  <h4 className="font-medium text-gray-900">{ticket.titre}</h4>
-                                  <Badge className={`text-xs ${getPhaseBadgeColor(ticket.phase)}`}>
-                                    {getPhaseLabel(ticket.phase)}
-                                  </Badge>
-                                  <Badge className={`text-xs ${
-                                    ticket.priorite === 'URGENTE'
-                                      ? 'bg-red-50 text-red-700 border-red-200'
-                                      : ticket.priorite === 'HAUTE'
-                                      ? 'bg-orange-50 text-orange-700 border-orange-200'
-                                      : ticket.priorite === 'MOYENNE'
+                          onClick={() => setSelectedTicket(ticket)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <TicketIcon className="h-5 w-5 text-gray-400" />
+                                <h4 className="font-medium text-gray-900">{ticket.titre}</h4>
+                                <Badge className={`text-xs ${getPhaseBadgeColor(ticket.phase)}`}>
+                                  {getPhaseLabel(ticket.phase)}
+                                </Badge>
+                                <Badge className={`text-xs ${ticket.priorite === 'URGENTE'
+                                  ? 'bg-red-50 text-red-700 border-red-200'
+                                  : ticket.priorite === 'HAUTE'
+                                    ? 'bg-orange-50 text-orange-700 border-orange-200'
+                                    : ticket.priorite === 'MOYENNE'
                                       ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
                                       : 'bg-blue-50 text-blue-700 border-blue-200'
                                   }`}>
-                                    {ticket.priorite}
+                                  {ticket.priorite}
+                                </Badge>
+                                {ticket.phase === PhaseTicket.EN_COURS && (
+                                  <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
+                                    Ticket actif
                                   </Badge>
-                                  {ticket.phase === PhaseTicket.EN_COURS && (
-                                    <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
-                                      Ticket actif
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-600 mb-2">{ticket.description}</p>
-                                
-                                {/* Barre de progression */}
-                                <div className="mb-3">
-                                  <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                                    <span>Progression</span>
-                                    <span>{ticket.progression}%</span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                      className={`h-2 rounded-full transition-all ${
-                                        ticket.phase === PhaseTicket.EN_REVISION
-                                          ? 'bg-orange-500'
-                                          : ticket.phase === PhaseTicket.TERMINE
-                                          ? 'bg-green-500'
-                                          : 'bg-primary'
-                                      }`}
-                                      style={{ width: `${ticket.progression}%` }}
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-4 text-sm text-gray-600">
-                                  <span className="flex items-center">
-                                    <Calendar className="h-4 w-4 mr-1" />
-                                    {ticket.dateCreation.toLocaleDateString('fr-FR')}
-                                  </span>
-                                  {ticket.dateEcheance && (
-                                    <span className="flex items-center">
-                                      <Clock className="h-4 w-4 mr-1" />
-                                      Échéance: {ticket.dateEcheance.toLocaleDateString('fr-FR')}
-                                    </span>
-                                  )}
-                                </div>
-
+                                )}
                               </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedTicket(ticket);
-                                }}
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                Consulter
-                              </Button>
+                              <p className="text-sm text-gray-600 mb-2">{ticket.description}</p>
+
+                              {/* Barre de progression */}
+                              <div className="mb-3">
+                                <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                                  <span>Progression</span>
+                                  <span>{ticket.progression}%</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className={`h-2 rounded-full transition-all ${ticket.phase === PhaseTicket.EN_REVISION
+                                      ? 'bg-orange-500'
+                                      : ticket.phase === PhaseTicket.TERMINE
+                                        ? 'bg-green-500'
+                                        : 'bg-primary'
+                                      }`}
+                                    style={{ width: `${ticket.progression}%` }}
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <span className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-1" />
+                                  {ticket.dateCreation.toLocaleDateString('fr-FR')}
+                                </span>
+                                {ticket.dateEcheance && (
+                                  <span className="flex items-center">
+                                    <Clock className="h-4 w-4 mr-1" />
+                                    Échéance: {ticket.dateEcheance.toLocaleDateString('fr-FR')}
+                                  </span>
+                                )}
+                              </div>
+
                             </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTicket(ticket);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Consulter
+                            </Button>
                           </div>
-                        ))
+                        </div>
+                      ))
                     )}
                   </div>
                 </motion.div>
@@ -1234,15 +1123,14 @@ const DossierEtudiantDetail: React.FC = () => {
                       <Badge className={getPhaseBadgeColor(selectedTicket.phase)}>
                         {getPhaseLabel(selectedTicket.phase)}
                       </Badge>
-                      <Badge className={`${
-                        selectedTicket.priorite === Priorite.URGENTE
-                          ? 'bg-red-50 text-red-700 border-red-200'
-                          : selectedTicket.priorite === Priorite.HAUTE
+                      <Badge className={`${selectedTicket.priorite === Priorite.URGENTE
+                        ? 'bg-red-50 text-red-700 border-red-200'
+                        : selectedTicket.priorite === Priorite.HAUTE
                           ? 'bg-orange-50 text-orange-700 border-orange-200'
                           : selectedTicket.priorite === Priorite.MOYENNE
-                          ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                          : 'bg-blue-50 text-blue-700 border-blue-200'
-                      }`}>
+                            ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                        }`}>
                         {selectedTicket.priorite}
                       </Badge>
                     </div>
@@ -1278,9 +1166,8 @@ const DossierEtudiantDetail: React.FC = () => {
                       {selectedTicket.sousTaches.map((sousTache) => (
                         <div
                           key={sousTache.id}
-                          className={`flex items-center space-x-3 p-3 bg-gray-50 transition-colors ${
-                            sousTache.terminee ? 'opacity-75' : ''
-                          }`}
+                          className={`flex items-center space-x-3 p-3 bg-gray-50 transition-colors ${sousTache.terminee ? 'opacity-75' : ''
+                            }`}
                         >
                           {sousTache.terminee ? (
                             <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
@@ -1304,13 +1191,12 @@ const DossierEtudiantDetail: React.FC = () => {
                   </div>
                   <div className="w-full bg-gray-200 h-3">
                     <div
-                      className={`h-3 transition-all duration-300 ${
-                        selectedTicket.phase === PhaseTicket.EN_REVISION
-                          ? 'bg-orange-500'
-                          : selectedTicket.phase === PhaseTicket.TERMINE
+                      className={`h-3 transition-all duration-300 ${selectedTicket.phase === PhaseTicket.EN_REVISION
+                        ? 'bg-orange-500'
+                        : selectedTicket.phase === PhaseTicket.TERMINE
                           ? 'bg-green-500'
                           : 'bg-primary'
-                      }`}
+                        }`}
                       style={{ width: `${selectedTicket.progression}%` }}
                     ></div>
                   </div>
@@ -1355,8 +1241,8 @@ const DossierEtudiantDetail: React.FC = () => {
                 {selectedTicket.livrables && selectedTicket.livrables.length > 0 && (
                   <div className="border-t border-gray-200 pt-4">
                     <h4 className="font-semibold text-gray-900 mb-3">
-                      {selectedTicket.phase === PhaseTicket.EN_REVISION 
-                        ? 'Document envoyé en révision' 
+                      {selectedTicket.phase === PhaseTicket.EN_REVISION
+                        ? 'Document envoyé en révision'
                         : 'Livrable'}
                     </h4>
                     {/* Afficher uniquement le dernier livrable (le plus récent) */}
@@ -1364,11 +1250,10 @@ const DossierEtudiantDetail: React.FC = () => {
                       const livrable = selectedTicket.livrables![selectedTicket.livrables!.length - 1];
                       return (
                         <div
-                          className={`p-4 bg-gray-50 border ${
-                            selectedTicket.phase === PhaseTicket.EN_REVISION
-                              ? 'border-orange-200 bg-orange-50'
-                              : 'border-gray-200'
-                          }`}
+                          className={`p-4 bg-gray-50 border ${selectedTicket.phase === PhaseTicket.EN_REVISION
+                            ? 'border-orange-200 bg-orange-50'
+                            : 'border-gray-200'
+                            }`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3 flex-1">
@@ -1395,13 +1280,13 @@ const DossierEtudiantDetail: React.FC = () => {
                                 livrable.statut === StatutLivrable.VALIDE
                                   ? 'bg-blue-50 text-blue-700 border-blue-200'
                                   : livrable.statut === StatutLivrable.REJETE
-                                  ? 'bg-gray-50 text-gray-700 border-gray-200'
-                                  : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                    ? 'bg-gray-50 text-gray-700 border-gray-200'
+                                    : 'bg-yellow-50 text-yellow-700 border-yellow-200'
                               }>
                                 {livrable.statut === StatutLivrable.VALIDE ? 'Validé' :
-                                 livrable.statut === StatutLivrable.REJETE ? 'Rejeté' :
-                                 livrable.statut === StatutLivrable.EN_ATTENTE_VALIDATION ? 'En attente' :
-                                 'Déposé'}
+                                  livrable.statut === StatutLivrable.REJETE ? 'Rejeté' :
+                                    livrable.statut === StatutLivrable.EN_ATTENTE_VALIDATION ? 'En attente' :
+                                      'Déposé'}
                               </Badge>
                               <Button
                                 variant="outline"
@@ -1660,7 +1545,7 @@ const DossierEtudiantDetail: React.FC = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Note de suivi
@@ -1675,7 +1560,7 @@ const DossierEtudiantDetail: React.FC = () => {
                   Cette note sera ajoutée à la fiche de suivi du dossier et sera visible dans l'historique.
                 </p>
               </div>
-              
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
@@ -1721,7 +1606,7 @@ const DossierEtudiantDetail: React.FC = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Note de suivi
@@ -1736,7 +1621,7 @@ const DossierEtudiantDetail: React.FC = () => {
                   Cette note sera ajoutée à la fiche de suivi du dossier et sera visible dans l'historique.
                 </p>
               </div>
-              
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
@@ -1779,7 +1664,7 @@ const DossierEtudiantDetail: React.FC = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="mb-6">
                 <p className="text-sm text-gray-700 mb-4">
                   Êtes-vous sûr de vouloir autoriser la pré-lecture pour ce dossier ?
@@ -1794,7 +1679,7 @@ const DossierEtudiantDetail: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
@@ -1833,7 +1718,7 @@ const DossierEtudiantDetail: React.FC = () => {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="mb-6">
                 <p className="text-sm text-gray-700 mb-4">
                   Êtes-vous sûr de vouloir autoriser la soutenance pour ce dossier ?
@@ -1848,7 +1733,7 @@ const DossierEtudiantDetail: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
@@ -1867,6 +1752,8 @@ const DossierEtudiantDetail: React.FC = () => {
             </motion.div>
           </div>
         )}
+
+
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { 
+import {
   Folder,
   Search,
   FileText,
@@ -30,7 +30,7 @@ const Badge: React.FC<{
     error: 'bg-red-100 text-red-800',
     primary: 'bg-primary-100 text-primary-800'
   };
-  
+
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]}`}>
       {children}
@@ -40,9 +40,9 @@ const Badge: React.FC<{
 
 // Formatage des dates
 const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('fr-FR', { 
-    day: 'numeric', 
-    month: 'long', 
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
     year: 'numeric'
   });
 };
@@ -70,23 +70,24 @@ const RessourcesPersonnelles: React.FC = () => {
   // Récupérer les ressources selon le type d'utilisateur
   const ressources = useMemo(() => {
     if (!user?.id) return [];
-    
+
     // Pour les professeurs : récupérer leurs ressources personnelles (documents créés)
     if (user.type === 'professeur') {
       const idProfesseur = parseInt(user.id);
       return getRessourcesPersonnellesProfesseur(idProfesseur);
     }
-    
+
     // Pour les étudiants : récupérer les ressources depuis les dossiers terminés
     // TODO: Remplacer par un appel API pour récupérer les mémoires finaux de l'étudiant
-    return getRessourcesFromDossiers(mockDossiers);
+    return getRessourcesFromDossiers(mockDossiers).slice(0, 2);
+
   }, [user]);
 
   // Filtrage des ressources par recherche
   const filteredRessources = useMemo(() => {
     return ressources.filter(ressource => {
       const matchesSearch = ressource.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           ressource.description.toLowerCase().includes(searchQuery.toLowerCase());
+        ressource.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesSearch;
     });
   }, [ressources, searchQuery]);
@@ -106,7 +107,7 @@ const RessourcesPersonnelles: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Mes Ressources Personnelles</h1>
             <p className="text-sm text-gray-600">
-              {user?.type === 'professeur' 
+              {user?.type === 'professeur'
                 ? 'Consultez vos documents personnels (guides, modèles, etc.)'
                 : 'Consultez vos mémoires finaux (documents finaux de vos dossiers terminés)'
               }
@@ -166,10 +167,10 @@ const RessourcesPersonnelles: React.FC = () => {
                               Document personnel
                             </Badge>
                           ) : (
-                          <Badge variant="success">
-                            <FileCheck className="h-3 w-3 mr-1" />
-                            Mémoire final
-                          </Badge>
+                            <Badge variant="success">
+                              <FileCheck className="h-3 w-3 mr-1" />
+                              Mémoire final
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -200,33 +201,18 @@ const RessourcesPersonnelles: React.FC = () => {
                 {user?.type === 'professeur' ? 'Aucun document trouvé' : 'Aucun mémoire trouvé'}
               </p>
               <p className="text-sm text-gray-500">
-                {searchQuery 
+                {searchQuery
                   ? 'Essayez de modifier vos critères de recherche'
                   : user?.type === 'professeur'
                     ? 'Vous n\'avez pas encore de documents personnels. Les documents que vous créez ou téléchargez apparaîtront ici.'
-                  : 'Vous n\'avez pas encore de mémoires finaux. Les mémoires finaux de vos dossiers terminés apparaîtront ici.'
+                    : 'Vous n\'avez pas encore de mémoires finaux. Les mémoires finaux de vos dossiers terminés apparaîtront ici.'
                 }
               </p>
             </div>
           )}
         </div>
 
-        {/* Statistiques */}
-        <div className="mt-6">
-          <div className="bg-white border border-gray-200 p-4 max-w-xs">
-            <div className="flex items-center">
-              <div className="bg-primary-100 p-3 rounded-lg mr-4">
-                <Folder className="h-5 w-5 text-primary-700" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">
-                  {user?.type === 'professeur' ? 'Documents personnels' : 'Mémoires finaux'}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">{ressources.length}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         {/* Modal de visualisation */}
         <AnimatePresence>
@@ -317,7 +303,7 @@ const RessourcesPersonnelles: React.FC = () => {
                       <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 text-center">
                         <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                         <p className="text-gray-600 mb-4">
-                          {user?.type === 'professeur' 
+                          {user?.type === 'professeur'
                             ? 'Le document est disponible en téléchargement.'
                             : 'Le document final du mémoire est disponible en téléchargement.'
                           }

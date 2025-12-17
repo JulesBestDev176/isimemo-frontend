@@ -125,6 +125,42 @@ export const mockDemandesPrelecture: DemandePrelecture[] = [
       taille: '2.8 MB',
       dateDepot: new Date('2025-01-20')
     }
+  },
+  // Demande supplémentaire pour user ID 4 (chef@isimemo.edu.sn qui correspond à Mamadou Sarr, idProfesseur: 4)
+  {
+    idDemandePrelecture: 5,
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 103)!, // Ibrahima Ba
+    encadrantPrincipal: mockProfesseurs.find(p => p.idProfesseur === 5)!, // Fatou Diallo (encadrant principal)
+    prelecteur: mockProfesseurs.find(p => p.idProfesseur === 4)!, // Mamadou Sarr (pré-lecteur)
+    candidat: mockCandidats.find(c => c.idCandidat === 3)!, // Ibrahima Ba
+    dateDemande: new Date('2025-02-05'),
+    dateAssignation: new Date('2025-02-05'),
+    statut: StatutDemandePrelecture.EN_ATTENTE,
+    documentMemoire: {
+      cheminFichier: '/memoires/103/memoire_complet.pdf',
+      nomFichier: 'Memoire_Ibrahima_Ba.pdf',
+      taille: '3.8 MB',
+      dateDepot: new Date('2025-02-05')
+    }
+  },
+  // Demande supplémentaire validée pour user ID 5 (encadrant@isimemo.edu.sn)
+  {
+    idDemandePrelecture: 6,
+    dossierMemoire: mockDossiers.find(d => d.idDossierMemoire === 106)!, // Si le dossier existe
+    encadrantPrincipal: mockProfesseurs.find(p => p.idProfesseur === 4)!, // Mamadou Sarr
+    prelecteur: mockProfesseurs.find(p => p.idProfesseur === 5)!, // Fatou Diallo (correspond à user ID 5)
+    candidat: mockCandidats.find(c => c.idCandidat === 6),
+    dateDemande: new Date('2025-01-15'),
+    dateAssignation: new Date('2025-01-15'),
+    dateTraitement: new Date('2025-01-22'),
+    statut: StatutDemandePrelecture.VALIDE,
+    commentaire: 'Excellent travail. Le mémoire est prêt pour la soutenance.',
+    documentMemoire: {
+      cheminFichier: '/memoires/106/memoire_complet.pdf',
+      nomFichier: 'Memoire_Candidat_6.pdf',
+      taille: '4.5 MB',
+      dateDepot: new Date('2025-01-15')
+    }
   }
 ];
 

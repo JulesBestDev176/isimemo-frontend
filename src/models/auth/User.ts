@@ -24,15 +24,6 @@ export interface User {
 // ============================================================================
 
 export const mockUsers: (User & { password: string })[] = [
-  // Étudiant
-  {
-    id: '1',
-    name: 'Jean Dupont',
-    email: 'etudiant@isimemo.edu.sn',
-    password: 'password123',
-    type: 'etudiant',
-    department: 'Informatique',
-  },
   // Étudiant Candidat
   {
     id: '2',
@@ -43,14 +34,15 @@ export const mockUsers: (User & { password: string })[] = [
     department: 'Réseaux',
     estCandidat: true,
   },
-  // Professeur seul
+  // Encadrant
   {
-    id: '3',
-    name: 'Pierre Durand',
-    email: 'professeur@isimemo.edu.sn',
+    id: '5',
+    name: 'Sophie Diallo',
+    email: 'encadrant@isimemo.edu.sn',
     password: 'password123',
     type: 'professeur',
-    department: 'Informatique',
+    department: 'Réseaux',
+    estEncadrant: true,
     estProfesseur: true,
   },
   // Chef de département
@@ -64,50 +56,8 @@ export const mockUsers: (User & { password: string })[] = [
     estChef: true,
     estProfesseur: true,
   },
-  // Encadrant
-  {
-    id: '5',
-    name: 'Sophie Diallo',
-    email: 'encadrant@isimemo.edu.sn',
-    password: 'password123',
-    type: 'professeur',
-    department: 'Réseaux',
-    estEncadrant: true,
-    estProfesseur: true,
-  },
-  // Jurie et Encadrant
-  {
-    id: '6',
-    name: 'Omar Gueye',
-    email: 'jurie@isimemo.edu.sn',
-    password: 'password123',
-    type: 'professeur',
-    department: 'Management',
-    estEncadrant: true,
-    estJurie: true,
-    estProfesseur: true,
-  },
-  // Commission
-  {
-    id: '7',
-    name: 'Aissatou Sow',
-    email: 'commission@isimemo.edu.sn',
-    password: 'password123',
-    type: 'professeur',
-    department: 'Informatique',
-    estCommission: true,
-    estProfesseur: true,
-  },
-  // Assistant
-  {
-    id: '8',
-    name: 'Fatou Ndiaye',
-    email: 'assistant@isimemo.edu.sn',
-    password: 'password123',
-    type: 'assistant',
-    department: 'Général',
-  },
 ];
+
 
 // ============================================================================
 // HELPER FUNCTIONS

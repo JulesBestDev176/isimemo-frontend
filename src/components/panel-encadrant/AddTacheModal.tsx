@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 
 export interface NewTache {
   titre: string;
@@ -9,24 +9,38 @@ export interface NewTache {
   priorite: 'Basse' | 'Moyenne' | 'Haute';
   tags?: string[];
   consigne?: string;
+  etudiantsAssignes?: number[];
 }
 
 interface AddTacheModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (tache: NewTache) => void;
+  etudiants?: Array<{ id: number; nom: string; prenom: string }>;
 }
 
-export const AddTacheModal: React.FC<AddTacheModalProps> = ({ isOpen, onClose, onAdd }) => {
+export const AddTacheModal: React.FC<AddTacheModalProps> = ({ isOpen, onClose, onAdd, etudiants = [] }) => {
   const [newTache, setNewTache] = useState<NewTache>({
     titre: '',
     description: '',
     dateEcheance: '',
     priorite: 'Moyenne',
     tags: [],
-    consigne: ''
+    consigne: '',
+    etudiantsAssignes: []
   });
   const [tagInput, setTagInput] = useState('');
+  const [searchEtudiant, setSearchEtudiant] = useState('');
+
+  // Initialiser avec tous les étudiants sélectionnés par défaut
+  useEffect(() => {
+    if (isOpen && etudiants.length > 0) {
+      setNewTache(prev => ({
+        ...prev,
+        etudiantsAssignes: etudiants.map(e => e.id)
+      }));
+    }
+  }, [isOpen, etudiants]);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !newTache.tags?.includes(tagInput.trim())) {
@@ -54,10 +68,45 @@ export const AddTacheModal: React.FC<AddTacheModalProps> = ({ isOpen, onClose, o
       dateEcheance: '',
       priorite: 'Moyenne',
       tags: [],
-      consigne: ''
+      consigne: '',
+      etudiantsAssignes: []
     });
     setTagInput('');
     onClose();
+  };
+
+  const toggleEtudiant = (id: number) => {
+    const currentAssignes = newTache.etudiantsAssignes || [];
+    const isAssigned = currentAssignes.includes(id);
+
+    if (isAssigned) {
+      setNewTache({
+        ...newTache,
+        etudiantsAssignes: currentAssignes.filter(eid => eid !== id)
+      });
+    } else {
+      setNewTache({
+        ...newTache,
+        etudiantsAssignes: [...currentAssignes, id]
+      });
+    }
+  };
+
+  const toggleAllEtudiants = () => {
+    const currentAssignes = newTache.etudiantsAssignes || [];
+    const allSelected = currentAssignes.length === etudiants.length;
+
+    if (allSelected) {
+      setNewTache({
+        ...newTache,
+        etudiantsAssignes: []
+      });
+    } else {
+      setNewTache({
+        ...newTache,
+        etudiantsAssignes: etudiants.map(e => e.id)
+      });
+    }
   };
 
   if (!isOpen) return null;
@@ -76,9 +125,15 @@ export const AddTacheModal: React.FC<AddTacheModalProps> = ({ isOpen, onClose, o
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white max-w-md w-full p-6"
+          className="bg-white max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
         >
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Ajouter une tâche commune</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-900">Ajouter une tâche commune</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
@@ -86,51 +141,109 @@ export const AddTacheModal: React.FC<AddTacheModalProps> = ({ isOpen, onClose, o
                 type="text"
                 value={newTache.titre}
                 onChange={(e) => setNewTache({ ...newTache, titre: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Titre de la tâche"
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
               <textarea
                 value={newTache.description}
                 onChange={(e) => setNewTache({ ...newTache, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                rows={3}
                 placeholder="Description de la tâche"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date d'échéance</label>
-              <input
-                type="date"
-                value={newTache.dateEcheance}
-                onChange={(e) => setNewTache({ ...newTache, dateEcheance: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
+
+            {etudiants.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Assigné à</label>
+
+                <div className="border border-gray-200 rounded-md p-3">
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newTache.etudiantsAssignes?.length === etudiants.length}
+                        onChange={toggleAllEtudiants}
+                        className="rounded border-gray-300 text-primary focus:ring-primary mr-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Tous les étudiants</span>
+                    </label>
+                    <span className="text-xs text-gray-500">
+                      {newTache.etudiantsAssignes?.length || 0}/{etudiants.length}
+                    </span>
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Rechercher un étudiant..."
+                    value={searchEtudiant}
+                    onChange={(e) => setSearchEtudiant(e.target.value)}
+                    className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded mb-2 focus:outline-none focus:border-primary"
+                  />
+
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {etudiants
+                      .filter(et =>
+                        `${et.prenom} ${et.nom}`.toLowerCase().includes(searchEtudiant.toLowerCase())
+                      )
+                      .map(etudiant => (
+                        <label key={etudiant.id} className="flex items-center px-1 py-1 hover:bg-gray-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newTache.etudiantsAssignes?.includes(etudiant.id)}
+                            onChange={() => toggleEtudiant(etudiant.id)}
+                            className="rounded border-gray-300 text-primary focus:ring-primary mr-2"
+                          />
+                          <span className="text-sm text-gray-700">{etudiant.prenom} {etudiant.nom}</span>
+                        </label>
+                      ))}
+                    {etudiants.filter(et => `${et.prenom} ${et.nom}`.toLowerCase().includes(searchEtudiant.toLowerCase())).length === 0 && (
+                      <p className="text-xs text-gray-500 text-center py-2">Aucun étudiant trouvé</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date d'échéance</label>
+                <input
+                  type="date"
+                  value={newTache.dateEcheance}
+                  onChange={(e) => setNewTache({ ...newTache, dateEcheance: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                <select
+                  value={newTache.priorite}
+                  onChange={(e) => setNewTache({ ...newTache, priorite: e.target.value as any })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                  <option value="Basse">Basse</option>
+                  <option value="Moyenne">Moyenne</option>
+                  <option value="Haute">Haute</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
-              <select
-                value={newTache.priorite}
-                onChange={(e) => setNewTache({ ...newTache, priorite: e.target.value as any })}
-                className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="Basse">Basse</option>
-                <option value="Moyenne">Moyenne</option>
-                <option value="Haute">Haute</option>
-              </select>
-            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Consigne (optionnel)</label>
               <textarea
                 value={newTache.consigne || ''}
                 onChange={(e) => setNewTache({ ...newTache, consigne: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                rows={3}
-                placeholder="Instructions spécifiques pour cette tâche..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                rows={2}
+                placeholder="Instructions spécifiques..."
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tags (optionnel)</label>
               <div className="flex gap-2 mb-2">
@@ -144,13 +257,13 @@ export const AddTacheModal: React.FC<AddTacheModalProps> = ({ isOpen, onClose, o
                       handleAddTag();
                     }
                   }}
-                  className="flex-1 px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="Ajouter un tag (Entrée pour valider)"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="Ajouter un tag"
                 />
                 <button
                   type="button"
                   onClick={handleAddTag}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                  className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                 >
                   Ajouter
                 </button>
@@ -176,19 +289,19 @@ export const AddTacheModal: React.FC<AddTacheModalProps> = ({ isOpen, onClose, o
               )}
             </div>
           </div>
-          <div className="flex justify-end gap-3 mt-6">
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Annuler
             </button>
             <button
               onClick={handleSubmit}
               disabled={!newTache.titre.trim() || !newTache.description.trim()}
-              className="px-4 py-2 bg-primary text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Ajouter
+              Ajouter la tâche
             </button>
           </div>
         </motion.div>

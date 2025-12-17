@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAnneeAcademiqueCourante, isAnneeAcademiqueTerminee } from '../../utils/anneeAcademique';
 import { getProfesseurIdByEmail } from '../../models/acteurs/Professeur';
 import { hasSoutenancesAssignees } from '../../models/soutenance/Soutenance';
-import { 
-  Users, 
-  Grid, 
-  MessageSquare, 
-  BookOpen, 
-  ChevronDown, 
+import {
+  Users,
+  Grid,
+  MessageSquare,
+  BookOpen,
+  ChevronDown,
   ChevronRight,
   Home,
   PlusCircle,
@@ -66,7 +66,7 @@ interface PropsSidebar {
 
 const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
   const emplacement = useLocation();
-  
+
   // Initialiser les menus ouverts en fonction de l'URL active
   const getInitialMenusOuverts = useCallback(() => {
     const path = emplacement.pathname;
@@ -87,9 +87,9 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
     };
     return menus;
   }, [emplacement.pathname]);
-  
+
   const [menusOuverts, setMenusOuverts] = useState<{ [cle: string]: boolean }>(getInitialMenusOuverts);
-  
+
   // Mettre à jour les menus ouverts quand l'URL change
   useEffect(() => {
     setMenusOuverts(getInitialMenusOuverts());
@@ -98,15 +98,15 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
   const elementsMenu: ElementMenu[] = [
     // Menu principal - toujours visible
     { nom: 'Tableau de bord', chemin: '/dashboard', icone: <Home className="mr-2 h-5 w-5" /> },
-    
+
     // ========== MENUS POUR ÉTUDIANT ==========
     // 1. Activité principale (travail sur les mémoires)
-    { 
-      nom: 'Mes Dossiers', 
-      icone: <FileText className="mr-2 h-5 w-5" />, 
+    {
+      nom: 'Mes Dossiers',
+      icone: <FileText className="mr-2 h-5 w-5" />,
       chemin: '/etudiant/dossiers'
     },
-    
+
     // ========== MENUS POUR CANDIDAT ==========
     // Encadrement pour les candidats
     {
@@ -114,18 +114,18 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
       icone: <Target className="mr-2 h-5 w-5" />,
       chemin: '/candidat/encadrement'
     },
-    
+
     // 2. Planification (lié aux dossiers et soutenances)
-    { 
-      nom: 'Calendrier', 
-      icone: <Calendar className="mr-2 h-5 w-5" />, 
+    {
+      nom: 'Calendrier',
+      icone: <Calendar className="mr-2 h-5 w-5" />,
       chemin: '/etudiant/calendrier'
     },
-    
+
     // 3. Ressources de travail (commun pour étudiants et professeurs)
-    { 
-      nom: 'Ressources', 
-      icone: <Folder className="mr-2 h-5 w-5" />, 
+    {
+      nom: 'Ressources',
+      icone: <Folder className="mr-2 h-5 w-5" />,
       sousmenu: [
         // Les sous-menus seront filtrés dynamiquement selon le type d'utilisateur
         { nom: 'Personnelles', icone: <Folder className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/personnelles', cheminProfesseur: '/professeur/ressources/personnelles' },
@@ -133,25 +133,21 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
         { nom: 'Bibliothèque numérique', icone: <Library className="mr-2 h-4 w-4" />, chemin: '/etudiant/ressources/mediatheque', cheminProfesseur: '/professeur/ressources/mediatheque' },
       ]
     },
-    
+
     // 4. Assistant et aide
-    { 
-      nom: 'Assistant IA', 
-      icone: <MessageSquare className="mr-2 h-5 w-5" />, 
+    {
+      nom: 'Assistant IA',
+      icone: <MessageSquare className="mr-2 h-5 w-5" />,
       chemin: '/etudiant/chatbot'
     },
-    
+
     // 5. Informations et communications
     { nom: 'Notifications', icone: <Bell className="mr-2 h-5 w-5" />, chemin: '/etudiant/notifications' },
-    
+
     // Menus pour Professeur
     { nom: 'Espace Professeur', icone: <UserIcon className="mr-2 h-5 w-5" />, chemin: '/professors' },
-    { nom: 'Sujets', icone: <BookOpen className="mr-2 h-5 w-5" />, chemin: '/sujets-professeurs' },
     { nom: 'Encadrements', icone: <Users className="mr-2 h-5 w-5" />, chemin: '/professeur/encadrements' },
-    { nom: 'Disponibilités', icone: <CalendarCheck className="mr-2 h-5 w-5" />, chemin: '/professeur/disponibilites' },
-    { nom: 'Espace Jury', icone: <Gavel className="mr-2 h-5 w-5" />, chemin: '/jurie/soutenances' },
-    { nom: 'Espace Commission', icone: <FileCheck className="mr-2 h-5 w-5" />, chemin: '/commission' },
-    
+
     // Menus pour Chef de Département / Assistant
     { nom: 'Périodes', icone: <CalendarCheck className="mr-2 h-5 w-5" />, chemin: '/departement/periodes' },
     { nom: 'Rôles', icone: <UserCheck className="mr-2 h-5 w-5" />, chemin: '/departement/roles' },
@@ -198,7 +194,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
   const menusForUser = useMemo(() => {
     if (!user) return [];
     let menus: string[] = [];
-    
+
     // Menus selon le type d'acteur principal
     if (user.type === 'etudiant') {
       if (user.estCandidat) {
@@ -224,85 +220,24 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
         ];
       }
     } else if (user.type === 'professeur') {
-      // Menus de base pour tous les professeurs
       menus = [
         'Tableau de bord',
         'Ressources',
-        'Sujets',
         'Notifications',
-        'Assistant IA'
+        'Assistant IA',
+        'Calendrier'
       ];
-      
-      // Vérifier si l'année académique en cours est terminée
-      const anneeCourante = getAnneeAcademiqueCourante();
-      const anneeTerminee = isAnneeAcademiqueTerminee(anneeCourante);
-      
-      // Le chef de département garde toujours ses rôles
-      const estChef = user.estChef;
-      
-      // Vérifier si le professeur a des soutenances assignées pour l'année en cours
-      // Un professeur n'est membre du jury actif que s'il a des soutenances assignées
-      const idProfesseur = user.email ? getProfesseurIdByEmail(user.email) : undefined;
-      const aSoutenancesAssignees = idProfesseur ? hasSoutenancesAssignees(idProfesseur) : false;
-      
-      // Debug: pour diagnostiquer le problème d'Omar Gueye
-      if (user.email === 'jurie@isimemo.edu.sn') {
-        console.log('=== SIDEBAR DEBUG OMAR GUEYE ===');
-        console.log('user.email:', user.email);
-        console.log('idProfesseur:', idProfesseur);
-        console.log('anneeCourante:', anneeCourante);
-        console.log('anneeTerminee:', anneeTerminee);
-        console.log('estChef:', estChef);
-        console.log('user.estJurie:', user.estJurie);
-        console.log('user.estEncadrant:', user.estEncadrant);
-        console.log('aSoutenancesAssignees:', aSoutenancesAssignees);
-        
-        // Vérifier les conditions
-        const conditionJury = user.estJurie && aSoutenancesAssignees && (!anneeTerminee || estChef);
-        const conditionEncadrant = user.estEncadrant && (!anneeTerminee || estChef);
-        
-        console.log('Condition Jury (estJurie && aSoutenancesAssignees && (!anneeTerminee || estChef)):', conditionJury);
-        console.log('  - estJurie:', user.estJurie);
-        console.log('  - aSoutenancesAssignees:', aSoutenancesAssignees);
-        console.log('  - (!anneeTerminee || estChef):', (!anneeTerminee || estChef));
-        console.log('Condition Encadrant (estEncadrant && (!anneeTerminee || estChef)):', conditionEncadrant);
-        console.log('  - estEncadrant:', user.estEncadrant);
-        console.log('  - (!anneeTerminee || estChef):', (!anneeTerminee || estChef));
-        console.log('================================');
-      }
-      
-      // Si jury ET a des soutenances assignées ET année académique en cours (pas terminée) : voir Calendrier et Espace Jury
-      // Si année terminée, le professeur perd son rôle de jury (sauf chef)
-      // Si pas de soutenances assignées, le professeur n'est pas membre du jury actif
-      if (user.estJurie && aSoutenancesAssignees && (!anneeTerminee || estChef)) {
-        menus.push('Calendrier');
-        menus.push('Espace Jury');
-      } else {
-        // Si pas jury, pas de soutenances assignées ou année terminée : voir Disponibilités et Calendrier normal
-        menus.push('Calendrier');
-        menus.push('Disponibilités');
-      }
-      
-      // Si encadrant ET année académique en cours (pas terminée) : voir Encadrements
-      // Si année terminée, le professeur perd son rôle d'encadrant (sauf chef)
-      if (user.estEncadrant && (!anneeTerminee || estChef)) {
+
+      // Si encadrant : voir Encadrements
+      if (user.estEncadrant) {
         menus.push('Encadrements');
       }
-      
-      // Debug final pour Omar Gueye
-      if (user.email === 'jurie@isimemo.edu.sn') {
-        console.log('Menus finaux pour Omar Gueye:', menus);
-      }
-      
-      // Ajouter menus selon les rôles (chef garde toujours ses rôles)
+
+      // Ajouter menus selon les rôles
       if (user.estChef) {
         menus = menus.concat([
           'Périodes', 'Rôles', 'Étudiants', 'Professeurs', 'Salles', 'Jury'
         ]);
-      }
-      // Commission : seulement si année académique en cours (pas terminée) ou chef
-      if (user.estCommission && (!anneeTerminee || estChef)) {
-        menus.push('Espace Commission');
       }
     } else if (user.type === 'assistant') {
       menus = [
@@ -318,7 +253,7 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
         'Assistant IA'
       ];
     }
-    
+
     // Supprimer les doublons
     return Array.from(new Set(menus));
   }, [user]);
@@ -343,21 +278,19 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
                     {item.chemin ? (
                       <Link
                         to={item.chemin}
-                        className={`flex items-center flex-1 p-2 text-base text-left rounded-md transition-colors duration-200 ${
-                          menuParentEstActif(item)
+                        className={`flex items-center flex-1 p-2 text-base text-left rounded-md transition-colors duration-200 ${menuParentEstActif(item)
                             ? 'text-primary font-medium'
                             : 'text-gray-700 hover:bg-gray-100'
-                        }`}
+                          }`}
                       >
                         {item.icone}
                         <span className="flex-1">{item.nom}</span>
                       </Link>
                     ) : (
-                      <span className={`flex items-center flex-1 p-2 text-base text-left rounded-md ${
-                        menuParentEstActif(item)
+                      <span className={`flex items-center flex-1 p-2 text-base text-left rounded-md ${menuParentEstActif(item)
                           ? 'text-primary font-medium'
                           : 'text-gray-700'
-                      }`}>
+                        }`}>
                         {item.icone}
                         <span className="flex-1">{item.nom}</span>
                       </span>
@@ -394,19 +327,18 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
                           })
                           .map((sousItem, sousIndex) => {
                             // Utiliser le chemin approprié selon le type d'utilisateur
-                            const cheminFinal = (user?.type === 'professeur' && sousItem.cheminProfesseur) 
-                              ? sousItem.cheminProfesseur 
+                            const cheminFinal = (user?.type === 'professeur' && sousItem.cheminProfesseur)
+                              ? sousItem.cheminProfesseur
                               : sousItem.chemin;
                             const sousItemActif = estActif(cheminFinal);
                             return (
                               <li key={sousIndex}>
                                 <Link
                                   to={cheminFinal || '#'}
-                                  className={`flex items-center p-2 text-sm rounded-md transition-colors duration-200 ${
-                                    sousItemActif
+                                  className={`flex items-center p-2 text-sm rounded-md transition-colors duration-200 ${sousItemActif
                                       ? 'bg-primary text-white font-medium shadow-sm'
                                       : 'text-gray-700 hover:bg-gray-100'
-                                  }`}
+                                    }`}
                                 >
                                   {sousItem.icone}
                                   <span>{sousItem.nom}</span>
@@ -424,11 +356,10 @@ const Sidebar: React.FC<PropsSidebar> = memo(({ estVisible, user }) => {
               ) : (
                 <Link
                   to={item.chemin || '#'}
-                  className={`flex items-center p-2 text-base rounded-md transition-colors duration-200 ${
-                    estActif(item.chemin)
+                  className={`flex items-center p-2 text-base rounded-md transition-colors duration-200 ${estActif(item.chemin)
                       ? 'bg-primary text-white font-medium shadow-sm'
                       : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   {item.icone}
                   <span>{item.nom}</span>

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Eye, Download, CheckCircle, XCircle, FileText, User, Calendar } from 'lucide-react';
+import { X, Eye, Download, CheckCircle, XCircle, FileText, User, Calendar, ShieldAlert, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import type { DemandePrelecture } from '../../models/dossier/DemandePrelecture';
 import { StatutDemandePrelecture } from '../../models/dossier/DemandePrelecture';
+import { detectSimilarDocuments, getSimilarityRiskLevel, getSimilarityRiskColor, type SimilarDocument } from '../../models/dossier/SimilarDocument';
 
 interface PrelectureDetailProps {
   demande: DemandePrelecture;
@@ -25,10 +26,16 @@ export const PrelectureDetail: React.FC<PrelectureDetailProps> = ({
   const [showRejetModal, setShowRejetModal] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
 
+  // États pour la vérification de plagiat
+  const [plagiarismVerified, setPlagiarismVerified] = useState(false);
+  const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false);
+  const [similarDocuments, setSimilarDocuments] = useState<SimilarDocument[]>([]);
+  const [selectedDocument, setSelectedDocument] = useState<SimilarDocument | null>(null);
+
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('fr-FR', { 
-      day: 'numeric', 
-      month: 'long', 
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -69,10 +76,23 @@ export const PrelectureDetail: React.FC<PrelectureDetailProps> = ({
     onClose();
   };
 
-  const canValider = demande.statut === StatutDemandePrelecture.EN_ATTENTE || 
-                     demande.statut === StatutDemandePrelecture.EN_COURS;
-  const canRejeter = demande.statut === StatutDemandePrelecture.EN_ATTENTE || 
-                     demande.statut === StatutDemandePrelecture.EN_COURS;
+  // Handler pour vérifier le plagiat
+  const handleCheckPlagiarism = () => {
+    setIsCheckingPlagiarism(true);
+
+    // Simulation de la vérification (2 secondes)
+    setTimeout(() => {
+      const similar = detectSimilarDocuments(demande.dossierMemoire.idDossierMemoire);
+      setSimilarDocuments(similar);
+      setPlagiarismVerified(true);
+      setIsCheckingPlagiarism(false);
+    }, 2000);
+  };
+
+  const canValider = demande.statut === StatutDemandePrelecture.EN_ATTENTE ||
+    demande.statut === StatutDemandePrelecture.EN_COURS;
+  const canRejeter = demande.statut === StatutDemandePrelecture.EN_ATTENTE ||
+    demande.statut === StatutDemandePrelecture.EN_COURS;
 
   return (
     <>
@@ -203,38 +223,38 @@ export const PrelectureDetail: React.FC<PrelectureDetailProps> = ({
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Statut</h3>
                 {demande.statut === StatutDemandePrelecture.EN_ATTENTE && (
-                  <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">En attente</Badge>
+                  <Badge className="bg-blue-50 text-blue-700 border-blue-200">En attente</Badge>
                 )}
                 {demande.statut === StatutDemandePrelecture.EN_COURS && (
                   <Badge className="bg-blue-50 text-blue-700 border-blue-200">En cours</Badge>
                 )}
                 {demande.statut === StatutDemandePrelecture.VALIDE && (
-                  <Badge className="bg-green-50 text-green-700 border-green-200">Validé</Badge>
+                  <Badge className="bg-blue-50 text-blue-700 border-blue-200">Validé</Badge>
                 )}
                 {demande.statut === StatutDemandePrelecture.REJETE && (
-                  <Badge className="bg-red-50 text-red-700 border-red-200">Rejeté</Badge>
+                  <Badge className="bg-blue-50 text-blue-700 border-blue-200">Rejeté</Badge>
                 )}
               </div>
 
               {/* Commentaire si validé */}
               {demande.statut === StatutDemandePrelecture.VALIDE && demande.commentaire && (
-                <div className="bg-green-50 border border-green-200 p-4">
-                  <h3 className="text-sm font-semibold text-green-900 mb-2">Commentaire de validation</h3>
-                  <p className="text-sm text-green-800">{demande.commentaire}</p>
+                <div className="bg-blue-50 border border-blue-200 p-4">
+                  <h3 className="text-sm font-semibold text-blue-900 mb-2">Commentaire de validation</h3>
+                  <p className="text-sm text-blue-800">{demande.commentaire}</p>
                 </div>
               )}
 
               {/* Feedback de rejet si rejeté */}
               {demande.statut === StatutDemandePrelecture.REJETE && demande.feedbackRejet && (
-                <div className="bg-red-50 border border-red-200 p-4">
-                  <h3 className="text-sm font-semibold text-red-900 mb-2">Feedback de rejet</h3>
-                  <p className="text-sm text-red-800 mb-3">{demande.feedbackRejet.commentaire}</p>
+                <div className="bg-blue-50 border border-blue-200 p-4">
+                  <h3 className="text-sm font-semibold text-blue-900 mb-2">Feedback de rejet</h3>
+                  <p className="text-sm text-blue-800 mb-3">{demande.feedbackRejet.commentaire}</p>
                   {demande.feedbackRejet.corrections.length > 0 && (
                     <div>
-                      <p className="text-sm font-semibold text-red-900 mb-2">Corrections à apporter :</p>
+                      <p className="text-sm font-semibold text-blue-900 mb-2">Corrections à apporter :</p>
                       <ul className="list-disc list-inside space-y-1">
                         {demande.feedbackRejet.corrections.map((correction, index) => (
-                          <li key={index} className="text-sm text-red-800">{correction}</li>
+                          <li key={index} className="text-sm text-blue-800">{correction}</li>
                         ))}
                       </ul>
                     </div>
@@ -242,8 +262,102 @@ export const PrelectureDetail: React.FC<PrelectureDetailProps> = ({
                 </div>
               )}
 
-              {/* Actions */}
-              {canValider || canRejeter ? (
+              {/* Vérification de plagiat */}
+              {canValider && !plagiarismVerified && (
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="bg-blue-50 border border-blue-200 p-4 mb-4">
+                    <p className="text-sm text-blue-800 mb-2">
+                      Avant de valider ou rejeter cette pré-lecture, veuillez vérifier le plagiat pour détecter d'éventuelles similitudes avec d'autres mémoires.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleCheckPlagiarism}
+                    disabled={isCheckingPlagiarism}
+                    className="flex items-center gap-2 bg-primary hover:bg-primary-700 w-full justify-center"
+                  >
+                    {isCheckingPlagiarism ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyse en cours...
+                      </>
+                    ) : (
+                      <>
+                        <ShieldAlert className="h-4 w-4" />
+                        Vérifier le Plagiat
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Résultats de la vérification de plagiat */}
+              {plagiarismVerified && similarDocuments.length > 0 && (
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-700">
+                      Documents Similaires Détectés ({similarDocuments.length})
+                    </h3>
+                    <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Vérification effectuée
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-3 mb-4">
+                    {similarDocuments.map((doc) => {
+                      const riskLevel = getSimilarityRiskLevel(doc.similarityScore);
+                      const riskColor = getSimilarityRiskColor(doc.similarityScore);
+
+                      return (
+                        <div key={doc.idDossier} className="bg-gray-50 border border-gray-200 p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-900 mb-1">{doc.titreMemoire}</p>
+                              <p className="text-xs text-gray-600">
+                                {doc.auteur.prenom} {doc.auteur.nom} • {doc.anneeAcademique}
+                              </p>
+                            </div>
+                            <Badge className={riskColor}>
+                              {doc.similarityScore}% similarité
+                            </Badge>
+                          </div>
+
+                          <div className="mb-3">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs text-gray-600">Score de similarité :</span>
+                            </div>
+                            <div className="w-full bg-gray-200 h-2">
+                              <div
+                                className="h-2 bg-blue-500"
+                                style={{ width: `${doc.similarityScore}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {doc.encadrant && (
+                            <p className="text-xs text-gray-600 mb-2">
+                              Encadrant : {doc.encadrant.prenom} {doc.encadrant.nom}
+                            </p>
+                          )}
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedDocument(doc)}
+                            className="flex items-center gap-2"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Consulter le document
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions - Affichées uniquement après vérification de plagiat */}
+              {plagiarismVerified && (canValider || canRejeter) ? (
                 <div className="flex gap-3 pt-4 border-t border-gray-200">
                   {canValider && (
                     <Button
@@ -406,6 +520,94 @@ export const PrelectureDetail: React.FC<PrelectureDetailProps> = ({
                 >
                   Rejeter
                 </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+      )}
+
+      {/* Modal de visualisation du document similaire */}
+      {selectedDocument && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4"
+            onClick={() => setSelectedDocument(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white max-w-4xl w-full h-[90vh] flex flex-col"
+            >
+              {/* En-tête */}
+              <div className="border-b border-gray-200 px-6 py-4 flex justify-between items-start">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {selectedDocument.titreMemoire}
+                  </h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>
+                      {selectedDocument.auteur.prenom} {selectedDocument.auteur.nom}
+                    </span>
+                    <span>•</span>
+                    <span>{selectedDocument.anneeAcademique}</span>
+                    <span>•</span>
+                    <span>{selectedDocument.departement}</span>
+                  </div>
+                  {selectedDocument.encadrant && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      Encadrant : {selectedDocument.encadrant.prenom} {selectedDocument.encadrant.nom}
+                    </p>
+                  )}
+                  <div className="mt-2">
+                    <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                      {selectedDocument.similarityScore}% de similarité détectée
+                    </Badge>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedDocument(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors ml-4"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Contenu du document */}
+              <div className="flex-1 overflow-hidden bg-gray-100 p-6">
+                <div className="bg-white h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-300">
+                  <FileText className="h-16 w-16 text-gray-400 mb-4" />
+                  <p className="text-gray-900 font-medium mb-2">Prévisualisation du document</p>
+                  <p className="text-sm text-gray-600 mb-4 text-center max-w-md">
+                    Le document <span className="font-medium">{selectedDocument.nomFichier}</span> ({selectedDocument.taille})
+                    est disponible pour consultation.
+                  </p>
+                  <p className="text-xs text-gray-500 mb-6">
+                    Dans un environnement de production, le visualiseur PDF serait intégré ici.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => {
+                        // Simulation du téléchargement
+                        alert(`Téléchargement de ${selectedDocument.nomFichier}...\n\nDans un environnement de production, le fichier serait téléchargé depuis:\n${selectedDocument.cheminFichier}`);
+                      }}
+                      className="flex items-center gap-2 bg-primary hover:bg-primary-700"
+                    >
+                      <Download className="h-4 w-4" />
+                      Télécharger le document
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setSelectedDocument(null)}
+                    >
+                      Fermer
+                    </Button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </motion.div>

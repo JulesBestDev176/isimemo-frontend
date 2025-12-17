@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   List,
   Filter,
   Plus,
@@ -101,7 +101,7 @@ const EspaceTravail: React.FC = () => {
       {
         id: 'todo',
         titre: 'À faire',
-        couleur: 'bg-amber-50 border-amber-200',
+        couleur: 'bg-blue-50 border-blue-200',
         limite: 5,
         taches: [
           {
@@ -197,7 +197,7 @@ const EspaceTravail: React.FC = () => {
       {
         id: 'review',
         titre: 'En révision',
-        couleur: 'bg-purple-50 border-purple-200',
+        couleur: 'bg-blue-50 border-blue-200',
         taches: [
           {
             id: 4,
@@ -232,7 +232,7 @@ const EspaceTravail: React.FC = () => {
       {
         id: 'done',
         titre: 'Terminé',
-        couleur: 'bg-emerald-50 border-emerald-200',
+        couleur: 'bg-blue-50 border-blue-200',
         taches: [
           {
             id: 5,
@@ -269,11 +269,11 @@ const EspaceTravail: React.FC = () => {
 
   const getPrioriteColor = (priorite: string) => {
     switch (priorite) {
-      case 'Critique': return 'bg-red-100 text-red-700 border-red-200';
-      case 'Haute': return 'bg-red-100 text-red-700 border-red-200';
-      case 'Moyenne': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'Basse': return 'bg-blue-100 text-blue-700 border-blue-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'Critique': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Haute': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Moyenne': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Basse': return 'bg-blue-50 text-blue-700 border-blue-200';
+      default: return 'bg-blue-50 text-blue-700 border-blue-200';
     }
   };
 
@@ -467,7 +467,7 @@ const EspaceTravail: React.FC = () => {
             );
             const etapesTerminees = nouvellesSousEtapes.filter(e => e.terminee).length;
             const nouvelleProgression = Math.round((etapesTerminees / nouvellesSousEtapes.length) * 100);
-            
+
             const tacheMiseAJour = {
               ...tache,
               sousEtapes: nouvellesSousEtapes,
@@ -503,24 +503,22 @@ const EspaceTravail: React.FC = () => {
         <div className="flex items-center space-x-6">
           {/* Modes de vue */}
           <div className="flex bg-gray-100 rounded-lg p-1">
-            <button 
+            <button
               onClick={() => setModeVue('kanban')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center space-x-2 ${
-                modeVue === 'kanban' 
-                  ? 'bg-white shadow-sm text-gray-900' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center space-x-2 ${modeVue === 'kanban'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               <List className="h-4 w-4" />
               <span>Kanban</span>
             </button>
-            <button 
+            <button
               onClick={() => setModeVue('liste')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center space-x-2 ${
-                modeVue === 'liste' 
-                  ? 'bg-white shadow-sm text-gray-900' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center space-x-2 ${modeVue === 'liste'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               <List className="h-4 w-4" />
               <span>Liste</span>
@@ -531,7 +529,7 @@ const EspaceTravail: React.FC = () => {
           <div className="flex items-center space-x-3">
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <select 
+              <select
                 value={filtres.priorite}
                 onChange={(e) => setFiltres(prev => ({ ...prev, priorite: e.target.value }))}
                 className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary"
@@ -583,9 +581,8 @@ const EspaceTravail: React.FC = () => {
                         setTacheSelectionnee(tache);
                         setFichierLivrable(null);
                       }}
-                      className={`p-4 bg-white border border-gray-200 cursor-pointer hover:shadow-md hover:border-gray-300 transition-all ${
-                        draggedTask === tache.id ? 'opacity-50' : ''
-                      }`}
+                      className={`p-4 bg-white border border-gray-200 cursor-pointer hover:shadow-md hover:border-gray-300 transition-all ${draggedTask === tache.id ? 'opacity-50' : ''
+                        }`}
                     >
                       <div className="flex justify-between items-start mb-3">
                         <h4 className="font-medium text-gray-900 text-sm leading-relaxed flex-1 pr-2">
@@ -596,7 +593,7 @@ const EspaceTravail: React.FC = () => {
                             {tache.priorite}
                           </span>
                           {tache.estRetournee && (
-                            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-md border border-red-300">
+                            <span className="px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md border border-blue-200">
                               Retournée
                             </span>
                           )}
@@ -616,7 +613,7 @@ const EspaceTravail: React.FC = () => {
                             <span className="font-semibold">{tache.progression}%</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
+                            <div
                               className="bg-primary h-2 rounded-full transition-all duration-300"
                               style={{ width: `${tache.progression}%` }}
                             ></div>
@@ -687,7 +684,7 @@ const EspaceTravail: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-20 bg-gray-200 rounded-full h-2">
-                          <div 
+                          <div
                             className="bg-primary h-2 rounded-full transition-all"
                             style={{ width: `${tache.progression}%` }}
                           ></div>
@@ -741,7 +738,7 @@ const EspaceTravail: React.FC = () => {
                       <h3 className="text-xl font-semibold text-gray-900">{tacheSelectionnee.titre}</h3>
                       {tacheSelectionnee.estRetournee && (
                         <div className="flex items-center space-x-2 mt-2">
-                          <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-md border border-gray-300">
+                          <span className="px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md border border-blue-200">
                             Tâche retournée
                           </span>
                         </div>
@@ -780,12 +777,12 @@ const EspaceTravail: React.FC = () => {
 
                 {/* Note */}
                 {tacheSelectionnee.note && (
-                  <div className="bg-yellow-50 border border-yellow-200 p-4">
+                  <div className="bg-blue-50 border border-blue-200 p-4">
                     <div className="flex items-start space-x-2">
-                      <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold text-yellow-900 mb-1">Note</h4>
-                        <p className="text-yellow-800 text-sm">{tacheSelectionnee.note}</p>
+                        <h4 className="font-semibold text-blue-900 mb-1">Note</h4>
+                        <p className="text-blue-800 text-sm">{tacheSelectionnee.note}</p>
                       </div>
                     </div>
                   </div>
@@ -822,70 +819,69 @@ const EspaceTravail: React.FC = () => {
                 {(() => {
                   // Combiner les sous-étapes existantes avec les corrections du feedback si la tâche est retournée
                   let toutesSousEtapes: SousEtape[] = [];
-                  
+
                   if (tacheSelectionnee.sousEtapes && tacheSelectionnee.sousEtapes.length > 0) {
                     toutesSousEtapes = [...tacheSelectionnee.sousEtapes];
                   }
-                  
+
                   // Ajouter les corrections comme nouvelles sous-étapes si la tâche est retournée
                   if (tacheSelectionnee.estRetournee && tacheSelectionnee.feedbackRetour?.corrections) {
-                    const maxId = toutesSousEtapes.length > 0 
+                    const maxId = toutesSousEtapes.length > 0
                       ? Math.max(...toutesSousEtapes.map(e => e.id))
                       : 0;
-                    
+
                     const correctionsEtapes: SousEtape[] = tacheSelectionnee.feedbackRetour.corrections.map((correction, index) => ({
                       id: maxId + index + 1,
                       titre: correction,
                       terminee: false
                     }));
-                    
+
                     toutesSousEtapes = [...toutesSousEtapes, ...correctionsEtapes];
                   }
-                  
+
                   if (toutesSousEtapes.length === 0) return null;
-                  
+
                   // Séparer les sous-étapes originales des corrections
                   const sousEtapesOriginales = tacheSelectionnee.sousEtapes || [];
-                  
+
                   // Filtrer les corrections pour ne garder que celles qui ne sont pas encore dans les sous-étapes
                   const correctionsNonAjoutees = tacheSelectionnee.estRetournee && tacheSelectionnee.feedbackRetour?.corrections
                     ? tacheSelectionnee.feedbackRetour.corrections.filter(correction => {
-                        // Vérifier si cette correction existe déjà dans les sous-étapes
-                        return !sousEtapesOriginales.some(se => se.titre === correction);
-                      })
+                      // Vérifier si cette correction existe déjà dans les sous-étapes
+                      return !sousEtapesOriginales.some(se => se.titre === correction);
+                    })
                     : [];
-                  
+
                   // Créer les sous-étapes pour les corrections non ajoutées
                   const sousEtapesCorrections = correctionsNonAjoutees.length > 0
                     ? (() => {
-                        const maxId = sousEtapesOriginales.length > 0 
-                          ? Math.max(...sousEtapesOriginales.map(e => e.id))
-                          : 0;
-                        return correctionsNonAjoutees.map((correction, index) => ({
-                          id: maxId + index + 1,
-                          titre: correction,
-                          terminee: false
-                        }));
-                      })()
+                      const maxId = sousEtapesOriginales.length > 0
+                        ? Math.max(...sousEtapesOriginales.map(e => e.id))
+                        : 0;
+                      return correctionsNonAjoutees.map((correction, index) => ({
+                        id: maxId + index + 1,
+                        titre: correction,
+                        terminee: false
+                      }));
+                    })()
                     : [];
-                  
+
                   return (
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-3">
-                        {tacheSelectionnee.statutColonne === 'review' || tacheSelectionnee.statutColonne === 'done' 
-                          ? 'Sous-étapes réalisées' 
+                        {tacheSelectionnee.statutColonne === 'review' || tacheSelectionnee.statutColonne === 'done'
+                          ? 'Sous-étapes réalisées'
                           : 'Sous-étapes à réaliser'}
                       </h4>
-                      
+
                       {/* Sous-étapes originales */}
                       {sousEtapesOriginales.length > 0 && (
                         <div className="space-y-2 mb-4">
                           {sousEtapesOriginales.map((sousEtape) => (
                             <div
                               key={sousEtape.id}
-                              className={`flex items-center space-x-3 p-3 bg-gray-50 transition-colors ${
-                                tacheSelectionnee.statutColonne === 'inprogress' ? 'hover:bg-gray-100 cursor-pointer' : ''
-                              }`}
+                              className={`flex items-center space-x-3 p-3 bg-gray-50 transition-colors ${tacheSelectionnee.statutColonne === 'inprogress' ? 'hover:bg-gray-100 cursor-pointer' : ''
+                                }`}
                               onClick={() => {
                                 if (tacheSelectionnee.statutColonne === 'inprogress') {
                                   toggleSousEtape(tacheSelectionnee.id, sousEtape.id);
@@ -904,7 +900,7 @@ const EspaceTravail: React.FC = () => {
                           ))}
                         </div>
                       )}
-                      
+
                       {/* Corrections du feedback (nouvelles sous-étapes) */}
                       {sousEtapesCorrections.length > 0 && (
                         <div className="space-y-2">
@@ -915,9 +911,8 @@ const EspaceTravail: React.FC = () => {
                           {sousEtapesCorrections.map((sousEtape) => (
                             <div
                               key={sousEtape.id}
-                              className={`flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 transition-colors ${
-                                tacheSelectionnee.statutColonne === 'inprogress' ? 'hover:bg-gray-100 cursor-pointer' : ''
-                              }`}
+                              className={`flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 transition-colors ${tacheSelectionnee.statutColonne === 'inprogress' ? 'hover:bg-gray-100 cursor-pointer' : ''
+                                }`}
                               onClick={() => {
                                 if (tacheSelectionnee.statutColonne === 'inprogress') {
                                   // Ajouter la correction comme sous-étape terminée
@@ -928,7 +923,7 @@ const EspaceTravail: React.FC = () => {
                                         if (tache.id === tacheSelectionnee.id) {
                                           // Vérifier si la correction existe déjà (par titre pour éviter les doublons)
                                           const existeDeja = tache.sousEtapes?.some(se => se.titre === sousEtape.titre);
-                                          
+
                                           if (!existeDeja) {
                                             const nouvellesSousEtapes = [
                                               ...(tache.sousEtapes || []),
@@ -936,18 +931,18 @@ const EspaceTravail: React.FC = () => {
                                             ];
                                             const etapesTerminees = nouvellesSousEtapes.filter(e => e.terminee).length;
                                             const nouvelleProgression = Math.round((etapesTerminees / nouvellesSousEtapes.length) * 100);
-                                            
+
                                             const tacheMiseAJour = {
                                               ...tache,
                                               sousEtapes: nouvellesSousEtapes,
                                               progression: nouvelleProgression
                                             };
-                                            
+
                                             // Mettre à jour la tâche sélectionnée immédiatement
                                             setTimeout(() => {
                                               setTacheSelectionnee(tacheMiseAJour);
                                             }, 0);
-                                            
+
                                             return tacheMiseAJour;
                                           }
                                         }
@@ -966,7 +961,7 @@ const EspaceTravail: React.FC = () => {
                           ))}
                         </div>
                       )}
-                      
+
                       {tacheSelectionnee.statutColonne === 'inprogress' && (
                         <p className="text-xs text-gray-500 mt-2">Cliquez sur une sous-étape pour la valider</p>
                       )}
@@ -1037,16 +1032,15 @@ const EspaceTravail: React.FC = () => {
                       <span className="text-sm font-bold text-gray-900">{tacheSelectionnee.progression}%</span>
                     </div>
                     <div className="w-full bg-gray-200 h-2">
-                      <div 
-                        className={`h-2 transition-all duration-300 ${
-                          tacheSelectionnee.statutColonne === 'todo' 
-                            ? 'bg-gray-300' 
-                            : tacheSelectionnee.statutColonne === 'review'
+                      <div
+                        className={`h-2 transition-all duration-300 ${tacheSelectionnee.statutColonne === 'todo'
+                          ? 'bg-gray-300'
+                          : tacheSelectionnee.statutColonne === 'review'
                             ? 'bg-blue-600'
                             : tacheSelectionnee.statutColonne === 'done'
-                            ? 'bg-blue-600'
-                            : 'bg-primary'
-                        }`}
+                              ? 'bg-blue-600'
+                              : 'bg-primary'
+                          }`}
                         style={{ width: `${tacheSelectionnee.progression}%` }}
                       ></div>
                     </div>
@@ -1168,7 +1162,7 @@ const EspaceTravail: React.FC = () => {
                 {tacheSelectionnee.statutColonne === 'inprogress' && (
                   <div className="border-t border-gray-200 pt-4">
                     <h4 className="font-semibold text-gray-900 mb-3">Livrable (Document PDF)</h4>
-                    
+
                     {/* Afficher le livrable existant ou le nouveau fichier sélectionné */}
                     {(tacheSelectionnee.livrable || fichierLivrable) && (
                       <div className="bg-gray-50 border border-gray-200 p-4 mb-3">
@@ -1182,7 +1176,7 @@ const EspaceTravail: React.FC = () => {
                                 {fichierLivrable ? fichierLivrable.name : tacheSelectionnee.livrable?.nom}
                               </h5>
                               <p className="text-xs text-gray-600">
-                                {fichierLivrable 
+                                {fichierLivrable
                                   ? `${(fichierLivrable.size / 1024 / 1024).toFixed(2)} MB`
                                   : tacheSelectionnee.livrable?.taille}
                                 {tacheSelectionnee.livrable && !fichierLivrable && (
@@ -1218,12 +1212,12 @@ const EspaceTravail: React.FC = () => {
                         <Upload className="h-8 w-8 text-gray-400" />
                         <div>
                           <span className="text-sm font-medium text-gray-700">
-                            {fichierLivrable || tacheSelectionnee.livrable 
-                              ? 'Remplacer le document' 
+                            {fichierLivrable || tacheSelectionnee.livrable
+                              ? 'Remplacer le document'
                               : 'Cliquez pour uploader un document PDF'}
                           </span>
                           <p className="text-xs text-gray-500 mt-1">
-                            {fichierLivrable || tacheSelectionnee.livrable 
+                            {fichierLivrable || tacheSelectionnee.livrable
                               ? 'Le nouveau fichier remplacera l\'ancien'
                               : 'Format accepté: PDF uniquement'}
                           </p>
@@ -1252,16 +1246,15 @@ const EspaceTravail: React.FC = () => {
                       onClick={() => envoyerEnRevision(tacheSelectionnee.id)}
                       disabled={
                         (!fichierLivrable && !tacheSelectionnee.livrable) ||
-                        (tacheSelectionnee.sousEtapes && tacheSelectionnee.sousEtapes.length > 0 && 
-                         !tacheSelectionnee.sousEtapes.every(etape => etape.terminee))
+                        (tacheSelectionnee.sousEtapes && tacheSelectionnee.sousEtapes.length > 0 &&
+                          !tacheSelectionnee.sousEtapes.every(etape => etape.terminee))
                       }
-                      className={`px-6 py-3 flex items-center space-x-2 font-medium transition-colors ${
-                        (fichierLivrable || tacheSelectionnee.livrable) &&
+                      className={`px-6 py-3 flex items-center space-x-2 font-medium transition-colors ${(fichierLivrable || tacheSelectionnee.livrable) &&
                         (!tacheSelectionnee.sousEtapes || tacheSelectionnee.sousEtapes.length === 0 ||
-                         tacheSelectionnee.sousEtapes.every(etape => etape.terminee))
-                          ? 'bg-primary text-white hover:bg-primary-dark'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
+                          tacheSelectionnee.sousEtapes.every(etape => etape.terminee))
+                        ? 'bg-primary text-white hover:bg-primary-dark'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
                     >
                       <ArrowRight className="h-5 w-5" />
                       <span>Envoyer en révision</span>

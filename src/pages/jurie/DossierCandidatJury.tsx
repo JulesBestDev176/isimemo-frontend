@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
+import {
   ArrowLeft,
   User,
   FileText,
@@ -69,15 +69,15 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const DossierCandidatJury: React.FC = () => {
-  const { soutenanceId, dossierId, candidatId } = useParams<{ 
-    soutenanceId: string; 
-    dossierId: string; 
+  const { soutenanceId, dossierId, candidatId } = useParams<{
+    soutenanceId: string;
+    dossierId: string;
     candidatId: string;
   }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'informations' | 'documents' | 'pv'>('informations');
-  
+
   // États pour la création du PV
   const [showCreatePVModal, setShowCreatePVModal] = useState(false);
   const [showApprovePVModal, setShowApprovePVModal] = useState(false);
@@ -85,7 +85,7 @@ const DossierCandidatJury: React.FC = () => {
   const [observations, setObservations] = useState('');
   const [appreciations, setAppreciations] = useState('');
   const [demandesModifications, setDemandesModifications] = useState('');
-  
+
   // Calculer la mention automatiquement selon la note
   const mentionCalculee = useMemo(() => {
     if (!noteFinale) return Mention.BIEN;
@@ -129,7 +129,7 @@ const DossierCandidatJury: React.FC = () => {
 
   // Récupérer le dossier
   const dossier = dossierId ? getDossierById(parseInt(dossierId)) : null;
-  
+
   if (!dossier) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -147,7 +147,7 @@ const DossierCandidatJury: React.FC = () => {
 
   // Récupérer le candidat
   const candidat = candidatId ? getCandidatById(parseInt(candidatId)) : null;
-  
+
   if (!candidat) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -216,7 +216,7 @@ const DossierCandidatJury: React.FC = () => {
         membreJury.idMembre,
         role!
       );
-      
+
       // Si le PV est complètement approuvé, gérer le document
       if (isProcessVerbalCompletementApprouve(newPV)) {
         handlePVCompletementApprouve(newPV);
@@ -229,19 +229,19 @@ const DossierCandidatJury: React.FC = () => {
     setAppreciations('');
     setDemandesModifications('');
   };
-  
+
   // Gérer le workflow après approbation complète du PV
   const handlePVCompletementApprouve = (pv: ProcessVerbal) => {
     // Récupérer le document du mémoire
     const documentMemoire = documents.find(doc => doc.typeDocument === TypeDocument.CHAPITRE);
     if (!documentMemoire) return;
-    
+
     // Si des demandes de modifications existent, créer une tâche pour l'étudiant
     if (pv.demandesModifications && pv.demandesModifications.trim()) {
       // Récupérer l'encadrement actif pour ce dossier
       const encadrements = getEncadrementsByDossier(dossier.idDossierMemoire);
       const encadrementActif = encadrements.find(e => e.statut === StatutEncadrement.ACTIF);
-      
+
       if (encadrementActif) {
         // Créer une tâche pour les corrections
         createTicketForDossier(
@@ -253,7 +253,7 @@ const DossierCandidatJury: React.FC = () => {
           'Le jury a demandé des modifications suite à la soutenance. Veuillez effectuer les corrections et soumettre le document à la commission de validation.',
           []
         );
-        
+
         // Mettre le document en attente de validation commission
         const docIndex = mockDocuments.findIndex((d: any) => d.idDocument === documentMemoire.idDocument);
         if (docIndex !== -1) {
@@ -343,31 +343,28 @@ const DossierCandidatJury: React.FC = () => {
       <div className="flex gap-2 border-b">
         <button
           onClick={() => setActiveTab('informations')}
-          className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'informations'
+          className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'informations'
               ? 'border-primary text-primary'
               : 'border-transparent text-gray-600 hover:text-gray-900'
-          }`}
+            }`}
         >
           Informations
         </button>
         <button
           onClick={() => setActiveTab('documents')}
-          className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'documents'
+          className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'documents'
               ? 'border-primary text-primary'
               : 'border-transparent text-gray-600 hover:text-gray-900'
-          }`}
+            }`}
         >
           Documents ({documents.length})
         </button>
         <button
           onClick={() => setActiveTab('pv')}
-          className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'pv'
+          className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'pv'
               ? 'border-primary text-primary'
               : 'border-transparent text-gray-600 hover:text-gray-900'
-          }`}
+            }`}
         >
           Procès-verbal
         </button>
@@ -429,16 +426,6 @@ const DossierCandidatJury: React.FC = () => {
                   <p className="text-gray-700">{dossier.description}</p>
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Statut</p>
-                  <Badge>{dossier.statut}</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Étape</p>
-                  <Badge variant="outline">{dossier.etape}</Badge>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -710,7 +697,7 @@ const DossierCandidatJury: React.FC = () => {
                 <XCircle className="h-5 w-5" />
               </Button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
                 <Card>

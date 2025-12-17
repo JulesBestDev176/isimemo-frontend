@@ -8,3 +8,6 @@ export * from './ressource';
 export * from './pipeline';
 export * from './notification';
 export * from './services';
+export * from './tracking';
+export * from './recommendation';
+export * from './search';
