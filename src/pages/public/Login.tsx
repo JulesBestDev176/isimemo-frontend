@@ -11,7 +11,7 @@ import { AlertCircle } from 'lucide-react';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -23,16 +23,21 @@ const Login = () => {
     
     // Type d'acteur principal
     if (user.type === 'etudiant') {
-      roles.push('Étudiant');
-      if (user.estCandidat) roles.push('Candidat');
+      if (user.estCandidat) {
+        roles.push('Candidat');
+      } else {
+        roles.push('Étudiant');
+      }
     } else if (user.type === 'professeur') {
-      roles.push('Professeur');
-      if (user.estChef) roles.push('Chef');
-      if (user.estEncadrant) roles.push('Encadrant');
-      if (user.estJurie) roles.push('Jury');
-      if (user.estCommission) roles.push('Commission');
+      if (user.estChef) {
+        roles.push('Chef de Département');
+      } else if (user.estEncadrant) {
+        roles.push('Encadrant');
+      } else {
+        roles.push('Professeur');
+      }
     } else if (user.type === 'assistant') {
-      roles.push('Assistant');
+      roles.push('Personnel Administratif');
     }
     
     return roles.join(', ');
@@ -149,18 +154,7 @@ const Login = () => {
                   />
                 </div>
                 
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="remember"
-                    className="h-4 w-4 rounded border-gray-500 text-primary focus:ring-primary-500"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                  />
-                  <label htmlFor="remember" className="ml-2 block text-sm text-gray-300">
-                    Rester connecté
-                  </label>
-                </div>
+
                 
                 <Button 
                   type="submit" 
@@ -170,6 +164,13 @@ const Login = () => {
                   <span className="material-icons text-sm mr-2">login</span>
                   {isLoading ? 'Connexion en cours...' : 'Se connecter'}
                 </Button>
+                
+                <div className="mt-4 text-center text-sm text-gray-300">
+                  Pas encore de compte ?{' '}
+                  <Link to="/register" className="text-primary-300 hover:text-white font-medium hover:underline">
+                    S'inscrire
+                  </Link>
+                </div>
               </form>
             </CardContent>
           </Card>

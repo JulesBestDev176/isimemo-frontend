@@ -15,6 +15,8 @@ const MainLayout = lazy(() => import("./layouts/MainLayout"));
 const Index = lazy(() => import("./pages/public/Index"));
 const Memoires = lazy(() => import("./pages/public/Memoires"));
 const Login = lazy(() => import("./pages/public/Login"));
+const Register = lazy(() => import("./pages/public/Register"));
+const ChangePassword = lazy(() => import('./pages/public/ChangePassword'));
 const About = lazy(() => import("./pages/public/About"));
 const Contact = lazy(() => import("./pages/public/Contact"));
 const NotFound = lazy(() => import("./pages/public/NotFound"));
@@ -24,17 +26,16 @@ const MentionsLegales = lazy(() => import("./pages/public/MentionsLegales"));
 const ISIMemoHub = lazy(() => import("./pages/public/ISIMemoHub"));
 
 // Pages protégées - Lazy loaded
-// Pages protégées - Lazy loaded
 const Dashboard = lazy(() => import("./pages/common/Dashboard"));
-const Dossiers = lazy(() => import("./pages/etudiant/Dossiers"));
 const Profil = lazy(() => import("./pages/common/Profil"));
 const Calendrier = lazy(() => import("./pages/common/Calendrier"));
-const RessourcesPersonnelles = lazy(() => import("./pages/etudiant/RessourcesPersonnelles"));
 const RessourcesSauvegardees = lazy(() => import("./pages/common/RessourcesSauvegardees"));
 const Mediatheque = lazy(() => import("./pages/common/Mediatheque"));
 const AssistantIA = lazy(() => import("./pages/common/AssistantIA"));
 const NotificationsEtudiant = lazy(() => import("./pages/common/Notifications"));
 const Encadrement = lazy(() => import("./pages/candidat/Encadrement"));
+const Dossiers = lazy(() => import("./pages/candidat/dossiers"));
+const DossierDetail = lazy(() => import("./pages/candidat/dossiers/DossierDetailPage"));
 const Tickets = lazy(() => import("./pages/candidat/Tickets"));
 const Encadrements = lazy(() => import("./pages/professeur/Encadrements"));
 const EncadrementDetail = lazy(() => import("./pages/professeur/EncadrementDetail"));
@@ -75,12 +76,11 @@ const AnimatedRoutes = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes location={location} key={location.pathname}>
             {/* Routes publiques */}
-            <Route path="/" element={<Index />} />
-            <Route path="/memoires" element={<Memoires />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/change-password" element={<ChangePassword />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/cgu" element={<CGU />} />
             <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />
             <Route path="/isimemo-hub" element={<ISIMemoHub />} />
@@ -97,7 +97,37 @@ const AnimatedRoutes = () => {
               }
             />
 
-            {/* Routes étudiant */}
+            {/* Routes candidat */}
+            <Route
+              path="/candidat/encadrement"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Encadrement />
+                  </MainLayout>
+                </Suspense>
+              }
+            />
+            <Route
+              path="/candidat/dossiers"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <Dossiers />
+                  </MainLayout>
+                </Suspense>
+              }
+            />
+            <Route
+              path="/candidat/dossiers/:id"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <MainLayout>
+                    <DossierDetail />
+                  </MainLayout>
+                </Suspense>
+              }
+            />
             <Route
               path="/etudiant/dossiers"
               element={
@@ -113,89 +143,7 @@ const AnimatedRoutes = () => {
               element={
                 <Suspense fallback={<PageLoader />}>
                   <MainLayout>
-                    <Dossiers />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/etudiant/profil"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <Profil />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/etudiant/calendrier"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <Calendrier />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/etudiant/ressources/personnelles"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <RessourcesPersonnelles />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/etudiant/ressources/sauvegardees"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <RessourcesSauvegardees />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/etudiant/notifications"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <NotificationsEtudiant />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/etudiant/ressources/mediatheque"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <Mediatheque />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/etudiant/chatbot"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <AssistantIA />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-
-            {/* Routes candidat */}
-            <Route
-              path="/candidat/encadrement"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <Encadrement />
+                    <DossierDetail />
                   </MainLayout>
                 </Suspense>
               }
@@ -248,37 +196,6 @@ const AnimatedRoutes = () => {
                 <Suspense fallback={<PageLoader />}>
                   <MainLayout>
                     <DossierEtudiantDetail />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-
-            <Route
-              path="/professeur/ressources/personnelles"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <RessourcesPersonnelles />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/professeur/ressources/sauvegardees"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <RessourcesSauvegardees />
-                  </MainLayout>
-                </Suspense>
-              }
-            />
-            <Route
-              path="/professeur/ressources/mediatheque"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <MainLayout>
-                    <Mediatheque />
                   </MainLayout>
                 </Suspense>
               }
