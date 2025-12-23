@@ -138,17 +138,21 @@ class DossierService {
     });
   }
   
-  // Récupérer les candidats disponibles pour binôme
-  async getCandidatsDisponibles(): Promise<any[]> {
-    // Appel à auth-service pour récupérer les étudiants inscrits (avec compte Keycloak)
-    const response = await fetch('http://localhost:8084/api/users/etudiants/inscrits', {
+  // Récupérer les candidats disponibles pour binôme (sans groupe, à l'étape CHOIX_SUJET ou CHOIX_BINOME)
+  async getCandidatsDisponibles(excludeCandidatId?: number): Promise<any[]> {
+    // Appel au dossier-service pour récupérer les dossiers de candidats disponibles
+    const url = excludeCandidatId 
+      ? `http://localhost:8085/api/dossiers/candidats-disponibles?excludeCandidatId=${excludeCandidatId}`
+      : 'http://localhost:8085/api/dossiers/candidats-disponibles';
+    
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
       },
     });
     
     if (!response.ok) {
-      console.error('Erreur lors de la récupération des étudiants');
+      console.error('Erreur lors de la récupération des candidats disponibles');
       return [];
     }
     

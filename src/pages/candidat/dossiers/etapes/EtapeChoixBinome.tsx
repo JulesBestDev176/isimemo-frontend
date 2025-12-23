@@ -78,19 +78,24 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
       
       try {
         setIsLoadingCandidats(true);
-        const candidats = await dossierService.getCandidatsDisponibles();
-        // Mapper vers le format BinomeOption (l'API retourne des objets Etudiant)
+        // Passer l'ID du candidat courant pour l'exclure des résultats
+        const candidats = await dossierService.getCandidatsDisponibles(Number(user.id));
+        // Mapper vers le format BinomeOption (l'API retourne des DossierResponse)
         const binomeOptions: BinomeOption[] = candidats
-          .filter((c: any) => c.idEtudiant !== Number(user.id)) // Exclure l'utilisateur courant
-          .map((c: any) => ({
-            id: c.idEtudiant,
-            nom: c.nom || 'Inconnu',
-            prenom: c.prenom || '',
-            email: c.email || '',
-            numeroMatricule: c.numeroMatricule || '',
-            niveau: c.niveau || 'LICENCE_3',
-            filiere: c.filiere || 'GENIE_LOGICIEL',
-            departement: c.departement || 'Informatique'
+          .map((d: any) => ({
+            id: d.candidatId || d.idDossierMemoire,
+            // Utiliser le titre du dossier comme info, les infos étudiant seront récupérées séparément
+            nom: `Candidat #${d.candidatId}`,
+            prenom: '',
+            email: `candidat${d.candidatId}@groupeisi.com`,
+            numeroMatricule: d.nombreNumber || `DOS-${d.idDossierMemoire}`,
+            niveau: 'LICENCE_3',
+            filiere: 'GENIE_LOGICIEL',
+            departement: 'Informatique',
+            // Informations supplémentaires du dossier
+            dossierId: d.idDossierMemoire,
+            dossierTitre: d.titre,
+            dossierEtape: d.etape
           }));
         setCandidatsDisponibles(binomeOptions);
       } catch (err) {
@@ -118,7 +123,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
         
         // Mapper les demandes envoyées vers le format DemandeBinome
         const demandesMappees: DemandeBinome[] = envoyees.map((d: any) => ({
-          id: d.id,
+          id: d.idDemande,
           etudiantDestinataire: {
             id: d.destinataireId,
             nom: d.destinataireNom || 'Inconnu',
@@ -129,7 +134,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
             filiere: 'Informatique',
             departement: 'Département Informatique'
           },
-          dateEnvoi: new Date(d.dateCreation),
+          dateEnvoi: new Date(d.dateDemande),
           message: d.message,
           sujetChoisi: {
             id: d.sujetId,
@@ -142,7 +147,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
         
         // Mapper les demandes reçues vers le format PropositionBinome
         const propositionsMappees: PropositionBinome[] = recues.map((d: any) => ({
-          id: d.id,
+          id: d.idDemande,
           etudiant: {
             id: d.demandeurId,
             nom: d.demandeurNom || 'Inconnu',
@@ -153,7 +158,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
             filiere: 'Informatique',
             departement: 'Département Informatique'
           },
-          dateProposition: new Date(d.dateCreation),
+          dateProposition: new Date(d.dateDemande),
           message: d.message,
           sujetChoisi: {
             id: d.sujetId,

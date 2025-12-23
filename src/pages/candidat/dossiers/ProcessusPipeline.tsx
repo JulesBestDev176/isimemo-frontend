@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Circle, ChevronRight, ArrowRight, FileText, Upload, GraduationCap, Edit, Lock, Loader2 } from 'lucide-react';
+import { CheckCircle, Circle, ChevronRight, ArrowRight, FileText, Upload, GraduationCap, Edit, Lock, Loader2, Users, Eye } from 'lucide-react';
 import { DossierMemoire, EtapeDossier } from '../../../models/dossier';
 import { EtapePipeline } from '../../../models/pipeline';
 import { Button } from '../../../components/ui/button';
@@ -19,6 +19,8 @@ import EtapeCorrection from './etapes/EtapeCorrection';
 
 interface ProcessusPipelineProps {
   dossier: DossierMemoire;
+  /** Si true, l'utilisateur est un suiveur de binôme et ne peut pas effectuer d'actions */
+  estSuiveur?: boolean;
 }
 
 // Mapping entre EtapeDossier et EtapePipeline
@@ -91,21 +93,44 @@ const ETAPES_DEPOT_DOSSIER = [
   { id: EtapePipeline.CORRECTION, nom: 'Correction', description: 'Correction du mémoire (optionnelle)' }
 ];
 
-const ProcessusPipeline: React.FC<ProcessusPipelineProps> = ({ dossier }) => {
+// Clé localStorage pour persister l'étape
+const getLocalStorageKey = (dossierId: number) => `dossier_etape_${dossierId}`;
+
+const ProcessusPipeline: React.FC<ProcessusPipelineProps> = ({ dossier, estSuiveur = false }) => {
   const etapeActuelleDossier = useMemo(() => getEtapePipelineFromDossier(dossier.etape), [dossier.etape]);
-  const [etapeCourante, setEtapeCourante] = useState<EtapePipeline>(etapeActuelleDossier);
+  
+  // Initialiser l'étape en prenant la plus avancée entre le backend et localStorage
+  const getInitialEtape = (): EtapePipeline => {
+    const savedEtape = localStorage.getItem(getLocalStorageKey(dossier.idDossierMemoire));
+    if (savedEtape) {
+      const parsedEtape = parseInt(savedEtape) as EtapePipeline;
+      // Prendre l'étape la plus avancée entre le backend et localStorage
+      return Math.max(etapeActuelleDossier, parsedEtape) as EtapePipeline;
+    }
+    return etapeActuelleDossier;
+  };
+
+  const [etapeCourante, setEtapeCourante] = useState<EtapePipeline>(getInitialEtape);
   const [activeTab, setActiveTab] = useState<'depot-sujet' | 'depot-dossier'>('depot-sujet');
 
-  // Synchroniser avec le dossier si l'étape change en externe
+  // Sauvegarder l'étape dans localStorage à chaque changement
   useEffect(() => {
-    setEtapeCourante(etapeActuelleDossier);
-    // Déterminer l'onglet actif selon l'étape
-    if (etapeActuelleDossier <= EtapePipeline.VALIDATION_COMMISSION) {
+    localStorage.setItem(getLocalStorageKey(dossier.idDossierMemoire), etapeCourante.toString());
+  }, [etapeCourante, dossier.idDossierMemoire]);
+
+  // Synchroniser avec le dossier si l'étape change en externe (ex: backend update)
+  useEffect(() => {
+    // Si l'étape du dossier est plus avancée que l'étape courante, mettre à jour
+    if (etapeActuelleDossier > etapeCourante) {
+      setEtapeCourante(etapeActuelleDossier);
+    }
+    // Déterminer l'onglet actif selon l'étape courante
+    if (etapeCourante <= EtapePipeline.VALIDATION_COMMISSION) {
       setActiveTab('depot-sujet');
     } else {
       setActiveTab('depot-dossier');
     }
-  }, [etapeActuelleDossier]);
+  }, [etapeActuelleDossier, etapeCourante]);
 
   // Déterminer l'onglet actif selon l'étape courante
   useEffect(() => {
@@ -201,6 +226,41 @@ const ProcessusPipeline: React.FC<ProcessusPipelineProps> = ({ dossier }) => {
           </Card>
         );
     }
+  };
+
+  // Rendu en mode suiveur : affiche uniquement le résumé de l'étape (lecture seule)
+  const renderEtapeSuiveur = () => {
+    const etapeActive = activeTab === 'depot-sujet' 
+      ? ETAPES_DEPOT_SUJET.find(e => e.id === etapeCourante)
+      : ETAPES_DEPOT_DOSSIER.find(e => e.id === etapeCourante);
+    
+    return (
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="py-8">
+          <div className="flex flex-col items-center text-center">
+            <div className="bg-blue-100 rounded-full p-4 mb-4">
+              <Eye className="h-8 w-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+              Mode observation
+            </h3>
+            <p className="text-blue-700 mb-4 max-w-md">
+              Vous avez accepté une demande de binôme. Votre partenaire est responsable de la progression du dossier.
+            </p>
+            {etapeActive && (
+              <div className="bg-white rounded-lg border border-blue-200 p-4 w-full max-w-md">
+                <p className="text-sm text-gray-500 mb-1">Étape en cours :</p>
+                <p className="font-semibold text-gray-900">{etapeActive.nom}</p>
+                <p className="text-sm text-gray-600 mt-1">{etapeActive.description}</p>
+              </div>
+            )}
+            <p className="text-xs text-blue-600 mt-4">
+              Vous serez notifié(e) lorsque votre binôme avancera dans le processus.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   // Obtenir les étapes de l'onglet actif
@@ -300,7 +360,7 @@ const ProcessusPipeline: React.FC<ProcessusPipelineProps> = ({ dossier }) => {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {renderEtapeContent()}
+                    {estSuiveur ? renderEtapeSuiveur() : renderEtapeContent()}
                   </motion.div>
                 </AnimatePresence>
               )}
@@ -368,7 +428,7 @@ const ProcessusPipeline: React.FC<ProcessusPipelineProps> = ({ dossier }) => {
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
                       >
-                        {renderEtapeContent()}
+                        {estSuiveur ? renderEtapeSuiveur() : renderEtapeContent()}
                       </motion.div>
                     </AnimatePresence>
                   )}
