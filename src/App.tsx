@@ -76,6 +76,9 @@ const AnimatedRoutes = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes location={location} key={location.pathname}>
             {/* Routes publiques */}
+            <Route path="/" element={<Index />} />
+            <Route path="/memoires" element={<Memoires />} />
+            <Route path="/cgu" element={<CGU />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/change-password" element={<ChangePassword />} />

@@ -1,26 +1,11 @@
-const API_BASE_URL = 'http://localhost:8086/api/sujets';
+// Service Sujet - Mode Mock (pas de connexion backend)
 
-export interface Sujet {
-  idSujet: number;
-  titre: string;
-  description: string;
-  filieres: string[];
-  niveau: string;
-  departement: string;
-  motsCles: string;
-  prerequis: string;
-  objectifs: string;
-  anneeAcademique: string;
-  origine: 'BANQUE' | 'PROPOSITION';
-  emailCreateur: string;
-  nomCreateur: string;
-  candidatId?: number;
-  dossierMemoireId?: number;
-  groupeId?: number;
-  estPublic: boolean;
-  dateCreation: string;
-  dateModification: string;
-}
+import { Sujet, sujetsData } from '../data/sujets.data';
+
+export type { Sujet };
+
+const mockSujets = sujetsData;
+
 
 export interface CreateSujetRequest {
   titre: string;
@@ -28,7 +13,7 @@ export interface CreateSujetRequest {
   filieres?: string;
   niveau?: string;
   departement?: string;
-  motsCles?: string;
+  motsCles?: string[];
   prerequis?: string;
   objectifs?: string;
   anneeAcademique: string;
@@ -41,7 +26,7 @@ export interface PropositionSujetRequest {
   description?: string;
   emailCreateur: string;
   nomCreateur?: string;
-  candidatId: number;
+  candidatId: string;
   dossierMemoireId?: number;
   groupeId?: number;
   anneeAcademique: string;
@@ -57,118 +42,182 @@ export interface CsvImportResult {
 
 class SujetService {
   
-  private async request<T>(url: string, options?: RequestInit): Promise<T> {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
-  }
-  
   // =============== CRUD de base ===============
   
   async getAllSujets(): Promise<Sujet[]> {
-    return this.request<Sujet[]>(API_BASE_URL);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return [...mockSujets];
   }
   
   async getSujetById(id: number): Promise<Sujet> {
-    return this.request<Sujet>(`${API_BASE_URL}/${id}`);
+    await new Promise(resolve => setTimeout(resolve, 150));
+    
+    const sujet = mockSujets.find(s => s.id === id);
+    if (!sujet) {
+      throw new Error(`Sujet ${id} non trouvé`);
+    }
+    return sujet;
   }
   
   async createSujet(request: CreateSujetRequest): Promise<Sujet> {
-    return this.request<Sujet>(API_BASE_URL, {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const newSujet: Sujet = {
+      id: mockSujets.length + 1,
+      titre: request.titre,
+      description: request.description || '',
+      filieres: request.filieres ? request.filieres.split(',').map(f => f.trim()) : [],
+      niveau: request.niveau || '',
+      departement: request.departement || '',
+      motsCles: request.motsCles || [],
+      prerequis: request.prerequis || '',
+      objectifs: request.objectifs || '',
+      anneeAcademique: request.anneeAcademique,
+      origine: 'BANQUE',
+      statut: 'soumis',
+      emailCreateur: request.emailCreateur,
+      nomCreateur: request.nomCreateur || '',
+      nombreMaxEtudiants: 1, // Default
+      nombreEtudiantsActuels: 0,
+      dateCreation: new Date().toISOString(),
+      dateModification: new Date().toISOString()
+    };
+    
+    mockSujets.push(newSujet);
+    return newSujet;
   }
   
   async updateSujet(id: number, request: CreateSujetRequest): Promise<Sujet> {
-    return this.request<Sujet>(`${API_BASE_URL}/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(request),
-    });
+    await new Promise(resolve => setTimeout(resolve, 250));
+    
+    const index = mockSujets.findIndex(s => s.id === id);
+    if (index === -1) {
+      throw new Error(`Sujet ${id} non trouvé`);
+    }
+    
+    mockSujets[index] = {
+      ...mockSujets[index],
+      titre: request.titre,
+      description: request.description || mockSujets[index].description,
+      filieres: request.filieres ? request.filieres.split(',').map(f => f.trim()) : mockSujets[index].filieres,
+      niveau: request.niveau || mockSujets[index].niveau,
+      departement: request.departement || mockSujets[index].departement,
+      motsCles: request.motsCles || mockSujets[index].motsCles,
+      prerequis: request.prerequis || mockSujets[index].prerequis,
+      objectifs: request.objectifs || mockSujets[index].objectifs,
+      dateModification: new Date().toISOString()
+    };
+    
+    return mockSujets[index];
   }
   
   async deleteSujet(id: number): Promise<void> {
-    await this.request<void>(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    const index = mockSujets.findIndex(s => s.id === id);
+    if (index !== -1) {
+      mockSujets.splice(index, 1);
+    }
   }
   
   // =============== Propositions étudiants ===============
   
   async proposerSujet(request: PropositionSujetRequest): Promise<Sujet> {
-    return this.request<Sujet>(`${API_BASE_URL}/proposition`, {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const newSujet: Sujet = {
+      id: mockSujets.length + 1,
+      titre: request.titre,
+      description: request.description || '',
+      filieres: [],
+      niveau: '',
+      departement: '',
+      motsCles: [],
+      prerequis: '',
+      objectifs: '',
+      anneeAcademique: request.anneeAcademique,
+      origine: 'PROPOSITION',
+      statut: 'soumis',
+      emailCreateur: request.emailCreateur,
+      nomCreateur: request.nomCreateur || '',
+      candidatId: request.candidatId,
+      dossierMemoireId: request.dossierMemoireId,
+      nombreMaxEtudiants: 1,
+      nombreEtudiantsActuels: 1,
+      dateCreation: new Date().toISOString(),
+      dateModification: new Date().toISOString()
+    };
+    
+    mockSujets.push(newSujet);
+    return newSujet;
   }
   
-  async getPropositionsByCandidat(candidatId: number): Promise<Sujet[]> {
-    return this.request<Sujet[]>(`${API_BASE_URL}/candidat/${candidatId}`);
+  async getPropositionsByCandidat(candidatId: string): Promise<Sujet[]> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return mockSujets.filter(s => s.candidatId === candidatId);
   }
   
   // =============== Recherche et filtrage ===============
   
   async getSujetsDisponibles(): Promise<Sujet[]> {
-    return this.request<Sujet[]>(`${API_BASE_URL}/disponibles`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return mockSujets.filter(s => s.statut === 'VALIDE' && s.nombreEtudiantsActuels < s.nombreMaxEtudiants);
   }
   
   async getSujetsByFiliere(filiere: string): Promise<Sujet[]> {
-    return this.request<Sujet[]>(`${API_BASE_URL}/filiere/${filiere}`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return mockSujets.filter(s => s.filieres.includes(filiere));
   }
   
   async getSujetsByFiliereAndNiveau(filiere: string, niveau: string): Promise<Sujet[]> {
-    return this.request<Sujet[]>(`${API_BASE_URL}/filiere/${filiere}/niveau/${niveau}`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return mockSujets.filter(s => s.filieres.includes(filiere) && s.niveau === niveau);
   }
   
   async searchSujets(keyword: string): Promise<Sujet[]> {
-    return this.request<Sujet[]>(`${API_BASE_URL}/search?q=${encodeURIComponent(keyword)}`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const lowerKeyword = keyword.toLowerCase();
+    return mockSujets.filter(s => 
+      s.titre.toLowerCase().includes(lowerKeyword) ||
+      s.description.toLowerCase().includes(lowerKeyword) ||
+      s.motsCles.some(m => m.toLowerCase().includes(lowerKeyword))
+    );
   }
   
   async getSujetByDossierId(dossierMemoireId: number): Promise<Sujet | null> {
-    try {
-      return await this.request<Sujet>(`${API_BASE_URL}/dossier/${dossierMemoireId}`);
-    } catch {
-      return null;
-    }
+    await new Promise(resolve => setTimeout(resolve, 150));
+    return mockSujets.find(s => s.dossierMemoireId === dossierMemoireId) || null;
   }
   
   // =============== Attribution ===============
   
-  async attribuerSujet(sujetId: number, dossierMemoireId: number, groupeId?: number): Promise<Sujet> {
-    const params = new URLSearchParams({ dossierMemoireId: dossierMemoireId.toString() });
-    if (groupeId) params.append('groupeId', groupeId.toString());
+  async attribuerSujet(sujetId: number, dossierMemoireId: number, _groupeId?: number): Promise<Sujet> {
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    return this.request<Sujet>(`${API_BASE_URL}/${sujetId}/attribuer?${params}`, {
-      method: 'PUT',
-    });
+    const index = mockSujets.findIndex(s => s.id === sujetId);
+    if (index === -1) {
+      throw new Error(`Sujet ${sujetId} non trouvé`);
+    }
+    
+    mockSujets[index].dossierMemoireId = dossierMemoireId;
+    mockSujets[index].dateModification = new Date().toISOString();
+    
+    return mockSujets[index];
   }
   
   // =============== Import CSV ===============
   
-  async importFromCsv(file: File, emailCreateur: string, anneeAcademique: string): Promise<CsvImportResult> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('emailCreateur', emailCreateur);
-    formData.append('anneeAcademique', anneeAcademique);
+  async importFromCsv(_file: File, _emailCreateur: string, _anneeAcademique: string): Promise<CsvImportResult> {
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    const response = await fetch(`${API_BASE_URL}/import-csv`, {
-      method: 'POST',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return response.json();
+    // Mode mock - simuler un import réussi
+    return {
+      totalRows: 3,
+      successCount: 3,
+      errorCount: 0,
+      errors: [],
+      importedSujets: mockSujets.slice(0, 3)
+    };
   }
 }
 

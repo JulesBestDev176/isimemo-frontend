@@ -18,6 +18,7 @@ import {
   Info
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { dossierService, DossierMemoire } from '../../services/dossier.service';
 
 interface SousEtape {
   id: number;
@@ -94,6 +95,25 @@ const EspaceTravail: React.FC = () => {
   const [fichierLivrable, setFichierLivrable] = useState<File | null>(null);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [dossier, setDossier] = useState<DossierMemoire | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Charger les données du dossier
+  useEffect(() => {
+    const fetchDossierData = async () => {
+      if (user?.id) {
+        try {
+          const userDossier = await dossierService.getDossierCandidat(user.id);
+          setDossier(userDossier);
+        } catch (error) {
+          console.error("Erreur chargement dossier:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchDossierData();
+  }, [user]);
 
   // Initialiser les colonnes pour l'espace de travail
   useEffect(() => {
@@ -498,7 +518,40 @@ const EspaceTravail: React.FC = () => {
       exit={{ opacity: 0, x: -20 }}
       className="space-y-6"
     >
-      {/* Barre d'outils */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="mt-4 text-gray-600">Chargement de votre espace de travail...</p>
+        </div>
+      ) : !dossier ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center">
+          <div className="bg-gray-50 rounded-full p-6 mb-6">
+            <FileText className="h-12 w-12 text-gray-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Aucun dossier actif trouvé</h2>
+          <p className="text-gray-600 max-w-md mx-auto mb-8">
+            Vous n'avez pas encore de dossier de mémoire actif. 
+            Veuillez créer votre dossier pour commencer à travailler.
+          </p>
+          <button
+            onClick={() => {
+              // Rediriger vers le dashboard ou ouvrir un modal local
+              // Pour faire simple et cohérent, on va demander d'aller sur le Dashboard
+              // ou on peut ajouter un bouton qui crée un dossier par défaut s'il le faut.
+              // Mais le plus simple est de dire d'aller sur le dashboard car le modal y est déjà.
+              window.location.hash = '#dashboard'; // Si c'est du hash routing, à vérifier.
+              // Sinon, on peut juste dire de changer d'onglet via l'UI parente (DossierCandidat.tsx)
+              alert("Veuillez créer votre dossier depuis l'onglet 'Tableau de bord'.");
+            }}
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Aller au tableau de bord</span>
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Barre d'outils */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center space-x-6">
           {/* Modes de vue */}
@@ -1308,6 +1361,8 @@ const EspaceTravail: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+        </>
+      )}
     </motion.div>
   );
 };

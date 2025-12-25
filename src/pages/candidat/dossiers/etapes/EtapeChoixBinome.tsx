@@ -50,7 +50,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
   // Récupérer le sujet choisi depuis localStorage
   const sujetChoisi = useMemo(() => {
     try {
-      const sujetStored = localStorage.getItem(`sujetChoisi_${dossier.idDossierMemoire}`);
+      const sujetStored = localStorage.getItem(`sujetChoisi_${dossier.id}`);
       if (sujetStored) {
         return JSON.parse(sujetStored);
       }
@@ -65,7 +65,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
       };
     }
     return null;
-  }, [dossier.idDossierMemoire, dossier.titre, dossier.description]);
+  }, [dossier.id, dossier.titre, dossier.description]);
   
   const [etudiantSelectionnePourDemande, setEtudiantSelectionnePourDemande] = useState<BinomeOption | null>(null);
   const [messageDemande, setMessageDemande] = useState('');
@@ -79,21 +79,21 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
       try {
         setIsLoadingCandidats(true);
         // Passer l'ID du candidat courant pour l'exclure des résultats
-        const candidats = await dossierService.getCandidatsDisponibles(Number(user.id));
+        const candidats = await dossierService.getCandidatsDisponibles(user.id);
         // Mapper vers le format BinomeOption (l'API retourne des DossierResponse)
         const binomeOptions: BinomeOption[] = candidats
           .map((d: any) => ({
-            id: d.candidatId || d.idDossierMemoire,
+            id: d.candidatId || d.id,
             // Utiliser le titre du dossier comme info, les infos étudiant seront récupérées séparément
             nom: `Candidat #${d.candidatId}`,
             prenom: '',
             email: `candidat${d.candidatId}@groupeisi.com`,
-            numeroMatricule: d.nombreNumber || `DOS-${d.idDossierMemoire}`,
+            numeroMatricule: d.nombreNumber || `DOS-${d.id}`,
             niveau: 'LICENCE_3',
             filiere: 'GENIE_LOGICIEL',
             departement: 'Informatique',
             // Informations supplémentaires du dossier
-            dossierId: d.idDossierMemoire,
+            dossierId: d.id,
             dossierTitre: d.titre,
             dossierEtape: d.etape
           }));
@@ -134,12 +134,11 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
             filiere: 'Informatique',
             departement: 'Département Informatique'
           },
-          dateEnvoi: new Date(d.dateDemande),
+          dateDemande: new Date(d.dateDemande),
           message: d.message,
-          sujetChoisi: {
+          dossierMemoire: {
             id: d.sujetId,
-            titre: d.sujetTitre || 'Sujet non spécifié',
-            description: ''
+            titre: d.sujetTitre || 'Sujet non spécifié'
           },
           statut: d.statut === 'EN_ATTENTE' ? 'en_attente' : d.statut === 'ACCEPTEE' ? 'acceptee' : 'refusee'
         }));
@@ -195,7 +194,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
     const demandesActives = demandesEnvoyees.filter(d => d.statut === 'en_attente' || d.statut === 'acceptee');
     if (demandesActives.length === 0) return null;
     // Retourner la plus récente
-    return demandesActives.sort((a, b) => b.dateEnvoi.getTime() - a.dateEnvoi.getTime())[0];
+    return demandesActives.sort((a, b) => b.dateDemande.getTime() - a.dateDemande.getTime())[0];
   }, [demandesEnvoyees]);
 
   // Si une demande existe et est en attente ou acceptée, afficher le sous-onglet état
@@ -324,12 +323,11 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
       const nouvelleDemande: DemandeBinome = {
         id: Date.now(),
         etudiantDestinataire: etudiantSelectionnePourDemande,
-        dateEnvoi: new Date(),
+        dateDemande: new Date(),
         message: messageDemande.trim() || undefined,
-        sujetChoisi: {
-          id: dossier.idDossierMemoire,
-          titre: sujetChoisi.titre,
-          description: sujetChoisi.description
+        dossierMemoire: {
+          id: dossier.id,
+          titre: sujetChoisi.titre
         },
         statut: 'en_attente'
       };
@@ -611,7 +609,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
                                 </h3>
                                 <p className="text-sm text-gray-600">{demandeEnCours.etudiantDestinataire.email}</p>
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Envoyée le {formatDate(demandeEnCours.dateEnvoi)}
+                                  Envoyée le {formatDate(demandeEnCours.dateDemande)}
                                 </p>
                               </div>
                               {demandeEnCours.statut === 'en_attente' && (
@@ -638,10 +636,7 @@ const EtapeChoixBinome: React.FC<EtapeChoixBinomeProps> = ({ dossier, onComplete
                           {/* Informations du dossier */}
                           <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                             <h4 className="font-semibold text-gray-900 mb-2">Sujet choisi</h4>
-                            <p className="text-sm text-gray-700">{demandeEnCours.sujetChoisi.titre}</p>
-                            {demandeEnCours.sujetChoisi.description && (
-                              <p className="text-xs text-gray-600 mt-1">{demandeEnCours.sujetChoisi.description}</p>
-                            )}
+                            <p className="text-sm text-gray-700">{demandeEnCours.dossierMemoire?.titre}</p>
                           </div>
 
                           {/* Message selon le statut */}

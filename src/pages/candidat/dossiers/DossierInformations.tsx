@@ -15,8 +15,13 @@ interface DossierInformationsProps {
 const getEtapeLabel = (etape: EtapeDossier) => {
   const etapes: Record<EtapeDossier, string> = {
     [EtapeDossier.CHOIX_SUJET]: 'Choix du sujet',
+    [EtapeDossier.CHOIX_BINOME]: 'Choix du binôme',
+    [EtapeDossier.CHOIX_ENCADRANT]: 'Choix de l\'encadrant',
     [EtapeDossier.VALIDATION_SUJET]: 'Validation du sujet',
+    [EtapeDossier.VALIDATION_COMMISSION]: 'Validation par commission',
     [EtapeDossier.EN_COURS_REDACTION]: 'Rédaction en cours',
+    [EtapeDossier.PRELECTURE]: 'Pré-lecture',
+    [EtapeDossier.CORRECTION]: 'Corrections',
     [EtapeDossier.DEPOT_INTERMEDIAIRE]: 'Dépôt intermédiaire',
     [EtapeDossier.DEPOT_FINAL]: 'Dépôt final',
     [EtapeDossier.SOUTENANCE]: 'Soutenance',
@@ -48,15 +53,15 @@ const DossierInformations: React.FC<DossierInformationsProps> = ({ dossier }) =>
   const dateSoutenance = useMemo(() => {
     if (!isDossierTermine) return null;
     const soutenance = mockSoutenances.find(s => 
-      s.dossierMemoire?.idDossierMemoire === dossier.idDossierMemoire
+      s.dossierMemoire?.idDossierMemoire === dossier.id
     );
     return soutenance?.dateSoutenance || null;
-  }, [isDossierTermine, dossier.idDossierMemoire]);
+  }, [isDossierTermine, dossier.id]);
 
   // Récupérer les tickets du dossier
   const ticketsDossier = useMemo(() => {
-    return getTicketsByDossier(dossier.idDossierMemoire);
-  }, [dossier.idDossierMemoire]);
+    return getTicketsByDossier(dossier.id);
+  }, [dossier.id]);
 
   // Vérifier si toutes les tâches sont terminées (prérequis pour pré-lecture)
   const toutesTachesTerminees = useMemo(() => {
@@ -231,71 +236,7 @@ const DossierInformations: React.FC<DossierInformationsProps> = ({ dossier }) =>
         </div>
       )}
 
-      {/* Statut de pré-lecture */}
-      {!isDossierTermine && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Pré-lecture</h3>
-          <Card className={
-            statutPrelecture.statut === 'validee' 
-              ? 'border-green-200 bg-green-50' 
-              : statutPrelecture.statut === 'autorisee'
-              ? 'border-blue-200 bg-blue-50'
-              : statutPrelecture.statut === 'en_attente'
-              ? 'border-amber-200 bg-amber-50'
-              : 'border-gray-200 bg-gray-50'
-          }>
-            <CardContent className="p-4">
-              <div className="flex items-start">
-                <div className={`p-3 rounded-lg mr-4 ${
-                  statutPrelecture.statut === 'validee' 
-                    ? 'bg-green-100' 
-                    : statutPrelecture.statut === 'autorisee'
-                    ? 'bg-blue-100'
-                    : statutPrelecture.statut === 'en_attente'
-                    ? 'bg-amber-100'
-                    : 'bg-gray-100'
-                }`}>
-                  {statutPrelecture.statut === 'validee' ? (
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  ) : statutPrelecture.statut === 'autorisee' ? (
-                    <FileCheck className="h-5 w-5 text-blue-600" />
-                  ) : statutPrelecture.statut === 'en_attente' || statutPrelecture.statut === 'non_eligible' ? (
-                    <Clock className="h-5 w-5 text-amber-600" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5 text-gray-600" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <p className="font-semibold text-gray-900">Statut de pré-lecture</p>
-                    <Badge variant={
-                      statutPrelecture.statut === 'validee' 
-                        ? 'default' 
-                        : statutPrelecture.statut === 'autorisee'
-                        ? 'default'
-                        : 'secondary'
-                    }>
-                      {statutPrelecture.statut === 'validee' 
-                        ? 'Validée' 
-                        : statutPrelecture.statut === 'autorisee'
-                        ? 'Autorisée'
-                        : statutPrelecture.statut === 'en_attente'
-                        ? 'En attente'
-                        : 'Non éligible'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{statutPrelecture.message}</p>
-                  {!toutesTachesTerminees && ticketsDossier.length > 0 && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      Tâches terminées : {ticketsDossier.filter(t => t.phase === PhaseTicket.TERMINE).length} / {ticketsDossier.length}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+
 
       {/* Statut d'autorisation de soutenance */}
       {!isDossierTermine && statutPrelecture.statut === 'validee' && (

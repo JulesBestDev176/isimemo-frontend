@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, BookOpen, CheckCircle, ArrowRight, Plus, Eye, Target, Bell, Users, Clock, XCircle, Loader2 } from 'lucide-react';
 import { DossierMemoire } from '../../../../models/dossier';
 import { SujetMemoire, PropositionBinome } from '../../../../models/pipeline';
@@ -9,6 +10,7 @@ import { Badge } from '../../../../components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/ui/tabs';
 import { useAuth } from '../../../../contexts/AuthContext';
 import sujetService, { Sujet } from '../../../../services/sujet.service';
+import dossierService from '../../../../services/dossier.service';
 import demandeBinomeService, { DemandeBinome } from '../../../../services/demandeBinome.service';
 import {
   Dialog,
@@ -29,7 +31,7 @@ interface EtapeChoixSujetProps {
 
 // Fonction pour convertir un Sujet API en SujetMemoire frontend
 const mapApiSujetToSujetMemoire = (apiSujet: Sujet): SujetMemoire => ({
-  id: apiSujet.idSujet,
+  id: apiSujet.id,
   titre: apiSujet.titre,
   description: apiSujet.description || '',
   domaine: apiSujet.departement || 'Informatique',
@@ -40,7 +42,7 @@ const mapApiSujetToSujetMemoire = (apiSujet: Sujet): SujetMemoire => ({
     prenom: apiSujet.nomCreateur.split(' ').slice(0, -1).join(' ') || '',
     email: apiSujet.emailCreateur
   } : undefined,
-  estDisponible: !apiSujet.dossierMemoireId // Disponible si pas encore attribué
+  estDisponible: apiSujet.statut === 'VALIDE' && !apiSujet.dossierMemoireId // Disponible si VALIDE et pas encore attribué
 });
 
 
@@ -94,7 +96,7 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
         // Si le candidat a une proposition personnelle, la récupérer aussi
         if (user?.id) {
           try {
-            const propositions = await sujetService.getPropositionsByCandidat(Number(user.id));
+            const propositions = await sujetService.getPropositionsByCandidat(user.id);
             if (propositions.length > 0) {
               const propositionsMapped = propositions.map(mapApiSujetToSujetMemoire);
               setSujetsDisponibles(prev => [...prev, ...propositionsMapped]);
@@ -160,19 +162,28 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
     return matchesSearch && (sujet.estDisponible || sujet.id === sujetSelectionne?.id);
   });
 
-  const handleValider = () => {
+  const handleValider = async () => {
     if (sujetSelectionne) {
-      // TODO: Appel API pour enregistrer le sujet choisi
-      console.log('Sujet choisi:', sujetSelectionne);
-      // Stocker le sujet choisi dans localStorage pour l'utiliser dans les étapes suivantes
-      localStorage.setItem(`sujetChoisi_${dossier.idDossierMemoire}`, JSON.stringify({
-        titre: sujetSelectionne.titre,
-        description: sujetSelectionne.description
-      }));
-      onComplete();
+      try {
+        setIsLoading(true);
+        // 1. Lier le sujet au dossier dans le service Sujet
+        await sujetService.attribuerSujet(Number(sujetSelectionne.id), dossier.id);
+        
+        // 2. Mettre à jour le dossier (titre, description et étape suivante)
+        await dossierService.selectionnerSujet(dossier.id, {
+          titre: sujetSelectionne.titre,
+          description: sujetSelectionne.description
+        });
+        
+        console.log('Sujet persisté pour le dossier:', dossier.id);
+        onComplete();
+      } catch (err) {
+        console.error('Erreur lors de la validation du sujet:', err);
+        setError('Impossible d\'enregistrer votre choix. Veuillez réessayer.');
+      } finally {
+        setIsLoading(false);
+      }
     }
-    // Si on a accepté une demande reçue, on ne continue pas le pipeline
-    // C'est celui qui a envoyé la demande qui doit continuer
   };
 
   const handleProposerSujet = async () => {
@@ -186,22 +197,30 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
           description: descriptionProposee.trim(),
           emailCreateur: user.email || '',
           nomCreateur: user.name || '',
-          candidatId: Number(user.id),
-          dossierMemoireId: dossier.idDossierMemoire,
-          anneeAcademique: '2024-2025'
+          candidatId: user.id,
+          dossierMemoireId: dossier.id,
+          anneeAcademique: '2025-2026'
         });
         
         console.log('Sujet proposé:', sujetCree);
         
-        // Convertir et ajouter à la liste
+        // Nouveau sujet créé avec succès
         const nouveauSujet = mapApiSujetToSujetMemoire(sujetCree);
         setSujetsDisponibles(prev => [...prev, nouveauSujet]);
         setSujetSelectionne(nouveauSujet);
         
-        // Fermer le dialog et réinitialiser les champs
+        // Fermer le dialog et réinitialiser les champs immédiatement
         setIsDialogOpen(false);
         setTitrePropose('');
         setDescriptionProposee('');
+
+        // Mettre à jour le dossier pour refléter cette proposition comme sujet actuel
+        await dossierService.selectionnerSujet(dossier.id, {
+          titre: nouveauSujet.titre,
+          description: nouveauSujet.description
+        });
+        
+        onComplete();
       } catch (err) {
         console.error('Erreur lors de la proposition du sujet:', err);
         setError('Impossible de proposer le sujet. Veuillez réessayer.');
@@ -333,7 +352,7 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
                         Demande de binôme acceptée
                       </p>
                       <p className="text-xs text-blue-700">
-                        Vous avez accepté une demande de binôme de {demandeAcceptee.etudiant.prenom} {demandeAcceptee.etudiant.nom}. 
+                        Vous avez accepté une demande de binôme de {demandeAcceptee.demandeurNom}. 
                         C'est votre binôme qui a choisi le sujet et qui doit continuer le pipeline. Vous ne pouvez plus choisir un sujet.
                       </p>
                     </div>
@@ -449,9 +468,9 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
                 </CardContent>
               </Card>
             ) : sujetsFiltres.length > 0 ? (
-              sujetsFiltres.map((sujet) => (
+              sujetsFiltres.map((sujet, index) => (
                 <Card
-                  key={sujet.id}
+                  key={`${sujet.id}-${index}`}
                   className={`cursor-pointer transition-all ${
                     sujetSelectionne?.id === sujet.id
                       ? 'border-primary border-2 bg-primary-50'
@@ -539,7 +558,7 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
                         Demande de binôme acceptée
                       </p>
                       <p className="text-xs text-blue-700">
-                        Vous avez accepté une demande de binôme de {demandeAcceptee.etudiant.prenom} {demandeAcceptee.etudiant.nom}. 
+                        Vous avez accepté une demande de binôme de {demandeAcceptee.demandeurNom}. 
                         C'est votre binôme qui a choisi le sujet et qui doit continuer le pipeline. Vous serez informé(e) des prochaines étapes.
                       </p>
                     </div>
@@ -551,8 +570,8 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
             <TabsContent value="demandes" className="space-y-4 mt-6">
               {demandesEnAttente.length > 0 ? (
                 <div className="space-y-3">
-                  {demandesEnAttente.map((proposition) => (
-                    <Card key={proposition.id} className="border-primary-200 bg-primary-50">
+                  {demandesEnAttente.map((proposition, index) => (
+                    <Card key={`${proposition.idDemande}-${index}`} className="border-primary-200 bg-primary-50">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -567,14 +586,12 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-semibold text-gray-900">
-                                  {proposition.demandeur.prenom} {proposition.demandeur.nom}
+                                  {proposition.demandeurNom}
                                 </h4>
-                                <p className="text-sm text-gray-600">{proposition.demandeur.email}</p>
+                                <p className="text-sm text-gray-600">{proposition.demandeurEmail}</p>
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                  <Badge variant="outline">{proposition.demandeur.numeroMatricule}</Badge>
-                                  <Badge variant="outline">{proposition.demandeur.niveau}</Badge>
-                                  <Badge variant="outline">{proposition.demandeur.filiere}</Badge>
-                                  <Badge variant="outline">{proposition.demandeur.departement}</Badge>
+                                  <Badge variant="outline">{proposition.demandeurMatricule}</Badge>
+                                  <Badge variant="outline">{proposition.demandeurFiliere}</Badge>
                                 </div>
                               </div>
                             </div>
@@ -582,9 +599,9 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
                               <div className="flex items-start gap-2">
                                 <div className="flex-1">
                                   <p className="text-xs font-medium text-gray-500 mb-1">Sujet proposé :</p>
-                                  <p className="text-sm font-semibold text-gray-900">{proposition.sujetChoisi.titre}</p>
-                                  {proposition.sujetChoisi.description && (
-                                    <p className="text-xs text-gray-600 mt-1">{proposition.sujetChoisi.description}</p>
+                                  <p className="text-sm font-semibold text-gray-900">{proposition.sujetTitre}</p>
+                                  {proposition.sujetDescription && (
+                                    <p className="text-xs text-gray-600 mt-1">{proposition.sujetDescription}</p>
                                   )}
                                 </div>
                               </div>
@@ -596,7 +613,7 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
                             )}
                             <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
                               <Clock className="h-4 w-4" />
-                              <span>Proposé le {formatDate(proposition.dateProposition)}</span>
+                              <span>Proposé le {formatDate(proposition.dateDemande)}</span>
                             </div>
                           </div>
                           <div className="flex flex-col gap-2 ml-4">
@@ -742,22 +759,22 @@ const EtapeChoixSujet: React.FC<EtapeChoixSujetProps> = ({ dossier, onComplete }
               Êtes-vous sûr de vouloir accepter cette demande de binôme ?
             </DialogDescription>
           </DialogHeader>
-          {propositionAConfirmer && (
+          {demandeAConfirmer && (
             <div className="space-y-4 py-4">
               <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg">
                 <h4 className="font-semibold text-gray-900 mb-2">
-                  {propositionAConfirmer.etudiant.prenom} {propositionAConfirmer.etudiant.nom}
+                  {demandeAConfirmer.demandeurNom}
                 </h4>
-                <p className="text-sm text-gray-600 mb-3">{propositionAConfirmer.etudiant.email}</p>
+                <p className="text-sm text-gray-600 mb-3">{demandeAConfirmer.demandeurEmail}</p>
                 <div className="space-y-2">
                   <div>
                     <p className="text-xs font-medium text-gray-500 mb-1">Sujet proposé :</p>
-                    <p className="text-sm font-semibold text-gray-900">{propositionAConfirmer.sujetChoisi.titre}</p>
+                    <p className="text-sm font-semibold text-gray-900">{demandeAConfirmer.sujetTitre}</p>
                   </div>
-                  {propositionAConfirmer.message && (
+                  {demandeAConfirmer.message && (
                     <div>
                       <p className="text-xs font-medium text-gray-500 mb-1">Message :</p>
-                      <p className="text-sm text-gray-700">{propositionAConfirmer.message}</p>
+                      <p className="text-sm text-gray-700">{demandeAConfirmer.message}</p>
                     </div>
                   )}
                 </div>

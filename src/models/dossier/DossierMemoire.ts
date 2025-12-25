@@ -35,8 +35,10 @@ export enum EtapeDossier {
 }
 
 export interface DossierMemoire {
-  idDossierMemoire: number;
+  id: number;
+  idDossierMemoire?: number; // Keep for backward compatibility during migration
   titre: string;
+  progression?: number;
   description: string;
   dateCreation: Date;
   dateModification: Date;
@@ -62,11 +64,12 @@ export interface DossierMemoire {
 import { mockCandidats } from '../acteurs/Candidat';
 import { mockProfesseurs } from '../acteurs/Professeur';
 import { mockBinomes } from './Binome';
+import { memoiresData } from '../../data/memoires.data';
 
 export const mockDossiers: DossierMemoire[] = [
   // Dossier en création pour le candidat connecté (idCandidat: 1 correspond à l'utilisateur candidat@isimemo.edu.sn)
-  // Règle métier : Un candidat ne peut avoir qu'un seul dossier en cours
   {
+    id: 0,
     idDossierMemoire: 0,
     titre: 'Système intelligent de gestion de bibliothèque numérique',
     description: 'Développement d\'un système de gestion de bibliothèque numérique avec recommandations intelligentes basées sur l\'IA',
@@ -85,6 +88,7 @@ export const mockDossiers: DossierMemoire[] = [
   // Dossiers terminés pour le candidat connecté (idCandidat: 1)
   // Règle métier : Les dossiers terminés ne sont pas en attente mais complètement terminés
   {
+    id: 1,
     idDossierMemoire: 1,
     titre: 'Système de gestion de mémoires académiques',
     description: 'Développement d\'une plateforme web pour la gestion des mémoires de fin d\'études',
@@ -99,6 +103,7 @@ export const mockDossiers: DossierMemoire[] = [
     encadrant: mockProfesseurs.find(p => p.idProfesseur === 1) // Jean Pierre
   },
   {
+    id: 2,
     idDossierMemoire: 2,
     titre: 'Application mobile de gestion de bibliothèque',
     description: 'Développement d\'une application mobile pour la gestion des emprunts de livres',
@@ -119,6 +124,7 @@ export const mockDossiers: DossierMemoire[] = [
   // car le candidat connecté a déjà un dossier en création (ID 0)
   // Règle métier : Un candidat ne peut avoir qu'un seul dossier en cours
   {
+    id: 101,
     idDossierMemoire: 101, // 10 * 10 + 1
     titre: 'Système de recommandation basé sur l\'intelligence artificielle',
     description: 'Développement d\'un système de recommandation intelligent utilisant des algorithmes d\'apprentissage automatique',
@@ -132,6 +138,7 @@ export const mockDossiers: DossierMemoire[] = [
     candidats: [mockCandidats[1]] // Fatou Ndiaye (idCandidat: 2) - Pas le candidat connecté
   },
   {
+    id: 102,
     idDossierMemoire: 102, // 10 * 10 + 2
     titre: 'Application mobile de gestion de bibliothèque universitaire',
     description: 'Création d\'une application mobile pour faciliter la gestion et l\'emprunt de livres dans les bibliothèques universitaires',
@@ -145,6 +152,7 @@ export const mockDossiers: DossierMemoire[] = [
     candidats: [mockCandidats[1]] // Fatou Ndiaye
   },
   {
+    id: 103,
     idDossierMemoire: 103, // 10 * 10 + 3
     titre: 'Analyse de données massives avec Apache Spark',
     description: 'Étude et implémentation d\'une solution d\'analyse de big data utilisant Apache Spark pour le traitement distribué',
@@ -158,6 +166,7 @@ export const mockDossiers: DossierMemoire[] = [
     candidats: [mockCandidats[2]] // Ibrahima Ba
   },
   {
+    id: 104,
     idDossierMemoire: 104, // 10 * 10 + 4
     titre: 'Plateforme de e-learning avec réalité virtuelle',
     description: 'Développement d\'une plateforme d\'apprentissage en ligne intégrant la réalité virtuelle pour une expérience immersive',
@@ -173,6 +182,7 @@ export const mockDossiers: DossierMemoire[] = [
     candidats: [mockCandidats[3]] // Aissatou Sarr - Toutes les tâches terminées
   },
   {
+    id: 105,
     idDossierMemoire: 105, // 10 * 10 + 5
     titre: 'Système de détection de fraudes bancaires par machine learning',
     description: 'Implémentation d\'un système intelligent de détection de fraudes dans les transactions bancaires utilisant des algorithmes de machine learning',
@@ -189,6 +199,7 @@ export const mockDossiers: DossierMemoire[] = [
   },
   // Dossier pour Omar Gueye (encadrant et membre jury)
   {
+    id: 106,
     idDossierMemoire: 106,
     titre: 'Système de gestion de projets collaboratifs',
     description: 'Développement d\'une plateforme web pour la gestion collaborative de projets avec suivi en temps réel',
@@ -203,6 +214,7 @@ export const mockDossiers: DossierMemoire[] = [
   },
   // Dossiers en attente de validation de sujet par la commission
   {
+    id: 200,
     idDossierMemoire: 200,
     titre: 'Intelligence Artificielle pour la Détection de Fraudes',
     description: 'Développement d\'un système de détection de fraudes utilisant des algorithmes d\'apprentissage automatique et de deep learning.',
@@ -218,6 +230,7 @@ export const mockDossiers: DossierMemoire[] = [
     estPhasePublique: true // Exemple : dépôt de sujet en phase publique (période de validation des sujets)
   },
   {
+    id: 201,
     idDossierMemoire: 201,
     titre: 'Application Mobile de Gestion de Bibliothèque',
     description: 'Conception et développement d\'une application mobile cross-platform pour la gestion automatisée d\'une bibliothèque universitaire.',
@@ -233,6 +246,7 @@ export const mockDossiers: DossierMemoire[] = [
     estPhasePublique: true // Exemple : en phase publique pour consultation
   },
   {
+    id: 202,
     idDossierMemoire: 202,
     titre: 'Blockchain pour la Traçabilité Alimentaire',
     description: 'Conception d\'une solution blockchain pour assurer la traçabilité des produits alimentaires de la production à la consommation.',
@@ -247,6 +261,7 @@ export const mockDossiers: DossierMemoire[] = [
     encadrant: mockProfesseurs.find(p => p.idProfesseur === 4) // Mamadou Sarr
   },
   {
+    id: 203,
     idDossierMemoire: 203,
     titre: 'Système de Recommandation Intelligent pour E-commerce',
     description: 'Développement d\'un système de recommandation basé sur l\'intelligence artificielle pour améliorer l\'expérience d\'achat en ligne.',
@@ -261,6 +276,7 @@ export const mockDossiers: DossierMemoire[] = [
     encadrant: mockProfesseurs.find(p => p.idProfesseur === 5) // Fatou Diallo
   },
   {
+    id: 204,
     idDossierMemoire: 204,
     titre: 'Plateforme de E-learning avec Réalité Virtuelle',
     description: 'Développement d\'une plateforme d\'apprentissage en ligne intégrant la réalité virtuelle pour une expérience immersive.',
@@ -275,6 +291,7 @@ export const mockDossiers: DossierMemoire[] = [
     encadrant: mockProfesseurs.find(p => p.idProfesseur === 1) // Jean Pierre
   },
   {
+    id: 205,
     idDossierMemoire: 205,
     titre: 'Analyse de Données Massives avec Apache Spark',
     description: 'Étude et implémentation d\'une solution d\'analyse de big data utilisant Apache Spark pour le traitement distribué.',
@@ -288,8 +305,53 @@ export const mockDossiers: DossierMemoire[] = [
     candidats: [mockCandidats[0]], // Amadou Diallo
     encadrant: mockProfesseurs.find(p => p.idProfesseur === 2) // Ibrahima Ndiaye
   },
+  {
+    id: 3,
+    idDossierMemoire: 3,
+    titre: memoiresData[2].titre,
+    description: memoiresData[2].description,
+    dateCreation: new Date('2024-12-25'),
+    dateModification: new Date('2024-12-25'),
+    statut: StatutDossierMemoire.EN_COURS,
+    estComplet: false,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.CHOIX_SUJET,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats.find(c => c.idCandidat === 3)!] // Souleymane Fall
+  },
+  {
+    id: 4,
+    idDossierMemoire: 4,
+    titre: memoiresData[3].titre,
+    description: memoiresData[3].description,
+    dateCreation: new Date('2024-11-15'),
+    dateModification: new Date('2024-12-20'),
+    statut: StatutDossierMemoire.EN_COURS,
+    estComplet: true,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.EN_COURS_REDACTION,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats.find(c => c.idCandidat === 5)!], // Ibrahima Amadou Bocoum
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 1)
+  },
+  {
+    id: 5,
+    idDossierMemoire: 5,
+    titre: memoiresData[4].titre,
+    description: memoiresData[4].description,
+    dateCreation: new Date('2024-11-01'),
+    dateModification: new Date('2024-12-22'),
+    statut: StatutDossierMemoire.EN_COURS,
+    estComplet: true,
+    autoriseSoutenance: false,
+    etape: EtapeDossier.CHOIX_BINOME,
+    anneeAcademique: '2024-2025',
+    candidats: [mockCandidats.find(c => c.idCandidat === 6)!, mockCandidats.find(c => c.idCandidat === 7)!], // Houleymatou Diallo & Cheikh Tidiane Traore
+    encadrant: mockProfesseurs.find(p => p.idProfesseur === 2)
+  },
   // Dépôt en binôme
   {
+    id: 206,
     idDossierMemoire: 206,
     titre: 'Système de Gestion de Projets Collaboratifs avec IA',
     description: 'Développement d\'une plateforme collaborative de gestion de projets intégrant l\'intelligence artificielle pour l\'optimisation des ressources et la prédiction des risques.',
@@ -311,6 +373,7 @@ export const mockDossiers: DossierMemoire[] = [
     encadrant: mockProfesseurs.find(p => p.idProfesseur === 4) // Mamadou Sarr
   },
   {
+    id: 207,
     idDossierMemoire: 207,
     titre: 'Plateforme de E-commerce avec Paiement Mobile',
     description: 'Conception et développement d\'une plateforme e-commerce sécurisée avec intégration de solutions de paiement mobile adaptées au contexte africain.',
@@ -335,6 +398,7 @@ export const mockDossiers: DossierMemoire[] = [
   // DOSSIERS VALIDES POUR GÉNÉRATION JURYS (SESSION SEPTEMBRE 2025)
   // ==========================================================================
   {
+    id: 301,
     idDossierMemoire: 301,
     titre: 'Optimisation des réseaux de capteurs sans fil',
     description: 'Étude des protocoles de routage pour minimiser la consommation d\'énergie.',
@@ -345,10 +409,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 101, nom: 'Diop', prenom: 'Sidi', email: 'sidi.diop@isi.edu.sn', numeroMatricule: 'ETU20240101' }],
+    candidats: [{ idCandidat: 101, nom: 'Diop', prenom: 'Sidi', email: 'sididiopisidk@groupeisi.com', numeroMatricule: 'ETU20240101', telephone: '+221 77 000 00 01', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[0] // Jean Pierre
   },
   {
+    id: 302,
     idDossierMemoire: 302,
     titre: 'Sécurité des applications web bancaires',
     description: 'Analyse des vulnérabilités OWASP et mesures de protection.',
@@ -359,10 +424,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 102, nom: 'Fall', prenom: 'Aminata', email: 'aminata.fall@isi.edu.sn', numeroMatricule: 'ETU20240102' }],
+    candidats: [{ idCandidat: 102, nom: 'Fall', prenom: 'Aminata', email: 'aminatafallisidk@groupeisi.com', numeroMatricule: 'ETU20240102', telephone: '+221 77 000 00 02', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[1] // Ibrahima Ndiaye
   },
   {
+    id: 303,
     idDossierMemoire: 303,
     titre: 'Application de gestion de stock temps réel',
     description: 'Utilisation de WebSockets pour la mise à jour instantanée des stocks.',
@@ -373,10 +439,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 103, nom: 'Sow', prenom: 'Oumar', email: 'oumar.sow@isi.edu.sn', numeroMatricule: 'ETU20240103' }],
+    candidats: [{ idCandidat: 103, nom: 'Sow', prenom: 'Oumar', email: 'oumarsowisidk@groupeisi.com', numeroMatricule: 'ETU20240103', telephone: '+221 77 000 00 03', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[2] // Aissatou Ba
   },
   {
+    id: 304,
     idDossierMemoire: 304,
     titre: 'IA pour la prédiction météorologique locale',
     description: 'Modèles de Deep Learning appliqués aux données climatiques sénégalaises.',
@@ -387,10 +454,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 104, nom: 'Gaye', prenom: 'Mariama', email: 'mariama.gaye@isi.edu.sn', numeroMatricule: 'ETU20240104' }],
+    candidats: [{ idCandidat: 104, nom: 'Gaye', prenom: 'Mariama', email: 'mariamagayeisidk@groupeisi.com', numeroMatricule: 'ETU20240104', telephone: '+221 77 000 00 04', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[3] // Mamadou Sarr
   },
   {
+    id: 305,
     idDossierMemoire: 305,
     titre: 'Blockchain pour le cadastre',
     description: 'Sécurisation des titres fonciers via une blockchain privée.',
@@ -401,10 +469,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 105, nom: 'Ndiaye', prenom: 'Cheikh', email: 'cheikh.ndiaye@isi.edu.sn', numeroMatricule: 'ETU20240105' }],
+    candidats: [{ idCandidat: 105, nom: 'Ndiaye', prenom: 'Cheikh', email: 'cheikhndiayeisidk@groupeisi.com', numeroMatricule: 'ETU20240105', telephone: '+221 77 000 00 05', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[4] // Fatou Diallo
   },
   {
+    id: 306,
     idDossierMemoire: 306,
     titre: 'Système de vote électronique sécurisé',
     description: 'Architecture distribuée pour garantir l\'intégrité des votes.',
@@ -415,10 +484,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 106, nom: 'Diallo', prenom: 'Khadija', email: 'khadija.diallo@isi.edu.sn', numeroMatricule: 'ETU20240106' }],
+    candidats: [{ idCandidat: 106, nom: 'Diallo', prenom: 'Khadija', email: 'khadijadialloisidk@groupeisi.com', numeroMatricule: 'ETU20240106', telephone: '+221 77 000 00 06', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[0] // Jean Pierre
   },
   {
+    id: 307,
     idDossierMemoire: 307,
     titre: 'Analyse de sentiments sur les réseaux sociaux',
     description: 'NLP pour analyser l\'opinion publique sur des sujets d\'actualité.',
@@ -429,10 +499,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 107, nom: 'Ba', prenom: 'Moustapha', email: 'moustapha.ba@isi.edu.sn', numeroMatricule: 'ETU20240107' }],
+    candidats: [{ idCandidat: 107, nom: 'Ba', prenom: 'Moustapha', email: 'moustaphabaisidk@groupeisi.com', numeroMatricule: 'ETU20240107', telephone: '+221 77 000 00 07', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[1] // Ibrahima Ndiaye
   },
   {
+    id: 308,
     idDossierMemoire: 308,
     titre: 'Plateforme de télémédecine',
     description: 'Mise en relation patients-médecins avec consultation vidéo.',
@@ -443,10 +514,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 108, nom: 'Sy', prenom: 'Awa', email: 'awa.sy@isi.edu.sn', numeroMatricule: 'ETU20240108' }],
+    candidats: [{ idCandidat: 108, nom: 'Sy', prenom: 'Awa', email: 'awasyisidk@groupeisi.com', numeroMatricule: 'ETU20240108', telephone: '+221 77 000 00 08', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[2] // Aissatou Ba
   },
   {
+    id: 309,
     idDossierMemoire: 309,
     titre: 'IoT pour l\'agriculture intelligente',
     description: 'Système d\'irrigation automatisé basé sur l\'humidité du sol.',
@@ -457,10 +529,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 109, nom: 'Camara', prenom: 'Boubacar', email: 'boubacar.camara@isi.edu.sn', numeroMatricule: 'ETU20240109' }],
+    candidats: [{ idCandidat: 109, nom: 'Camara', prenom: 'Boubacar', email: 'boubacarcamaraisidk@groupeisi.com', numeroMatricule: 'ETU20240109', telephone: '+221 77 000 00 09', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[3] // Mamadou Sarr
   },
   {
+    id: 310,
     idDossierMemoire: 310,
     titre: 'Reconnaissance faciale pour le contrôle d\'accès',
     description: 'Implémentation sécurisée avec détection de vivacité.',
@@ -471,10 +544,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 110, nom: 'Faye', prenom: 'Astou', email: 'astou.faye@isi.edu.sn', numeroMatricule: 'ETU20240110' }],
+    candidats: [{ idCandidat: 110, nom: 'Faye', prenom: 'Astou', email: 'astoufayeisidk@groupeisi.com', numeroMatricule: 'ETU20240110', telephone: '+221 77 000 00 10', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[4] // Fatou Diallo
   },
   {
+    id: 311,
     idDossierMemoire: 311,
     titre: 'Chatbot éducatif pour le soutien scolaire',
     description: 'Assistant virtuel pour aider les élèves en mathématiques.',
@@ -485,10 +559,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 111, nom: 'Traore', prenom: 'Issa', email: 'issa.traore@isi.edu.sn', numeroMatricule: 'ETU20240111' }],
+    candidats: [{ idCandidat: 111, nom: 'Traore', prenom: 'Issa', email: 'issatraoreisidk@groupeisi.com', numeroMatricule: 'ETU20240111', telephone: '+221 77 000 00 11', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[0] // Jean Pierre
   },
   {
+    id: 312,
     idDossierMemoire: 312,
     titre: 'Système de gestion de flotte de véhicules',
     description: 'Suivi GPS et maintenance prédictive.',
@@ -499,10 +574,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 112, nom: 'Mendy', prenom: 'Marie', email: 'marie.mendy@isi.edu.sn', numeroMatricule: 'ETU20240112' }],
+    candidats: [{ idCandidat: 112, nom: 'Mendy', prenom: 'Marie', email: 'mariemendyisidk@groupeisi.com', numeroMatricule: 'ETU20240112', telephone: '+221 77 000 00 12', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[1] // Ibrahima Ndiaye
   },
   {
+    id: 313,
     idDossierMemoire: 313,
     titre: 'Réalité augmentée pour le tourisme',
     description: 'Guide interactif des sites historiques de Dakar.',
@@ -513,10 +589,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 113, nom: 'Gomis', prenom: 'Paul', email: 'paul.gomis@isi.edu.sn', numeroMatricule: 'ETU20240113' }],
+    candidats: [{ idCandidat: 113, nom: 'Gomis', prenom: 'Paul', email: 'paulgomisisidk@groupeisi.com', numeroMatricule: 'ETU20240113', telephone: '+221 77 000 00 13', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[2] // Aissatou Ba
   },
   {
+    id: 314,
     idDossierMemoire: 314,
     titre: 'Big Data pour l\'analyse du trafic routier',
     description: 'Optimisation des feux de signalisation à Dakar.',
@@ -527,10 +604,11 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 114, nom: 'Diagne', prenom: 'Fatima', email: 'fatima.diagne@isi.edu.sn', numeroMatricule: 'ETU20240114' }],
+    candidats: [{ idCandidat: 114, nom: 'Diagne', prenom: 'Fatima', email: 'fatimadiagneisidk@groupeisi.com', numeroMatricule: 'ETU20240114', telephone: '+221 77 000 00 14', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[3] // Mamadou Sarr
   },
   {
+    id: 315,
     idDossierMemoire: 315,
     titre: 'Cybersécurité dans les réseaux industriels',
     description: 'Protection des systèmes SCADA contre les intrusions.',
@@ -541,7 +619,7 @@ export const mockDossiers: DossierMemoire[] = [
     autoriseSoutenance: true,
     etape: EtapeDossier.SOUTENANCE,
     anneeAcademique: '2024-2025',
-    candidats: [{ idCandidat: 115, nom: 'Seck', prenom: 'Abdoulaye', email: 'abdoulaye.seck@isi.edu.sn', numeroMatricule: 'ETU20240115' }],
+    candidats: [{ idCandidat: 115, nom: 'Seck', prenom: 'Abdoulaye', email: 'abdoulayeseckisidk@groupeisi.com', numeroMatricule: 'ETU20240115', telephone: '+221 77 000 00 15', motDePasse: 'Password123!' }],
     encadrant: mockProfesseurs[4] // Fatou Diallo
   }
 ];

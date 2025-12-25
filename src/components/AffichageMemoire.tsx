@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
-import { Memoire } from "../types/memoire";
-import PdfViewer from "./PdfViewer";
+import { useState } from "react";
+import { Memoire } from "../data/memoires.data";
 
 interface AffichageMemoireProps {
   memoire: Memoire;
@@ -10,24 +9,70 @@ interface AffichageMemoireProps {
 
 const AffichageMemoire = ({ memoire, onRetour }: AffichageMemoireProps) => {
   const [ongletActif, setOngletActif] = useState("resume");
-  const [documentActif, setDocumentActif] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // État pour le formulaire de contact
+  const [formContact, setFormContact] = useState({
+    nom: "",
+    email: "",
+    message: ""
+  });
+  const [envoiReussi, setEnvoiReussi] = useState(false);
 
   const onglets = [
     { id: "resume", label: "Résumé", icone: "article" },
-    { id: "contenu", label: "Contenu complet", icone: "menu_book" },
-    { id: "documents", label: "Documents", icone: "folder" },
+    { id: "document", label: "Document PDF", icone: "picture_as_pdf" },
     { id: "contact", label: "Contact", icone: "contact_page" }
   ];
 
-  // Simule des pages de document pour la démonstration
-  const totalPages = 5;
-  const changePage = (direction: 'prev' | 'next') => {
-    if (direction === 'prev' && currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
-    } else if (direction === 'next' && currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
+  // Gestion du changement des champs du formulaire
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormContact(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  // Envoi du message via mailto: - envoie à tous les membres du groupe
+  const handleEnvoyerMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!formContact.nom || !formContact.email || !formContact.message) {
+      alert("Veuillez remplir tous les champs du formulaire.");
+      return;
     }
+
+    // Récupérer tous les emails des contacts (pour les groupes)
+    const tousLesEmails = memoire.contacts.map(c => c.email).join(',');
+    const nomsAuteurs = memoire.contacts.map(c => c.nom).join(' & ');
+
+    // Créer le sujet et le corps du mail
+    const sujet = encodeURIComponent(`[ISI Mémoires] Message de ${formContact.nom} concernant : ${memoire.titre}`);
+    const corps = encodeURIComponent(
+      `Bonjour ${nomsAuteurs},\n\n` +
+      `Vous avez reçu un message concernant votre mémoire "${memoire.titre}".\n\n` +
+      `--- Message ---\n` +
+      `${formContact.message}\n\n` +
+      `--- Expéditeur ---\n` +
+      `Nom: ${formContact.nom}\n` +
+      `Email: ${formContact.email}\n\n` +
+      `---\n` +
+      `Ce message a été envoyé via la plateforme ISI Mémoires.`
+    );
+
+    // Ouvrir le client mail avec tous les destinataires
+    const mailtoUrl = `mailto:${tousLesEmails}?subject=${sujet}&body=${corps}`;
+    window.open(mailtoUrl, '_blank');
+
+    // Afficher message de succès
+    setEnvoiReussi(true);
+    
+    // Réinitialiser le formulaire après 3 secondes
+    setTimeout(() => {
+      setFormContact({ nom: "", email: "", message: "" });
+      setEnvoiReussi(false);
+    }, 3000);
   };
 
   return (
@@ -57,353 +102,269 @@ const AffichageMemoire = ({ memoire, onRetour }: AffichageMemoireProps) => {
             transition={{ delay: 0.2, duration: 0.5 }}
           >
             <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-              {/* Image de couverture - Optimisée pour affichage complet */}
-              <div className="h-48 bg-gray-100 relative flex items-center justify-center">
-                {memoire.imageCouverture ? (
-                  <img
-                    src={memoire.imageCouverture}
-                    alt={memoire.titre}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-primary-50">
-                    <span className="material-icons text-primary text-5xl">menu_book</span>
-                  </div>
-                )}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-white font-medium py-1 px-3 rounded-full bg-primary">
-                      {memoire.annee}
-                    </span>
-                    <span className="text-white font-medium py-1 px-3 rounded-full bg-primary-600/80">
-                      {memoire.mention}
-                    </span>
-                  </div>
+              {/* Image de couverture - Icône PDF */}
+              <div className="h-48 bg-gradient-to-br from-primary-50 to-primary-100 relative flex items-center justify-center">
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="material-icons text-primary text-6xl">picture_as_pdf</span>
+                </div>
+                <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-2 py-1 rounded">
+                  PDF
                 </div>
               </div>
-
-              {/* Informations sur le memoire */}
+              
+              {/* Informations */}
               <div className="p-6">
-                <h2 className="text-xl font-bold text-navy mb-4">
+                <h2 className="text-xl font-bold text-navy mb-2 line-clamp-2">
                   {memoire.titre}
                 </h2>
+                <p className="text-gray-600 mb-4">Par {memoire.auteur}</p>
 
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Auteur</p>
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
-                        <span className="material-icons text-gray-500 text-sm">person</span>
-                      </div>
-                      <span className="font-medium text-navy">{memoire.auteur}</span>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm">
+                    <span className="material-icons text-primary text-lg mr-2">school</span>
+                    <span className="text-gray-700">{memoire.formation}</span>
                   </div>
+                  <div className="flex items-center text-sm">
+                    <span className="material-icons text-primary text-lg mr-2">business</span>
+                    <span className="text-gray-700">{memoire.departement}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <span className="material-icons text-primary text-lg mr-2">calendar_today</span>
+                    <span className="text-gray-700">{memoire.annee}</span>
+                  </div>
+                </div>
 
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Superviseur</p>
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
-                        <span className="material-icons text-gray-500 text-sm">school</span>
-                      </div>
-                      <span className="text-navy">{memoire.superviseur}</span>
-                    </div>
-                  </div>
+                {/* Tags */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {memoire.etiquettes.slice(0, 4).map((tag, index) => (
+                    <span
+                      key={index}
+                      className="bg-primary-50 text-primary text-xs px-2 py-1 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
 
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Département</p>
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-primary-50 rounded-full flex items-center justify-center mr-2">
-                        <span className="material-icons text-primary text-sm">business</span>
-                      </div>
-                      <span className="text-navy">{memoire.departement}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500 mb-2">Thématiques</p>
-                    <div className="flex flex-wrap gap-2">
-                      {memoire.etiquettes.map((etiquette, index) => (
-                        <span
-                          key={index}
-                          className="bg-primary-50 text-primary-700 text-xs py-1 px-2 rounded-full"
-                        >
-                          {etiquette}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                {/* Bouton PDF */}
+                <div className="mt-6">
+                  <a 
+                    href={memoire.cheminFichier}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-primary hover:bg-primary-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+                  >
+                    <span className="material-icons mr-2 text-sm">visibility</span>
+                    Consulter le PDF
+                  </a>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Contenu principal */}
+          {/* Contenu principal avec onglets */}
           <motion.div
             className="md:col-span-2"
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100">
               {/* Navigation par onglets */}
-              <div className="flex border-b border-gray-100 overflow-x-auto">
-                {onglets.map((onglet) => (
-                  <button
-                    key={onglet.id}
-                    className={`flex items-center py-4 px-6 font-medium transition-colors whitespace-nowrap ${ongletActif === onglet.id
-                        ? 'text-primary border-b-2 border-primary'
-                        : 'text-navy-500 hover:text-navy hover:bg-gray-50'
+              <div className="border-b border-gray-200">
+                <div className="flex">
+                  {onglets.map((onglet) => (
+                    <button
+                      key={onglet.id}
+                      onClick={() => setOngletActif(onglet.id)}
+                      className={`flex-1 py-4 px-6 flex items-center justify-center font-medium transition-colors ${
+                        ongletActif === onglet.id
+                          ? "text-primary border-b-2 border-primary bg-primary-50"
+                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                       }`}
-                    onClick={() => {
-                      setOngletActif(onglet.id);
-                      setDocumentActif(null); // Réinitialiser le document actif lors du changement d'onglet
-                    }}
-                  >
-                    <span className="material-icons mr-2 text-sm">{onglet.icone}</span>
-                    {onglet.label}
-                  </button>
-                ))}
+                    >
+                      <span className="material-icons mr-2 text-sm">{onglet.icone}</span>
+                      {onglet.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Contenu des onglets */}
-              <div className="p-6 min-h-[500px]">
+              <div className="p-6">
                 {ongletActif === "resume" && (
                   <div>
                     <h3 className="text-xl font-bold mb-4 text-navy">Résumé du mémoire</h3>
-                    <p className="text-navy-700">
-                      {memoire.description}
-                    </p>
-                  </div>
-                )}
-
-                {ongletActif === "contenu" && (
-                  <div>
-                    <h3 className="text-xl font-bold mb-4 text-navy">Contenu complet</h3>
-                    <div className="prose prose-blue max-w-none text-navy-700">
-                      <p>{memoire.contenuComplet}</p>
-
-                      {/* Sections factices pour l'exemple */}
-                      <h4 className="text-lg font-semibold mt-6 mb-3">Introduction</h4>
-                      <p>Le contenu de l'introduction serait affiché ici avec le contexte du projet, la problématique et les objectifs de recherche.</p>
-
-                      <h4 className="text-lg font-semibold mt-6 mb-3">Méthodologie</h4>
-                      <p>La section méthodologie expliquerait l'approche utilisée, les outils et techniques mis en œuvre dans le cadre de cette recherche.</p>
-
-                      <h4 className="text-lg font-semibold mt-6 mb-3">Résultats</h4>
-                      <p>Cette section présenterait les résultats obtenus et les analyses effectuées dans le cadre du mémoire.</p>
-
-                      <h4 className="text-lg font-semibold mt-6 mb-3">Conclusion</h4>
-                      <p>La conclusion synthétiserait les principaux apports du travail et proposerait des pistes pour des recherches futures.</p>
+                    <div className="prose prose-blue max-w-none">
+                      <p className="text-navy-700 leading-relaxed whitespace-pre-line">
+                        {memoire.resume || memoire.description}
+                      </p>
                     </div>
                   </div>
                 )}
 
-                {ongletActif === "documents" && !documentActif && (
+                {ongletActif === "document" && (
                   <div>
-                    <h3 className="text-xl font-bold mb-4 text-navy">Documents associés</h3>
-                    <div className="space-y-4">
-                      {memoire.documents.map((doc, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center mr-4">
-                            <span className="material-icons text-primary">
-                              {doc.nom.includes('.pdf') ? 'picture_as_pdf' :
-                                doc.nom.includes('.zip') ? 'folder_zip' :
-                                  doc.nom.includes('.mp4') ? 'videocam' : 'insert_drive_file'}
-                            </span>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-navy">{doc.nom}</h4>
-                            <p className="text-sm text-gray-500">{doc.nom.split('.').pop()?.toUpperCase() || 'UNKNOWN'}</p>
-                          </div>
-                          <button
-                            onClick={() => setDocumentActif(doc.lien)}
-                            className="px-4 py-2 text-primary hover:bg-primary-50 rounded-lg flex items-center transition-colors"
-                          >
-                            <span className="material-icons mr-1 text-sm">visibility</span>
-                            Consulter
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {ongletActif === "documents" && documentActif && (
-                  <div>
-                    <div className="flex items-center mb-6">
-                      <button
-                        onClick={() => setDocumentActif(null)}
-                        className="mr-4 flex items-center text-primary hover:text-primary-700 transition-colors"
+                    <h3 className="text-xl font-bold mb-4 text-navy">Document PDF</h3>
+                    <div className="mb-4 flex justify-between items-center">
+                      <p className="text-gray-600">
+                        Visualisez le document complet ci-dessous
+                      </p>
+                      <a
+                        href={memoire.cheminFichier}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary-700 flex items-center transition-colors"
                       >
-                        <span className="material-icons mr-1 text-sm">arrow_back</span>
-                        Retour aux documents
-                      </button>
-                      <h3 className="text-xl font-bold text-navy">
-                        {memoire.documents.find(doc => doc.lien === documentActif)?.nom || 'Document'}
-                      </h3>
+                        <span className="material-icons mr-1 text-sm">open_in_new</span>
+                        Ouvrir dans un nouvel onglet
+                      </a>
                     </div>
-
-                    {/* Visionneuse de document personnalisée et sécurisée */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                      {documentActif.includes('.pdf') ? (
-                        <div className="w-full bg-gray-100 rounded-lg">
-                          {/* Solution complète avec contrôles fonctionnels */}
-                          <PdfViewer documentActif={documentActif} />
-                          <div className="px-4 py-3 bg-primary-50 text-sm text-primary-700 flex items-center">
-                            <span className="material-icons text-sm mr-2">info</span>
-                            Ce document est protégé et peut uniquement être consulté en ligne. La copie et le téléchargement ne sont pas autorisés.
-                          </div>
-                        </div>
-                      ) : documentActif.includes('.mp4') ? (
-                        <div className="w-full">
-                          {/* Lecteur vidéo avec contrôles limités */}
-                          <div className="relative">
-                            <video
-                              controls
-                              controlsList="nodownload nofullscreen"
-                              className="w-full rounded-lg"
-                              src={documentActif}
-                              onContextMenu={(e) => e.preventDefault()}
-                            >
-                              Votre navigateur ne supporte pas la lecture de vidéos.
-                            </video>
-                            {/* Filigrane en surimpression */}
-                            <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none select-none">
-                              <span className="text-white text-2xl font-bold rotate-45">ISIMemo</span>
-                            </div>
-                          </div>
-                          <div className="px-4 py-3 bg-primary-50 text-sm text-primary-700 flex items-center">
-                            <span className="material-icons text-sm mr-2">info</span>
-                            Cette vidéo est protégée et peut uniquement être visionnée en ligne. Le téléchargement n'est pas autorisé.
-                          </div>
-                        </div>
-                      ) : (
+                    
+                    {/* Visionneuse PDF intégrée */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-100">
+                      <object
+                        data={memoire.cheminFichier}
+                        type="application/pdf"
+                        className="w-full h-[600px]"
+                      >
                         <div className="p-8 text-center">
                           <div className="w-20 h-20 mx-auto bg-primary-50 rounded-full flex items-center justify-center mb-4">
-                            <span className="material-icons text-primary text-2xl">
-                              {documentActif.includes('.zip') ? 'folder_zip' : 'insert_drive_file'}
-                            </span>
+                            <span className="material-icons text-primary text-3xl">picture_as_pdf</span>
                           </div>
-                          <h4 className="font-medium text-navy mb-2">
-                            {memoire.documents.find(doc => doc.lien === documentActif)?.nom || 'Document'}
-                          </h4>
-                          <p className="text-gray-500 mb-4">Ce type de document ne peut pas être prévisualisé directement dans l'application.</p>
-                          <p className="text-sm text-gray-500 mb-6">
-                            Pour consulter ce document, veuillez contacter l'administrateur de la plateforme.
+                          <p className="text-gray-600 mb-4">
+                            Impossible d'afficher le PDF directement dans le navigateur.
                           </p>
-                          <div className="px-4 py-3 bg-primary-50 text-sm text-primary-700 flex items-center justify-center rounded-lg">
-                            <span className="material-icons text-sm mr-2">lock</span>
-                            Accès restreint pour protéger les droits de propriété intellectuelle.
-                          </div>
+                          <a
+                            href={memoire.cheminFichier}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center bg-primary hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                          >
+                            <span className="material-icons mr-2">open_in_new</span>
+                            Ouvrir le PDF
+                          </a>
                         </div>
-                      )}
+                      </object>
+                    </div>
+                    
+                    <div className="mt-4 px-4 py-3 bg-blue-50 text-sm text-blue-700 flex items-center rounded-lg">
+                      <span className="material-icons text-sm mr-2">info</span>
+                      Ce document peut être consulté en ligne. Pour une meilleure expérience, ouvrez-le dans un nouvel onglet.
                     </div>
                   </div>
                 )}
 
                 {ongletActif === "contact" && (
                   <div>
-                    <h3 className="text-xl font-bold mb-4 text-navy">Contacter l'auteur</h3>
+                    <h3 className="text-xl font-bold mb-4 text-navy">
+                      Contacter {memoire.contacts.length > 1 ? "les auteurs" : "l'auteur"}
+                    </h3>
+                    
+                    {/* Afficher tous les contacts */}
                     <div className="space-y-6">
-                      <div className="flex items-start">
-                        <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mr-4">
-                          <span className="material-icons text-blue-500">email</span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-navy mb-1">Email</h4>
-                          <a
-                            href={`mailto:${memoire.contact.email}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            {memoire.contact.email}
-                          </a>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start">
-                        <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center mr-4">
-                          <span className="material-icons text-green-500">phone</span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-navy mb-1">Téléphone</h4>
-                          <a
-                            href={`tel:${memoire.contact.telephone}`}
-                            className="text-navy-700"
-                          >
-                            {memoire.contact.telephone}
-                          </a>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start">
-                        <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mr-4">
-                          <span className="material-icons text-blue-500">link</span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-navy mb-1">LinkedIn</h4>
-                          <a
-                            href={`https://${memoire.contact.linkedin}`}
-                            className="text-blue-600 hover:underline"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {memoire.contact.linkedin}
-                          </a>
-                        </div>
-                      </div>
-
-                      {/* Formulaire de contact */}
-                      <div className="mt-8 pt-6 border-t border-gray-100">
-                        <h4 className="text-lg font-semibold mb-4">Envoyer un message</h4>
-                        <form className="space-y-4">
-                          <div>
-                            <label htmlFor="nom" className="block text-sm font-medium text-navy-700 mb-1">
-                              Votre nom
-                            </label>
-                            <input
-                              type="text"
-                              id="nom"
-                              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              placeholder="Entrez votre nom"
-                            />
+                      {memoire.contacts.map((contact, index) => (
+                        <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                          <h4 className="font-semibold text-navy mb-3 flex items-center">
+                            <span className="material-icons text-primary mr-2">person</span>
+                            {contact.nom}
+                          </h4>
+                          <div className="space-y-2 ml-8">
+                            {/* Email */}
+                            <div className="flex items-center">
+                              <span className="material-icons text-blue-500 text-sm mr-2">email</span>
+                              <a
+                                href={`mailto:${contact.email}`}
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                {contact.email}
+                              </a>
+                            </div>
+                            {/* Téléphone */}
+                            <div className="flex items-center">
+                              <span className="material-icons text-green-500 text-sm mr-2">phone</span>
+                              <a
+                                href={`tel:${contact.telephone.replace(/\s/g, '')}`}
+                                className="text-green-600 hover:underline text-sm"
+                              >
+                                {contact.telephone}
+                              </a>
+                            </div>
                           </div>
+                        </div>
+                      ))}
+                    </div>
 
-                          <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-navy-700 mb-1">
-                              Votre email
-                            </label>
-                            <input
-                              type="email"
-                              id="email"
-                              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              placeholder="Entrez votre email"
-                            />
-                          </div>
 
-                          <div>
-                            <label htmlFor="message" className="block text-sm font-medium text-navy-700 mb-1">
-                              Message
-                            </label>
-                            <textarea
-                              id="message"
-                              rows={4}
-                              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                              placeholder="Votre message pour l'auteur"
-                            ></textarea>
-                          </div>
 
-                          <button
-                            type="submit"
-                            className="bg-primary hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center"
-                          >
-                            <span className="material-icons mr-2 text-sm">send</span>
-                            Envoyer le message
-                          </button>
-                        </form>
-                      </div>
+                    {/* Formulaire de contact */}
+                    <div className="mt-8 pt-6 border-t border-gray-100">
+                      <h4 className="text-lg font-semibold mb-4">Envoyer un message</h4>
+                      
+                      {/* Message de succès */}
+                      {envoiReussi && (
+                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-700">
+                          <span className="material-icons mr-2">check_circle</span>
+                          <span>Votre client mail s'est ouvert avec le message pré-rempli{memoire.contacts.length > 1 ? ` pour les ${memoire.contacts.length} destinataires` : ''}.</span>
+                        </div>
+                      )}
+                      
+                      <form onSubmit={handleEnvoyerMessage} className="space-y-4">
+                        <div>
+                          <label htmlFor="nom" className="block text-sm font-medium text-navy-700 mb-1">
+                            Votre nom <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="nom"
+                            value={formContact.nom}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="Entrez votre nom"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="email" className="block text-sm font-medium text-navy-700 mb-1">
+                            Votre email <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            value={formContact.email}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="Entrez votre email"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="message" className="block text-sm font-medium text-navy-700 mb-1">
+                            Message <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            id="message"
+                            rows={4}
+                            value={formContact.message}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="Votre message pour l'auteur"
+                          ></textarea>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="bg-primary hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center"
+                        >
+                          <span className="material-icons mr-2 text-sm">send</span>
+                          Envoyer {memoire.contacts.length > 1 ? `aux ${memoire.contacts.length} auteurs` : "le message"}
+                        </button>
+                      </form>
+                      
+
                     </div>
                   </div>
                 )}

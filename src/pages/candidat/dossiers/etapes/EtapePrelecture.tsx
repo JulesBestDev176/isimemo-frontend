@@ -36,13 +36,13 @@ const PRELECTURE_MOCK: Prelecture = {
 const EtapePrelecture: React.FC<EtapePrelectureProps> = ({ dossier, onComplete }) => {
   const [prelecture, setPrelecture] = useState<Prelecture>(() => {
     // Chercher une prélecture existante pour ce dossier, sinon créer une nouvelle
-    const existing = PRELECTURE_MOCK.dossierMemoire.id === dossier.idDossierMemoire 
+    const existing = PRELECTURE_MOCK.dossierMemoire.id === dossier.id 
       ? PRELECTURE_MOCK 
       : {
           ...PRELECTURE_MOCK,
           id: Date.now(),
           dossierMemoire: {
-            id: dossier.idDossierMemoire,
+            id: dossier.id,
             titre: dossier.titre
           },
           dateDemande: new Date(),

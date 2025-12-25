@@ -46,236 +46,34 @@ const useCounter = (end: number, duration: number = 2, delay: number = 0) => {
 import CarteMemoire from "../../components/CarteMemoire";
 import Footer from "../../components/Footer";
 import AffichageMemoire from "../../components/AffichageMemoire";
-
-// Interface pour les mémoires publics
-export interface Memoire {
-  id: number;
-  titre: string;
-  auteur: string;
-  annee: number;
-  mention: string;
-  departement: string;
-  description: string;
-  imageCouverture: string;
-  etiquettes: string[];
-  contact: {
-    email: string;
-    telephone: string;
-    linkedin: string;
-  };
-  superviseur: string;
-  contenuComplet: string;
-  documents: { nom: string; lien: string }[];
-}
-
-// Données de démonstration pour les memoires (réduit à 2 comme demandé)
-const memoiresDémo: Memoire[] = [
-  {
-    id: 1,
-    titre: "Conception et mise en œuvre d'un système de détection d'intrusions basé sur l'apprentissage automatique",
-    auteur: "Mohamed Diallo",
-    annee: 2022,
-    mention: "Très Bien",
-    departement: "Réseaux et Systèmes",
-    description: "Ce memoire présente une nouvelle approche de détection d'intrusions dans les réseaux informatiques en utilisant des algorithmes d'apprentissage automatique. L'étude propose un modèle hybride combinant les réseaux de neurones et les forêts aléatoires pour améliorer la précision de détection.",
-    imageCouverture: "./assets/images/student.png",
-    etiquettes: ["Cybersécurité", "Machine Learning", "Détection d'intrusions", "Réseaux"],
-    contact: {
-      email: "mohamed.diallo@example.com",
-      telephone: "+221 77 123 45 67",
-      linkedin: "linkedin.com/in/mohamed-diallo"
-    },
-    superviseur: "Dr. Fatou Ndiaye",
-    contenuComplet: "Le contenu complet du memoire serait disponible ici, avec introduction, chapitres, etc.",
-    documents: [
-      { nom: "Présentation", lien: "./assets/documents/doc.pdf" },
-      { nom: "Source code", lien: "./assets/documents/doc.pdf" }
-    ]
-  },
-  {
-    id: 2,
-    titre: "Développement d'une application mobile de télémédecine pour zones rurales",
-    auteur: "Aminata Ndiaye",
-    annee: 2023,
-    mention: "Excellent",
-    departement: "Génie Informatique",
-    description: "Cette étude propose une solution de télémédecine adaptée aux contraintes des zones rurales africaines. L'application développée permet aux patients d'accéder à des consultations médicales à distance, même avec une connectivité limitée.",
-    imageCouverture: "./assets/images/student.png",
-    etiquettes: ["Santé", "Application mobile", "Flutter", "Télémédecine"],
-    contact: {
-      email: "aminata.ndiaye@example.com",
-      telephone: "+221 76 987 65 43",
-      linkedin: "linkedin.com/in/aminata-ndiaye"
-    },
-    superviseur: "Prof. Amadou Sow",
-    contenuComplet: "Le contenu complet du memoire serait disponible ici, incluant méthodologie, résultats, et discussion.",
-    documents: [
-      { nom: "Présentation", lien: "./assets/documents/doc.pdf" },
-      { nom: "Démonstration", lien: "./assets/documents/doc.pdf" }
-    ]
-  },
-  {
-    id: 3,
-    titre: "Conception et mise en œuvre d'un système de détection d'intrusions basé sur l'apprentissage automatique",
-    auteur: "Mohamed Diallo",
-    annee: 2022,
-    mention: "Très Bien",
-    departement: "Réseaux et Systèmes",
-    description: "Ce memoire présente une nouvelle approche de détection d'intrusions dans les réseaux informatiques en utilisant des algorithmes d'apprentissage automatique. L'étude propose un modèle hybride combinant les réseaux de neurones et les forêts aléatoires pour améliorer la précision de détection.",
-    imageCouverture: "./assets/images/student.png",
-    etiquettes: ["Cybersécurité", "Machine Learning", "Détection d'intrusions", "Réseaux"],
-    contact: {
-      email: "mohamed.diallo@example.com",
-      telephone: "+221 77 123 45 67",
-      linkedin: "linkedin.com/in/mohamed-diallo"
-    },
-    superviseur: "Dr. Fatou Ndiaye",
-    contenuComplet: "Le contenu complet du memoire serait disponible ici, avec introduction, chapitres, etc.",
-    documents: [
-      { nom: "Présentation", lien: "./assets/documents/doc.pdf" },
-      { nom: "Source code", lien: "./assets/documents/doc.pdf" }
-    ]
-  },
-  {
-    id: 4,
-    titre: "Développement d'une application mobile de télémédecine pour zones rurales",
-    auteur: "Aminata Ndiaye",
-    annee: 2023,
-    mention: "Excellent",
-    departement: "Génie Informatique",
-    description: "Cette étude propose une solution de télémédecine adaptée aux contraintes des zones rurales africaines. L'application développée permet aux patients d'accéder à des consultations médicales à distance, même avec une connectivité limitée.",
-    imageCouverture: "./assets/images/student.png",
-    etiquettes: ["Santé", "Application mobile", "Flutter", "Télémédecine"],
-    contact: {
-      email: "aminata.ndiaye@example.com",
-      telephone: "+221 76 987 65 43",
-      linkedin: "linkedin.com/in/aminata-ndiaye"
-    },
-    superviseur: "Prof. Amadou Sow",
-    contenuComplet: "Le contenu complet du memoire serait disponible ici, incluant méthodologie, résultats, et discussion.",
-    documents: [
-      { nom: "Présentation", lien: "./assets/documents/doc.pdf" },
-      { nom: "Démonstration", lien: "./assets/documents/doc.pdf" }
-    ]
-  },
-  {
-    id: 5,
-    titre: "Conception et mise en œuvre d'un système de détection d'intrusions basé sur l'apprentissage automatique",
-    auteur: "Mohamed Diallo",
-    annee: 2022,
-    mention: "Très Bien",
-    departement: "Réseaux et Systèmes",
-    description: "Ce memoire présente une nouvelle approche de détection d'intrusions dans les réseaux informatiques en utilisant des algorithmes d'apprentissage automatique. L'étude propose un modèle hybride combinant les réseaux de neurones et les forêts aléatoires pour améliorer la précision de détection.",
-    imageCouverture: "./assets/images/student.png",
-    etiquettes: ["Cybersécurité", "Machine Learning", "Détection d'intrusions", "Réseaux"],
-    contact: {
-      email: "mohamed.diallo@example.com",
-      telephone: "+221 77 123 45 67",
-      linkedin: "linkedin.com/in/mohamed-diallo"
-    },
-    superviseur: "Dr. Fatou Ndiaye",
-    contenuComplet: "Le contenu complet du memoire serait disponible ici, avec introduction, chapitres, etc.",
-    documents: [
-      { nom: "Présentation", lien: "./assets/documents/doc.pdf" },
-      { nom: "Source code", lien: "./assets/documents/doc.pdf" }
-    ]
-  },
-  {
-    id: 6,
-    titre: "Développement d'une application mobile de télémédecine pour zones rurales",
-    auteur: "Aminata Ndiaye",
-    annee: 2023,
-    mention: "Excellent",
-    departement: "Génie Informatique",
-    description: "Cette étude propose une solution de télémédecine adaptée aux contraintes des zones rurales africaines. L'application développée permet aux patients d'accéder à des consultations médicales à distance, même avec une connectivité limitée.",
-    imageCouverture: "./assets/images/student.png",
-    etiquettes: ["Santé", "Application mobile", "Flutter", "Télémédecine"],
-    contact: {
-      email: "aminata.ndiaye@example.com",
-      telephone: "+221 76 987 65 43",
-      linkedin: "linkedin.com/in/aminata-ndiaye"
-    },
-    superviseur: "Prof. Amadou Sow",
-    contenuComplet: "Le contenu complet du memoire serait disponible ici, incluant méthodologie, résultats, et discussion.",
-    documents: [
-      { nom: "Présentation", lien: "./assets/documents/doc.pdf" },
-      { nom: "Démonstration", lien: "./assets/documents/doc.pdf" }
-    ]
-  },
-  {
-    id: 7,
-    titre: "Conception et mise en œuvre d'un système de détection d'intrusions basé sur l'apprentissage automatique",
-    auteur: "Mohamed Diallo",
-    annee: 2022,
-    mention: "Très Bien",
-    departement: "Réseaux et Systèmes",
-    description: "Ce memoire présente une nouvelle approche de détection d'intrusions dans les réseaux informatiques en utilisant des algorithmes d'apprentissage automatique. L'étude propose un modèle hybride combinant les réseaux de neurones et les forêts aléatoires pour améliorer la précision de détection.",
-    imageCouverture: "./assets/images/student.png",
-    etiquettes: ["Cybersécurité", "Machine Learning", "Détection d'intrusions", "Réseaux"],
-    contact: {
-      email: "mohamed.diallo@example.com",
-      telephone: "+221 77 123 45 67",
-      linkedin: "linkedin.com/in/mohamed-diallo"
-    },
-    superviseur: "Dr. Fatou Ndiaye",
-    contenuComplet: "Le contenu complet du memoire serait disponible ici, avec introduction, chapitres, etc.",
-    documents: [
-      { nom: "Présentation", lien: "./assets/documents/doc.pdf" },
-      { nom: "Source code", lien: "./assets/documents/doc.pdf" }
-    ]
-  },
-  {
-    id: 8,
-    titre: "Développement d'une application mobile de télémédecine pour zones rurales",
-    auteur: "Aminata Ndiaye",
-    annee: 2023,
-    mention: "Excellent",
-    departement: "Génie Informatique",
-    description: "Cette étude propose une solution de télémédecine adaptée aux contraintes des zones rurales africaines. L'application développée permet aux patients d'accéder à des consultations médicales à distance, même avec une connectivité limitée.",
-    imageCouverture: "./assets/images/student.png",
-    etiquettes: ["Santé", "Application mobile", "Flutter", "Télémédecine"],
-    contact: {
-      email: "aminata.ndiaye@example.com",
-      telephone: "+221 76 987 65 43",
-      linkedin: "linkedin.com/in/aminata-ndiaye"
-    },
-    superviseur: "Prof. Amadou Sow",
-    contenuComplet: "Le contenu complet du memoire serait disponible ici, incluant méthodologie, résultats, et discussion.",
-    documents: [
-      { nom: "Présentation", lien: "./assets/documents/doc.pdf" },
-      { nom: "Démonstration", lien: "./assets/documents/doc.pdf" }
-    ]
-  }
-];
+import { Memoire, memoiresData } from "../../data/memoires.data";
 
 const Memoires = () => {
-  const [memoires, setmemoires] = useState(memoiresDémo);
-  const [memoiresFiltres, setmemoiresFiltres] = useState(memoiresDémo);
-  const [memoireSélectionné, setmemoireSélectionné] = useState<Memoire | null>(null);
-  const [vueDétaillée, setVueDétaillée] = useState(false);
+  const [memoires, setMemoires] = useState(memoiresData);
+  const [memoiresFiltres, setMemoiresFiltres] = useState(memoiresData);
+  const [memoireSelectionne, setMemoireSelectionne] = useState<Memoire | null>(null);
+  const [vueDetaillee, setVueDetaillee] = useState(false);
 
   // Pagination
   const memoiresParPage = 5;
   const [pageCourante, setPageCourante] = useState(1);
-  const indexDerniermemoire = pageCourante * memoiresParPage;
-  const indexPremiermemoire = indexDerniermemoire - memoiresParPage;
-  const memoiresCourants = memoiresFiltres.slice(indexPremiermemoire, indexDerniermemoire);
+  const indexDernierMemoire = pageCourante * memoiresParPage;
+  const indexPremierMemoire = indexDernierMemoire - memoiresParPage;
+  const memoiresCourants = memoiresFiltres.slice(indexPremierMemoire, indexDernierMemoire);
   const nombreTotalPages = Math.ceil(memoiresFiltres.length / memoiresParPage);
 
-  // Filtres améliorés
-  const [requêteRecherche, setRequêteRecherche] = useState("");
-  const [départementSélectionné, setDépartementSélectionné] = useState("");
-  const [annéeSélectionnée, setAnnéeSélectionnée] = useState("");
-  const [mentionSélectionnée, setMentionSélectionnée] = useState("");
-  const [étiquetteSélectionnée, setÉtiquetteSélectionnée] = useState("");
+  // Filtres
+  const [requeteRecherche, setRequeteRecherche] = useState("");
+  const [departementSelectionne, setDepartementSelectionne] = useState("");
+  const [anneeSelectionnee, setAnneeSelectionnee] = useState("");
+  const [etiquetteSelectionnee, setEtiquetteSelectionnee] = useState("");
 
   // Données pour les filtres
-  const départements = [...new Set(memoires.map(m => m.departement))];
-  const années = [...new Set(memoires.map(m => m.annee))].sort((a, b) => b - a);
-  const mentions = [...new Set(memoires.map(m => m.mention))];
+  const departements = [...new Set(memoires.map(m => m.departement))];
+  const annees = [...new Set(memoires.map(m => m.annee))].sort((a, b) => b.localeCompare(a));
 
   // Récupérer toutes les etiquettes uniques
-  const toutesÉtiquettes = [...new Set(memoires.flatMap(m => m.etiquettes))];
+  const toutesEtiquettes = [...new Set(memoires.flatMap(m => m.etiquettes))];
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -284,75 +82,72 @@ const Memoires = () => {
 
   // Effet pour la filtration
   useEffect(() => {
-    let résultat = [...memoires];
+    let resultat = [...memoires];
 
     // Filtrer par recherche (titre, auteur, description, etiquettes)
-    if (requêteRecherche) {
-      const requête = requêteRecherche.toLowerCase();
-      résultat = résultat.filter(memoire =>
-        memoire.titre.toLowerCase().includes(requête) ||
-        memoire.auteur.toLowerCase().includes(requête) ||
-        memoire.description.toLowerCase().includes(requête) ||
-        memoire.etiquettes.some(étiquette => étiquette.toLowerCase().includes(requête))
+    if (requeteRecherche) {
+      const requete = requeteRecherche.toLowerCase();
+      resultat = resultat.filter(memoire =>
+        memoire.titre.toLowerCase().includes(requete) ||
+        memoire.auteur.toLowerCase().includes(requete) ||
+        memoire.description.toLowerCase().includes(requete) ||
+        memoire.etiquettes.some(etiquette => etiquette.toLowerCase().includes(requete))
       );
     }
 
     // Filtrer par département
-    if (départementSélectionné) {
-      résultat = résultat.filter(memoire =>
-        memoire.departement === départementSélectionné
+    if (departementSelectionne) {
+      resultat = resultat.filter(memoire =>
+        memoire.departement === departementSelectionne
       );
     }
 
     // Filtrer par année
-    if (annéeSélectionnée) {
-      résultat = résultat.filter(memoire =>
-        memoire.annee.toString() === annéeSélectionnée
+    if (anneeSelectionnee) {
+      resultat = resultat.filter(memoire =>
+        memoire.annee === anneeSelectionnee
       );
-    }
-
-    // Filtrer par mention
-    if (mentionSélectionnée) {
-      résultat = résultat.filter(memoire => memoire.mention === mentionSélectionnée);
     }
 
     // Filtrer par étiquette
-    if (étiquetteSélectionnée) {
-      résultat = résultat.filter(memoire =>
-        memoire.etiquettes.includes(étiquetteSélectionnée)
+    if (etiquetteSelectionnee) {
+      resultat = resultat.filter(memoire =>
+        memoire.etiquettes.includes(etiquetteSelectionnee)
       );
     }
 
-    setmemoiresFiltres(résultat);
+    // Trier par année académique (les plus récents en premier)
+    resultat.sort((a, b) => b.annee.localeCompare(a.annee));
+
+    setMemoiresFiltres(resultat);
     // Réinitialiser à la première page lors d'un changement de filtre
     setPageCourante(1);
-  }, [requêteRecherche, départementSélectionné, annéeSélectionnée, mentionSélectionnée, étiquetteSélectionnée, memoires]);
+  }, [requeteRecherche, departementSelectionne, anneeSelectionnee, etiquetteSelectionnee, memoires]);
 
-  const gérerClicmemoire = (memoire: Memoire) => {
-    setmemoireSélectionné(memoire);
-    setVueDétaillée(true);
+  const gererClicMemoire = (memoire: Memoire) => {
+    setMemoireSelectionne(memoire);
+    setVueDetaillee(true);
     window.scrollTo(0, 0);
   };
 
-  const fermerVueDétaillée = () => {
-    setVueDétaillée(false);
-    setmemoireSélectionné(null);
+  const fermerVueDetaillee = () => {
+    setVueDetaillee(false);
+    setMemoireSelectionne(null);
   };
 
-  const réinitialiserFiltres = () => {
-    setRequêteRecherche("");
-    setDépartementSélectionné("");
-    setAnnéeSélectionnée("");
-    setMentionSélectionnée("");
-    setÉtiquetteSélectionnée("");
+  const reinitialiserFiltres = () => {
+    setRequeteRecherche("");
+    setDepartementSelectionne("");
+    setAnneeSelectionnee("");
+    setEtiquetteSelectionnee("");
   };
 
-  const changerPage = (numéroPage: number) => {
-    setPageCourante(numéroPage);
+  const changerPage = (numeroPage: number) => {
+    setPageCourante(numeroPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const pagePrécédente = () => {
+  const pagePrecedente = () => {
     if (pageCourante > 1) {
       setPageCourante(pageCourante - 1);
       window.scrollTo(0, 0);
@@ -371,7 +166,7 @@ const Memoires = () => {
     return (
       <div className="flex justify-center items-center space-x-2 mt-8">
         <button
-          onClick={pagePrécédente}
+          onClick={pagePrecedente}
           disabled={pageCourante === 1}
           className={`flex items-center justify-center w-10 h-10 rounded-full ${pageCourante === 1
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -411,10 +206,10 @@ const Memoires = () => {
   return (
     <div>
       <div className="min-h-screen pb-16">
-        {vueDétaillée && memoireSélectionné ? (
+        {vueDetaillee && memoireSelectionne ? (
           <AffichageMemoire
-            memoire={memoireSélectionné}
-            onRetour={fermerVueDétaillée}
+            memoire={memoireSelectionne}
+            onRetour={fermerVueDetaillee}
           />
         ) : (
           <>
@@ -536,18 +331,9 @@ const Memoires = () => {
                         type="text"
                         placeholder="Rechercher par titre, auteur, mot-clé..."
                         className="w-full py-4 px-5 outline-none bg-transparent text-navy-700"
-                        value={requêteRecherche}
-                        onChange={(e) => setRequêteRecherche(e.target.value)}
+                        value={requeteRecherche}
+                        onChange={(e) => setRequeteRecherche(e.target.value)}
                       />
-                      <button
-                        className="bg-primary hover:bg-primary-700 transition-colors text-white font-medium py-4 px-6 mr-1 rounded-lg"
-                        onClick={() => {
-                          // Ajouter ici une logique pour lancer la recherche si nécessaire
-                          // Sinon le onChange de l'input va déjà filtrer les résultats
-                        }}
-                      >
-                        Rechercher
-                      </button>
                     </div>
                   </motion.div>
 
@@ -563,11 +349,11 @@ const Memoires = () => {
                       <span className="text-blue-100 text-sm">Mémoires disponibles</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <span className="font-bold text-3xl">{départements.length}</span>
+                      <span className="font-bold text-3xl">{departements.length}</span>
                       <span className="text-blue-100 text-sm">Départements</span>
                     </div>
                     <div className="flex flex-col items-center">
-                      <span className="font-bold text-3xl">{toutesÉtiquettes.length}</span>
+                      <span className="font-bold text-3xl">{toutesEtiquettes.length}</span>
                       <span className="text-blue-100 text-sm">Thématiques</span>
                     </div>
                   </motion.div>
@@ -621,7 +407,7 @@ const Memoires = () => {
                         Filtres
                       </h2>
                       <button
-                        onClick={réinitialiserFiltres}
+                        onClick={reinitialiserFiltres}
                         className="text-primary hover:text-primary-700 text-sm flex items-center gap-1 transition-colors rounded-full bg-primary-50 px-2 py-1"
                       >
                         <span className="material-icons text-sm">refresh</span>
@@ -642,19 +428,19 @@ const Memoires = () => {
 
                       {/* Filtre par département avec icône */}
                       <div>
-                        <label htmlFor="département" className="block text-navy-700 font-medium text-sm mb-1 flex items-center">
+                        <label htmlFor="departement" className="block text-navy-700 font-medium text-sm mb-1 flex items-center">
                           <span className="material-icons text-gray-400 mr-1 text-sm">business</span>
                           Département
                         </label>
                         <div className="relative">
                           <select
-                            id="département"
+                            id="departement"
                             className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm appearance-none bg-white"
-                            value={départementSélectionné}
-                            onChange={(e) => setDépartementSélectionné(e.target.value)}
+                            value={departementSelectionne}
+                            onChange={(e) => setDepartementSelectionne(e.target.value)}
                           >
                             <option value="">Tous les départements</option>
-                            {départements.map((dept, index) => (
+                            {departements.map((dept, index) => (
                               <option key={index} value={dept}>{dept}</option>
                             ))}
                           </select>
@@ -666,20 +452,20 @@ const Memoires = () => {
 
                       {/* Filtre par année avec icône */}
                       <div>
-                        <label htmlFor="année" className="block text-navy-700 font-medium text-sm mb-1 flex items-center">
+                        <label htmlFor="annee" className="block text-navy-700 font-medium text-sm mb-1 flex items-center">
                           <span className="material-icons text-gray-400 mr-1 text-sm">calendar_today</span>
                           Année
                         </label>
                         <div className="relative">
                           <select
-                            id="année"
+                            id="annee"
                             className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm appearance-none bg-white"
-                            value={annéeSélectionnée}
-                            onChange={(e) => setAnnéeSélectionnée(e.target.value)}
+                            value={anneeSelectionnee}
+                            onChange={(e) => setAnneeSelectionnee(e.target.value)}
                           >
                             <option value="">Toutes les années</option>
-                            {années.map((année, index) => (
-                              <option key={index} value={année}>{année}</option>
+                            {annees.map((annee, index) => (
+                              <option key={index} value={annee}>{annee}</option>
                             ))}
                           </select>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
@@ -688,29 +474,6 @@ const Memoires = () => {
                         </div>
                       </div>
 
-                      {/* Filtre par mention avec icône */}
-                      <div>
-                        <label htmlFor="mention" className="block text-navy-700 font-medium text-sm mb-1 flex items-center">
-                          <span className="material-icons text-gray-400 mr-1 text-sm">grade</span>
-                          Mention
-                        </label>
-                        <div className="relative">
-                          <select
-                            id="mention"
-                            className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm appearance-none bg-white"
-                            value={mentionSélectionnée}
-                            onChange={(e) => setMentionSélectionnée(e.target.value)}
-                          >
-                            <option value="">Toutes les mentions</option>
-                            {mentions.map((mention, index) => (
-                              <option key={index} value={mention}>{mention}</option>
-                            ))}
-                          </select>
-                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                            <span className="material-icons text-sm">expand_more</span>
-                          </div>
-                        </div>
-                      </div>
 
                       {/* Filtre par étiquette avec radio buttons pour les plus populaires */}
                       <div>
@@ -722,102 +485,21 @@ const Memoires = () => {
                         {/* Option de sélecteur pour toutes les étiquettes */}
                         <div className="relative mb-2">
                           <select
-                            id="étiquette"
+                            id="etiquette"
                             className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm appearance-none bg-white"
-                            value={étiquetteSélectionnée}
-                            onChange={(e) => setÉtiquetteSélectionnée(e.target.value)}
+                            value={etiquetteSelectionnee}
+                            onChange={(e) => setEtiquetteSelectionnee(e.target.value)}
                           >
                             <option value="">Toutes les thématiques</option>
-                            {toutesÉtiquettes.map((étiquette, index) => (
-                              <option key={index} value={étiquette}>{étiquette}</option>
+                            {toutesEtiquettes.map((etiquette, index) => (
+                              <option key={index} value={etiquette}>{etiquette}</option>
                             ))}
                           </select>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
                             <span className="material-icons text-sm">expand_more</span>
                           </div>
                         </div>
-
-                        {/* Affichage des étiquettes populaires sous forme de puces cliquables */}
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {toutesÉtiquettes.slice(0, 4).map((tag, index) => (
-                            <button
-                              key={index}
-                              className={`text-xs py-1 px-2 rounded-full transition-colors ${étiquetteSélectionnée === tag
-                                  ? 'bg-primary text-white'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-primary-50 hover:text-primary-700'
-                                }`}
-                              onClick={() => setÉtiquetteSélectionnée(étiquetteSélectionnée === tag ? '' : tag)}
-                            >
-                              {tag}
-                            </button>
-                          ))}
-                        </div>
                       </div>
-
-                      {/* Section filtres actifs */}
-                      {(départementSélectionné || annéeSélectionnée || mentionSélectionnée || étiquetteSélectionnée) && (
-                        <div className="bg-gray-50 rounded-lg p-3 mt-4">
-                          <p className="text-xs text-navy-700 font-medium mb-2">Filtres actifs:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {départementSélectionné && (
-                              <div className="bg-primary-50 text-primary-700 text-xs py-1 px-2 rounded-full flex items-center">
-                                {départementSélectionné}
-                                <button
-                                  className="ml-1 text-primary-700 hover:text-primary"
-                                  onClick={() => setDépartementSélectionné('')}
-                                >
-                                  <span className="material-icons text-xs">close</span>
-                                </button>
-                              </div>
-                            )}
-                            {annéeSélectionnée && (
-                              <div className="bg-primary-50 text-primary-700 text-xs py-1 px-2 rounded-full flex items-center">
-                                {annéeSélectionnée}
-                                <button
-                                  className="ml-1 text-primary-700 hover:text-primary"
-                                  onClick={() => setAnnéeSélectionnée('')}
-                                >
-                                  <span className="material-icons text-xs">close</span>
-                                </button>
-                              </div>
-                            )}
-                            {mentionSélectionnée && (
-                              <div className="bg-primary-50 text-primary-700 text-xs py-1 px-2 rounded-full flex items-center">
-                                {mentionSélectionnée}
-                                <button
-                                  className="ml-1 text-primary-700 hover:text-primary"
-                                  onClick={() => setMentionSélectionnée('')}
-                                >
-                                  <span className="material-icons text-xs">close</span>
-                                </button>
-                              </div>
-                            )}
-                            {étiquetteSélectionnée && (
-                              <div className="bg-primary-50 text-primary-700 text-xs py-1 px-2 rounded-full flex items-center">
-                                {étiquetteSélectionnée}
-                                <button
-                                  className="ml-1 text-primary-700 hover:text-primary"
-                                  onClick={() => setÉtiquetteSélectionnée('')}
-                                >
-                                  <span className="material-icons text-xs">close</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Bouton de validation */}
-                      <button
-                        className="w-full mt-3 bg-primary hover:bg-primary-700 text-white rounded-lg py-2 px-4 text-sm font-medium transition-colors flex items-center justify-center"
-                        onClick={() => {
-                          // Éventuellement mettre à jour les filtres si besoin
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                      >
-                        <span className="material-icons mr-1 text-sm">search</span>
-                        Afficher les résultats
-                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -830,7 +512,7 @@ const Memoires = () => {
                         <CarteMemoire
                           key={memoire.id}
                           memoire={memoire}
-                          onClick={gérerClicmemoire}
+                          onClick={gererClicMemoire}
                         />
                       ))
                     ) : (
@@ -849,7 +531,7 @@ const Memoires = () => {
                           Aucun memoire ne correspond à vos critères de recherche.
                         </p>
                         <button
-                          onClick={réinitialiserFiltres}
+                          onClick={reinitialiserFiltres}
                           className="mt-4 text-primary hover:text-primary-700 font-medium flex items-center gap-2 mx-auto transition-colors"
                         >
                           <span className="material-icons">refresh</span>

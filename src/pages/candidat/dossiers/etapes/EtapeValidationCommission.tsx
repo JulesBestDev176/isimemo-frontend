@@ -21,7 +21,7 @@ const EtapeValidationCommission: React.FC<EtapeValidationCommissionProps> = ({ d
     const nouvelleValidation: ValidationCommission = {
       id: Date.now(),
       dossierMemoire: {
-        id: dossier.idDossierMemoire,
+        id: dossier.id,
         titre: dossier.titre
       },
       dateDemande: new Date(),

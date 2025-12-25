@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Memoire } from "../types/memoire";
+import { Memoire } from "../data/memoires.data";
 
 interface CarteMemoireProps {
   memoire: Memoire;
@@ -9,91 +9,73 @@ interface CarteMemoireProps {
 const CarteMemoire = ({ memoire, onClick }: CarteMemoireProps) => {
   return (
     <motion.div
-      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-1 border border-gray-100"
+      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all transform hover:-translate-y-1 border border-gray-100 cursor-pointer"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4 }}
-      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ scale: 1.01 }}
       onClick={() => onClick(memoire)}
     >
-      <div className="flex flex-col md:flex-row h-full">
-        {/* Image ou couverture du memoire */}
-        <div className="md:w-1/4 bg-gray-100 relative overflow-hidden h-48 md:h-auto">
-          {memoire.imageCouverture ? (
-            <img 
-              src={memoire.imageCouverture} 
-              alt={memoire.titre} 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-primary-50">
-              <span className="material-icons text-primary text-4xl">description</span>
-            </div>
-          )}
-          <div className="absolute top-0 right-0 bg-primary-50 text-primary text-sm font-medium py-1 px-3 m-2 rounded-full">
-            {memoire.annee}
+      <div className="flex flex-row h-full">
+        {/* Icône PDF - couleur primaire */}
+        <div className="w-20 flex-shrink-0 bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <span className="material-icons text-primary text-3xl">picture_as_pdf</span>
+            <span className="text-xs text-primary-700 font-medium mt-1">PDF</span>
           </div>
         </div>
         
-        {/* Contenu du memoire */}
-        <div className="flex-1 p-6 flex flex-col justify-between">
+        {/* Contenu du mémoire - compact */}
+        <div className="flex-1 p-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center mb-2">
-              <span className="bg-navy-50 text-navy-700 text-xs font-medium py-1 px-2 rounded">
+            {/* En-tête: Département et Année académique */}
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="bg-navy-50 text-navy-700 text-xs font-medium py-0.5 px-2 rounded">
                 {memoire.departement}
               </span>
-              <span className="text-xs text-navy-500 ml-3 flex items-center">
-                <span className="material-icons text-amber-500 text-sm mr-1">star</span>
-                {memoire.mention}
+              <span className="bg-primary-50 text-primary text-xs font-medium py-0.5 px-2 rounded">
+                {memoire.annee}
               </span>
             </div>
             
-            <h3 className="text-xl font-bold text-navy mb-2 line-clamp-2">
+            {/* Titre */}
+            <h3 className="text-base font-bold text-navy mb-1 line-clamp-1">
               {memoire.titre}
             </h3>
             
-            <p className="text-navy-700 mb-4 line-clamp-3">
+            {/* Description */}
+            <p className="text-sm text-navy-700 mb-2 line-clamp-2">
               {memoire.description}
             </p>
           </div>
           
-          <div>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {memoire.etiquettes.slice(0, 3).map((etiquette, index) => (
-                <span 
-                  key={index} 
-                  className="bg-primary-50 text-primary-700 text-xs py-1 px-2 rounded-full"
-                >
-                  {etiquette}
-                </span>
-              ))}
-              {memoire.etiquettes.length > 3 && (
-                <span className="text-xs text-navy-500">
-                  +{memoire.etiquettes.length - 3}
-                </span>
-              )}
-            </div>
-            
-            <div className="flex items-center justify-between">
+          {/* Bas: Auteur et Formation */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Auteur */}
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
-                  <span className="material-icons text-gray-500 text-sm">person</span>
-                </div>
-                <span className="text-sm font-medium text-navy">{memoire.auteur}</span>
+                <span className="material-icons text-gray-400 text-sm mr-1">person</span>
+                <span className="text-sm text-navy font-medium">{memoire.auteur}</span>
               </div>
               
-              <button 
-                className="text-primary hover:text-primary-700 text-sm font-medium flex items-center transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClick(memoire);
-                }}
-              >
-                Consulter
-                <span className="material-icons text-sm ml-1">arrow_forward</span>
-              </button>
+              {/* Formation */}
+              <div className="hidden sm:flex items-center">
+                <span className="material-icons text-gray-400 text-xs mr-1">school</span>
+                <span className="text-xs text-gray-600">{memoire.formation}</span>
+              </div>
             </div>
+            
+            <button 
+              className="text-primary hover:text-primary-700 text-sm font-medium flex items-center transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick(memoire);
+              }}
+            >
+              Consulter
+              <span className="material-icons text-sm ml-0.5">arrow_forward</span>
+            </button>
           </div>
         </div>
       </div>

@@ -7,9 +7,12 @@ import {
   MapPin,
   FileText,
   Download,
-  Check
+  Check,
+  Plus
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { dossierService, DossierMemoire } from '../../services/dossier.service';
+import CreateDossierModal from '../../components/dossier/CreateDossierModal';
 
 interface Encadrant {
   id: number;
@@ -86,23 +89,43 @@ const Panel: React.FC = () => {
   const { user } = useAuth();
   const [filtreMessage, setFiltreMessage] = useState<'tous' | 'texte' | 'reunion-meet' | 'presentiel' | 'document'>('tous');
   const [lienCopie, setLienCopie] = useState<number | null>(null);
+  const [dossier, setDossier] = useState<DossierMemoire | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // Données mockées
+  // Charger les données du dossier
+  React.useEffect(() => {
+    const fetchDossierData = async () => {
+      if (user?.id) {
+        try {
+          const userDossier = await dossierService.getDossierCandidat(user.id);
+          setDossier(userDossier);
+        } catch (error) {
+          console.error("Erreur chargement dossier:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchDossierData();
+  }, [user]);
+
+  // Données de l'encadrant (fallback sur mock)
   const encadrant: Encadrant = {
     id: 1,
     nom: 'Ndiaye',
     prenom: 'Abdoulaye',
     email: 'abdoulaye.ndiaye@isi.edu.sn',
-    specialite: 'Réseaux et Télécommunications',
+    specialite: 'Génie Logiciel',
     bureau: 'Bureau 308, Bâtiment A',
     telephone: '+221 33 123 45 67'
   };
 
   const candidat = {
-    nom: user?.name || 'Candidat',
-    prenom: '',
-    sujet: 'Système de gestion de mémoire de fin d\'études',
-    progressionGlobale: 65
+    nom: user?.nom || 'Candidat',
+    prenom: user?.prenom || '',
+    sujet: dossier?.titre || 'Aucun dossier actif',
+    progressionGlobale: dossier?.progression || 0
   };
 
   const notifications: Notification[] = [
@@ -126,29 +149,6 @@ const Panel: React.FC = () => {
           date: '2024-07-04 11:15'
         }
       ]
-    },
-    {
-      id: 2,
-      titre: 'Feedback sur votre chapitre 1',
-      message: 'J\'ai relu votre introduction. Quelques corrections à apporter. Voir le document annoté.',
-      type: 'Feedback',
-      date: '2024-07-03 16:45',
-      lu: false,
-      urgent: false,
-      reponses: []
-    },
-    {
-      id: 3,
-      titre: 'Pré-soutenance approche',
-      message: 'N\'oubliez pas de préparer votre présentation pour la pré-soutenance du 20 juillet.',
-      type: 'Pré-soutenance',
-      date: '2024-07-02 09:15',
-      lu: true,
-      urgent: true,
-      lieu: 'Salle de conférence A, Bâtiment principal',
-      dateRendezVous: '2024-07-20',
-      heureRendezVous: '10:00',
-      reponses: []
     }
   ];
 
@@ -161,51 +161,6 @@ const Panel: React.FC = () => {
       date: '2024-07-04 09:30',
       lu: true,
       titre: 'Feedback sur le chapitre 2'
-    },
-    {
-      id: 2,
-      expediteur: 'encadrant',
-      type: 'reunion-meet',
-      contenu: 'Réunion de suivi programmée pour discuter de l\'avancement de votre mémoire.',
-      date: '2024-07-04 10:15',
-      lu: true,
-      titre: 'Réunion de suivi',
-      lienMeet: 'https://meet.google.com/abc-defg-hij',
-      dateRendezVous: '2024-07-08',
-      heureRendezVous: '14:00'
-    },
-    {
-      id: 3,
-      expediteur: 'encadrant',
-      type: 'presentiel',
-      contenu: 'Pré-soutenance programmée. Préparez votre présentation PowerPoint.',
-      date: '2024-07-04 10:45',
-      lu: false,
-      titre: 'Pré-soutenance',
-      lieu: 'Salle de conférence A, Bâtiment principal',
-      dateRendezVous: '2024-07-20',
-      heureRendezVous: '10:00'
-    },
-    {
-      id: 4,
-      expediteur: 'encadrant',
-      type: 'document',
-      contenu: 'Document annoté avec mes commentaires sur votre introduction.',
-      date: '2024-07-03 16:30',
-      lu: false,
-      titre: 'Document annoté - Introduction',
-      nomDocument: 'Introduction_annotee.pdf',
-      cheminDocument: '/documents/introduction_annotee.pdf',
-      tailleDocument: '2.4 MB'
-    },
-    {
-      id: 5,
-      expediteur: 'encadrant',
-      type: 'texte',
-      contenu: 'N\'oubliez pas de finaliser l\'état de l\'art avant la prochaine réunion.',
-      date: '2024-07-02 14:20',
-      lu: true,
-      titre: 'Rappel - État de l\'art'
     }
   ];
 
@@ -276,6 +231,7 @@ const Panel: React.FC = () => {
     }
   };
 
+
   // Combiner notifications et messages en une seule file de discussion
   const fileDiscussion: MessageDiscussion[] = [
     ...notifications.map(notif => ({
@@ -322,32 +278,64 @@ const Panel: React.FC = () => {
       exit={{ opacity: 0, x: -20 }}
       className="space-y-6"
     >
-      {/* Résumé du projet */}
-      <div className="bg-white border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Mon projet de mémoire</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">Informations générales</h4>
-            <div className="space-y-2 text-sm">
-              <p><span className="font-medium">Sujet:</span> {candidat.sujet}</p>
-              <p><span className="font-medium">Encadrant:</span> Prof. {encadrant.prenom} {encadrant.nom}</p>
-            </div>
+      {/* Résumé du projet / État vide */}
+      {!dossier ? (
+        <div className="bg-white border border-gray-200 p-12 text-center">
+          <div className="bg-gray-50 rounded-full p-6 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+            <FileText className="h-10 w-10 text-gray-400" />
           </div>
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">Progression globale</h4>
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <span>Avancement</span>
-              <span>{candidat.progressionGlobale}%</span>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Pas de dossier actif</h3>
+          <p className="text-gray-600 max-w-md mx-auto mb-8">
+            Vous n'avez pas encore de dossier de mémoire pour l'année académique en cours.
+            Commencez par créer votre dossier en saisissant un titre provisoire.
+          </p>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Créer mon dossier de mémoire</span>
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Mon projet de mémoire</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-gray-700 mb-2">Informations générales</h4>
+              <div className="space-y-2 text-sm">
+                <p><span className="font-medium">Sujet:</span> {candidat.sujet}</p>
+                {dossier.encadrantId && (
+                  <p><span className="font-medium">Encadrant:</span> Prof. {encadrant.prenom} {encadrant.nom}</p>
+                )}
+                {!dossier.encadrantId && (
+                  <p className="text-amber-600 italic">Encadrant non encore désigné</p>
+                )}
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div
-                className="bg-primary h-3 rounded-full transition-all duration-300"
-                style={{ width: `${candidat.progressionGlobale}%` }}
-              ></div>
+            <div>
+              <h4 className="font-medium text-gray-700 mb-2">Progression globale</h4>
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Avancement</span>
+                <span>{candidat.progressionGlobale}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div
+                  className="bg-primary h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${candidat.progressionGlobale}%` }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      <CreateDossierModal 
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        userId={user?.id || ''}
+        onSuccess={(newDossier) => setDossier(newDossier)}
+      />
 
       {/* File de discussion unifiée */}
       <div className="bg-white border border-gray-200 p-6">

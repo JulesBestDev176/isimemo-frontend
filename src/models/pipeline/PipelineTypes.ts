@@ -88,8 +88,10 @@ export interface ValidationCommission {
     titre: string;
   };
   dateDemande: Date;
-  statut: 'en_attente' | 'validee' | 'rejetee';
+  statut: 'en_attente' | 'validee' | 'rejetee' | 'acceptee' | 'refusee';
   dateValidation?: Date;
+  dateReponse?: Date;
   commentaires?: string;
+  motifRefus?: string;
 }
 

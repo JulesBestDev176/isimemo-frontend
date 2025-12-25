@@ -22,7 +22,7 @@ const DossiersPage: React.FC = () => {
         return;
       }
       
-      const candidatId = Number(user.id);
+      const candidatId = user.id;
       console.log('📋 DossiersPage - Fetching dossiers for candidatId:', candidatId);
       
       try {

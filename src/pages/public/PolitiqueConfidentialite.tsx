@@ -1,3 +1,10 @@
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+
+const PolitiqueConfidentialite = () => {
+  useEffect(() => {
     document.title = "Politique de Confidentialité - ISIMemo";
   }, []);
 

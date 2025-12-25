@@ -30,8 +30,8 @@ export const mockPeriodesDepotSujet: PeriodeDepotSujet[] = [
     idPeriode: 2,
     anneeAcademique: '2025-2026',
     dateDebut: new Date('2025-10-01'),
-    dateFin: new Date('2025-11-30'),
-    estActive: false,
+    dateFin: new Date('2025-12-25'),
+    estActive: true,
     dateCreation: new Date('2025-09-15'),
     creePar: 2
   }

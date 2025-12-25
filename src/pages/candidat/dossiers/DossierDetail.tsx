@@ -91,11 +91,16 @@ const getStatutBadgeVariant = (statut: StatutDossierMemoire): 'default' | 'secon
 const getEtapeLabel = (etape: EtapeDossier) => {
   const etapes: Record<EtapeDossier, string> = {
     [EtapeDossier.CHOIX_SUJET]: 'Choix du sujet',
+    [EtapeDossier.CHOIX_BINOME]: 'Choix du binôme',
+    [EtapeDossier.CHOIX_ENCADRANT]: 'Choix de l\'encadrant',
     [EtapeDossier.VALIDATION_SUJET]: 'Validation du sujet',
+    [EtapeDossier.VALIDATION_COMMISSION]: 'Validation commission',
     [EtapeDossier.EN_COURS_REDACTION]: 'Rédaction en cours',
+    [EtapeDossier.PRELECTURE]: 'Prélecture',
     [EtapeDossier.DEPOT_INTERMEDIAIRE]: 'Dépôt intermédiaire',
     [EtapeDossier.DEPOT_FINAL]: 'Dépôt final',
     [EtapeDossier.SOUTENANCE]: 'Soutenance',
+    [EtapeDossier.CORRECTION]: 'Correction',
     [EtapeDossier.TERMINE]: 'Terminé'
   };
   return etapes[etape] || etape;
@@ -120,9 +125,9 @@ const DossierDetail: React.FC<DossierDetailProps> = ({ dossier, documents, onBac
   // Récupérer le procès-verbal du dossier
   const processVerbal = useMemo(() => {
     return mockProcessVerbaux.find(pv => 
-      pv.soutenance?.dossierMemoire?.idDossierMemoire === dossier.idDossierMemoire
+      pv.soutenance?.dossierMemoire?.idDossierMemoire === dossier.id
     );
-  }, [dossier.idDossierMemoire]);
+  }, [dossier.id]);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -6,6 +6,7 @@ import { Input } from "../../components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { AlertCircle, Eye, EyeOff, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { authService } from '../../services/auth.service';
 
 const ChangePassword = () => {
   const navigate = useNavigate();
@@ -53,22 +54,10 @@ const ChangePassword = () => {
     setIsLoading(true);
 
     try {
-      // Appeler l'API de changement de mot de passe
-      const response = await fetch('http://localhost:8084/api/auth/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-        },
-        body: JSON.stringify({
-          email,
-          newPassword
-        })
-      });
+      // Appel au service d'authentification pour changer le mot de passe
+      const data = await authService.changePassword(email, newPassword);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (data.success) {
         // Se reconnecter avec le nouveau mot de passe
         console.log('🔄 Reconnexion avec le nouveau mot de passe...');
         const loginSuccess = await login(email, newPassword);
@@ -81,7 +70,7 @@ const ChangePassword = () => {
           setTimeout(() => navigate('/login'), 2000);
         }
       } else {
-        setError(data.message || 'Erreur lors du changement de mot de passe.');
+        setError('Erreur lors du changement de mot de passe.');
       }
     } catch (err) {
       setError('Une erreur s\'est produite. Veuillez réessayer.');

@@ -1,3 +1,17 @@
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+
+const CGU = () => {
+  useEffect(() => {
+    document.title = "Conditions Générales d'Utilisation - ISIMemo";
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      <Navbar />
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

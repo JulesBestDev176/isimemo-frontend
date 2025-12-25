@@ -116,8 +116,8 @@ const EtapeChoixEncadrant: React.FC<EtapeChoixEncadrantProps> = ({ dossier, onCo
   
   // Trouver la demande en cours pour ce dossier
   const demandeEnCours = useMemo(() => {
-    return demandesEnvoyees.find(d => d.dossierMemoire.id === dossier.idDossierMemoire);
-  }, [demandesEnvoyees, dossier.idDossierMemoire]);
+    return demandesEnvoyees.find(d => d.dossierMemoire.id === dossier.id);
+  }, [demandesEnvoyees, dossier.id]);
 
   // Si une demande existe et est en attente ou acceptée, afficher l'onglet attente
   useEffect(() => {
@@ -146,7 +146,7 @@ const EtapeChoixEncadrant: React.FC<EtapeChoixEncadrantProps> = ({ dossier, onCo
 
   // Vérifier si une demande a déjà été envoyée à un encadrant
   const demandeExistante = (encadrantId: number): DemandeEncadrant | undefined => {
-    return demandesEnvoyees.find(d => d.encadrant.id === encadrantId && d.dossierMemoire.id === dossier.idDossierMemoire);
+    return demandesEnvoyees.find(d => d.encadrant.id === encadrantId && d.dossierMemoire.id === dossier.id);
   };
 
   const encadrantsFiltres = ENCADRANTS_DISPONIBLES.filter(encadrant => {
@@ -188,7 +188,7 @@ const EtapeChoixEncadrant: React.FC<EtapeChoixEncadrantProps> = ({ dossier, onCo
         id: Date.now(),
         encadrant: encadrantSelectionne,
         dossierMemoire: {
-          id: dossier.idDossierMemoire,
+          id: dossier.id,
           titre: dossier.titre,
           description: dossier.description
         },

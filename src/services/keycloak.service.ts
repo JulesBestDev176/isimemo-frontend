@@ -1,4 +1,4 @@
-// Service d'authentification Keycloak
+// Service d'authentification Keycloak - Mode Mock (pas de connexion backend)
 export interface KeycloakTokenResponse {
   access_token: string;
   expires_in: number;
@@ -19,101 +19,64 @@ export interface KeycloakUserInfo {
   email: string;
 }
 
-const KEYCLOAK_URL = 'http://localhost:8083';
-const REALM = 'academic-realm';
-const CLIENT_ID = 'frontend-app';
-
 export const keycloakService = {
   /**
-   * Authentifier un utilisateur avec Keycloak
+   * Authentifier un utilisateur (mode mock)
    */
-  login: async (email: string, password: string): Promise<KeycloakTokenResponse> => {
-    const tokenUrl = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`;
+  login: async (email: string, _password: string): Promise<KeycloakTokenResponse> => {
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    const params = new URLSearchParams();
-    params.append('grant_type', 'password');
-    params.append('client_id', CLIENT_ID);
-    params.append('username', email);
-    params.append('password', password);
-    
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString(),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error_description || 'Authentification échouée');
-    }
-    
-    return response.json();
+    return {
+      access_token: 'mock-access-token-' + Date.now(),
+      expires_in: 3600,
+      refresh_expires_in: 7200,
+      refresh_token: 'mock-refresh-token-' + Date.now(),
+      token_type: 'Bearer',
+      session_state: 'mock-session-' + Date.now(),
+      scope: 'openid profile email'
+    };
   },
 
   /**
-   * Récupérer les informations de l'utilisateur connecté
+   * Récupérer les informations de l'utilisateur (mode mock)
    */
-  getUserInfo: async (accessToken: string): Promise<KeycloakUserInfo> => {
-    const userInfoUrl = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/userinfo`;
+  getUserInfo: async (_accessToken: string): Promise<KeycloakUserInfo> => {
+    await new Promise(resolve => setTimeout(resolve, 200));
     
-    const response = await fetch(userInfoUrl, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error('Impossible de récupérer les informations utilisateur');
-    }
-    
-    return response.json();
+    return {
+      sub: 'mock-user-id',
+      email_verified: true,
+      name: 'Utilisateur Mock',
+      preferred_username: 'mock.user',
+      given_name: 'Mock',
+      family_name: 'Utilisateur',
+      email: 'mock@example.com'
+    };
   },
 
   /**
-   * Rafraîchir le token d'accès
+   * Rafraîchir le token d'accès (mode mock)
    */
-  refreshToken: async (refreshToken: string): Promise<KeycloakTokenResponse> => {
-    const tokenUrl = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`;
+  refreshToken: async (_refreshToken: string): Promise<KeycloakTokenResponse> => {
+    await new Promise(resolve => setTimeout(resolve, 200));
     
-    const params = new URLSearchParams();
-    params.append('grant_type', 'refresh_token');
-    params.append('client_id', CLIENT_ID);
-    params.append('refresh_token', refreshToken);
-    
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString(),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Impossible de rafraîchir le token');
-    }
-    
-    return response.json();
+    return {
+      access_token: 'mock-refreshed-access-token-' + Date.now(),
+      expires_in: 3600,
+      refresh_expires_in: 7200,
+      refresh_token: 'mock-refreshed-refresh-token-' + Date.now(),
+      token_type: 'Bearer',
+      session_state: 'mock-session-' + Date.now(),
+      scope: 'openid profile email'
+    };
   },
 
   /**
-   * Déconnecter l'utilisateur
+   * Déconnecter l'utilisateur (mode mock)
    */
-  logout: async (refreshToken: string): Promise<void> => {
-    const logoutUrl = `${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/logout`;
-    
-    const params = new URLSearchParams();
-    params.append('client_id', CLIENT_ID);
-    params.append('refresh_token', refreshToken);
-    
-    await fetch(logoutUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString(),
-    });
+  logout: async (_refreshToken: string): Promise<void> => {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    keycloakService.clearTokens();
   },
 
   /**

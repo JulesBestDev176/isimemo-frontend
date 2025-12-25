@@ -7,8 +7,11 @@ export type UserType = 'etudiant' | 'professeur' | 'assistant';
 export interface User {
   id: string;
   name: string;
+  nom?: string;
+  prenom?: string;
   email: string;
   type: UserType;
+  role?: string;
   department?: string;
   estCandidat?: boolean;
   estChef?: boolean;

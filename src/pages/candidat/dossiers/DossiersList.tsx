@@ -16,9 +16,12 @@ import { Input } from '../../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 
+import CreateDossierModal from '../../../components/dossier/CreateDossierModal';
+
 interface DossiersListProps {
   dossiers: DossierMemoire[];
   onDossierClick: (dossierId: number) => void;
+  onDossierCreated?: (dossier: DossierMemoire) => void;
 }
 
 const getStatutLabel = (statut: StatutDossierMemoire) => {
@@ -52,10 +55,15 @@ const getStatutBadgeVariant = (statut: StatutDossierMemoire): 'default' | 'secon
 const getEtapeLabel = (etape: EtapeDossier) => {
   const etapes: Record<EtapeDossier, string> = {
     [EtapeDossier.CHOIX_SUJET]: 'Choix du sujet',
+    [EtapeDossier.CHOIX_BINOME]: 'Choix du binôme',
+    [EtapeDossier.CHOIX_ENCADRANT]: 'Choix de l\'encadrant',
+    [EtapeDossier.VALIDATION_COMMISSION]: 'Validation commission',
     [EtapeDossier.VALIDATION_SUJET]: 'Validation du sujet',
     [EtapeDossier.EN_COURS_REDACTION]: 'Rédaction en cours',
+    [EtapeDossier.PRELECTURE]: 'Pré-lecture',
     [EtapeDossier.DEPOT_INTERMEDIAIRE]: 'Dépôt intermédiaire',
     [EtapeDossier.DEPOT_FINAL]: 'Dépôt final',
+    [EtapeDossier.CORRECTION]: 'Corrections',
     [EtapeDossier.SOUTENANCE]: 'Soutenance',
     [EtapeDossier.TERMINE]: 'Terminé'
   };
@@ -72,18 +80,19 @@ const formatDate = (date: Date | string) => {
   });
 };
 
-const DossiersList: React.FC<DossiersListProps> = ({ dossiers, onDossierClick }) => {
+const DossiersList: React.FC<DossiersListProps> = ({ dossiers, onDossierClick, onDossierCreated }) => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const filteredDossiers = useMemo(() => {
     if (!searchQuery.trim()) return dossiers;
     
     const query = searchQuery.toLowerCase();
     return dossiers.filter(dossier => 
-      dossier.titre.toLowerCase().includes(query) ||
-      dossier.description.toLowerCase().includes(query) ||
-      (dossier.anneeAcademique && dossier.anneeAcademique.toLowerCase().includes(query))
+      (dossier.titre?.toLowerCase() || '').includes(query) ||
+      (dossier.description?.toLowerCase() || '').includes(query) ||
+      (dossier.anneeAcademique?.toLowerCase() || '').includes(query)
     );
   }, [dossiers, searchQuery]);
 
@@ -109,6 +118,15 @@ const DossiersList: React.FC<DossiersListProps> = ({ dossiers, onDossierClick })
                 {user?.estCandidat ? 'Gérez vos dossiers de mémoire en tant que candidat' : 'Consultez vos dossiers de mémoire'}
               </p>
             </div>
+            {user?.type === 'etudiant' && (
+              <Button 
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-5 w-5" />
+                Créer un dossier
+              </Button>
+            )}
           </div>
 
           {/* Barre de recherche */}
@@ -134,14 +152,14 @@ const DossiersList: React.FC<DossiersListProps> = ({ dossiers, onDossierClick })
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {dossiersEnCours.map((dossier, index) => (
                 <motion.div
-                  key={dossier.idDossierMemoire}
+                  key={dossier.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <Card
                     className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary"
-                    onClick={() => onDossierClick(dossier.idDossierMemoire)}
+                    onClick={() => onDossierClick(dossier.id)}
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between mb-2">
@@ -192,14 +210,14 @@ const DossiersList: React.FC<DossiersListProps> = ({ dossiers, onDossierClick })
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {dossiersTermines.map((dossier, index) => (
                 <motion.div
-                  key={dossier.idDossierMemoire}
+                  key={dossier.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <Card
                     className="cursor-pointer hover:shadow-lg transition-all duration-200"
-                    onClick={() => onDossierClick(dossier.idDossierMemoire)}
+                    onClick={() => onDossierClick(dossier.id)}
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between mb-2">
@@ -248,15 +266,35 @@ const DossiersList: React.FC<DossiersListProps> = ({ dossiers, onDossierClick })
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 {searchQuery ? 'Aucun dossier trouvé' : 'Aucun dossier'}
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 {searchQuery 
                   ? 'Essayez avec d\'autres mots-clés'
-                  : 'Votre dossier de mémoire devrait être créé automatiquement lors de votre inscription. Si vous ne voyez pas de dossier, veuillez contacter l\'administration.'}
+                  : 'Vous n\'avez pas encore de dossier de mémoire actif. Vous pouvez en créer un dès maintenant pour entamer le processus.'}
               </p>
+              {!searchQuery && user?.type === 'etudiant' && (
+                <Button 
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center gap-2 mx-auto"
+                  size="lg"
+                >
+                  <Plus className="h-5 w-5" />
+                  Créer mon dossier maintenant
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
       </div>
+
+      <CreateDossierModal 
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        userId={user?.id || ''}
+        onSuccess={(dossier) => {
+          if (onDossierCreated) onDossierCreated(dossier as any);
+          onDossierClick(dossier.id);
+        }}
+      />
     </div>
   );
 };

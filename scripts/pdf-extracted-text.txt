@@ -1,0 +1,240 @@
+
+================================================================================
+FILE: Abdou Fatah Ndiaye.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport d ’ stage pour   l’obtention de la licence professionnelle en Génie Logiciel  Présenté et   soutenu par   :   Sous la direction de  M. NDIAYE Abdou Fatah  Etude et   Réalisation d’une plateforme de gestion de rendez - vous  médicale   : Cas d u Centre Hospitalier   Abas Ndao  M. Matar THIOYE  Spécialité   : Senior  Développeur  Année Académique   : 2023   - 2024  ISI
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la   Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport d ’ stage pour l’obtention de la licence professionnelle en Génie Logiciel  Présenté et soutenu par   :   Sous la direction de  M. NDIAYE Abdou Fatah  Etude et Réalisation d’une plateforme de gestion de   rendez - vous  médicale   :   Cas du Centre Hospitalier Abas Ndao  M. Matar THIOYE  Spécialité   : Senior  Développeur  Année   Académique   : 2023   - 2024  ISI
+--- PAGE 3 ---
+Etude et Réalisation d’une plateforme de gestion de rendez - vous médicale   : Cas du centre   hospitalier Abas Ndao  I  A LA   MEMOIRE  Tous ceux qui ont contribué à notre éducation, à notre formation et à notre réussite et qui ne  sont plus là malheureusement :  ➢   Père Alboury SECK  Paix à son âme. Puisse Dieu le Miséricordieux l’accueillir dans son paradis.
+
+
+================================================================================
+FILE: Conception et Réalisation d'un Portail Web pour la Gestion Dématérialisée des Services Municipaux.pptx.pdf
+================================================================================
+
+--- PAGE 1 ---
+Conception et Réalisation d'un Portail Web pour la Gestion Dématérialisée des Services Municipaux  Mémoire de fin de cycle - Licence professionnelle  M. Al Hassane DIALLO  Institut Supérieur d'Informatique - Dakar
+--- PAGE 2 ---
+Plan  ➔   Introduction  ➔   Analyse des besoins  ➔   Conception et Modelisation  ➔   Inspiration GovStack  ➔   Architecture du Systeme  ➔   Technologies et Outils Utilisés  ➔   Interface Utilisateur  ➔   Resultats et Bilan  ➔   Conclusion et Perspectives
+--- PAGE 3 ---
+Introduction  Contexte :   La dématérialisation des services  publics représente un enjeu majeur pour les  administrations modernes.  Problématique :   Comment concevoir un système  de dématérialisation des services municipaux qui  soit inclusif, sécurisé, efficace et adapté au contexte  sénégalais ?  Objectifs :  Concevoir une architecture logicielle robuste et évolutive  Développer un module de gestion des demandes en ligne  Mettre en place un système de paiement sécurisé
+
+
+================================================================================
+FILE: FallNdour.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un peuple - Un but - Une foi  Ministère de l’Enseignement Supérieur de la Recherche et de l’Innovation  Direction Générale de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Département   : Génie   Informatique  Mémoire de fin de cycle pour l’obtention de   la   Licence professionnel le  Option : Génie Logiciel  Sujet   :  Présenté par   :  M .   Souleymane   FALL  M.   Aliou   NDOUR  Sous la direction de   : M.   Moussa   WADE  Spécialité :   Ing é nieur Devops et Cloud  Soutenu à ISI Dakar ,   le  Membres du Jury  Président  Superviseur de mémoire  Examinateur 1 :  Examinateur 2 :  Directeur de   mémoire  Année académique   : 2024 - 2025  Etude   et   R éalisation d’une   p lateforme   intelligente   de  gestion des m é moires académiques   :   C as ISI
+--- PAGE 2 ---
+
+--- PAGE 3 ---
+REPUBLIQUE DU SENEGAL  Un peuple - Un but - Une foi  Ministère de l’Enseignement Supérieur de la Recherche et de l’Innovation  Direction Générale de   l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Département   : Génie Informatique  Mémoire de fin de cycle pour l’obtention de   la   Licence professionnel le  Option : Génie Logiciel  Sujet   :  Présenté par   :  M .   Souleymane   FALL  M.   Aliou   NDOUR  Sous la direction de   : M.   Moussa   WADE  Spécialité :   Ing é nieur Devops et Cloud  Soutenu à ISI Dakar ,   le  Membres du Jury  Président  Superviseur de mémoire  Examinateur 1 :  Examinateur 2 :  Directeur de mémoire  Année académique   : 2024 - 2025  Etude   et   R éalisation d’une   plateforme   intelligente   de  gestion des m é moires académiques   : Cas ISI
+
+
+================================================================================
+FILE: Ibrahim Bocoum[4].pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’Innovation  Direction   de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport d’stage   de fin   de   cycle pour l’obtention de la licence  professionnelle en Génie Logiciel  Présenté et soutenu par   :   Sous la direction de  Conception et réalisation d’une Plateforme de Réservation de  Voyage pour une Agence de   BOCOUM TRANSPORT  Année Académique   : 202 3   - 202 4  ISI  M.   Ibrahima Amadou Bocoum   M. Matar THIOYE  Spécialité   :   Senior développeur
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’Innovation  Direction   de   l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport d’stage   de   fin de   cycle pour l’obtention de la licence  professionnelle en Génie Logiciel  Présenté et soutenu par   :   Sous la direction de  Conception et réalisation d’une Plateforme de Réservation de  Voyage pour une Agence de   BOCOUM TRANSPORT  M.   Ibrahima Amadou Bocoum   M. Matar THIOYE  Spécialité   :   Senior développeur  Année Académique   : 202 3   - 202 4  ISI
+--- PAGE 3 ---
+Conception et réalisation d’une Plateforme   de Réservation de   V oyage pour une   A gence de   bocoum  transport  I  A LA MEMOIRE  Toutes les personnes qui de loin ou de près ont contribué à notre réussite qui  malheureusement ne sont plus de ce monde.  •   Amadou   H amadi Bocoum  •   Mouhamed   T idiane Koita  Que leur âme repose en paix et qu’Allah les pardonne et les accueille dans son paradis éternel.  Amine.
+
+
+================================================================================
+FILE: Memoire Awa THIAM.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de stage en   licence   professionnelle de Génie logiciel  Présenté et soutenu par   :   Sous la   direction :  Etude et réalisation d’une application de gestion de  ressources humaines   processus   de recrutement   pour  les ESN   : cas de Gainde Talent Provider (GTP)  M. Matar THIOYE  Spécialité   :   Développeur Sénior  et Formateur en informatique  Mme.   THIAM Awa  Année Académique   : 202 3 - 202 4
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de stage en licence   professionnelle de Génie logiciel  Présenté et soutenu par   :   Sous la   direction :  Etude et réalisation d’une application de gestion de  ressources humaines processus de recrutement   pour  les ESN   : cas de Gainde Talent Provider (GTP)  M.   Matar   THIOYE  Spécialité   :   Développeur Sénior  et Formateur en informatique  Mme.   THIAM Awa  Année Académique   : 2023 - 2024
+--- PAGE 3 ---
+Etude et réalisation d’une application de gestion de ressources humaines processus de recrutement pour les  ESN : cas de   Gaine   Talent Provider (GTP)  I  A   LA MEMOIRE  T outes les personnes qui ont joué un rôle dans ma réussite, mais qui ne sont malheureusement  plus avec nous .  Que leurs âmes reposent en paix. Puisse Allah leur accorder son pardon et les accueillir dans  son paradis éternel. Amine.
+
+
+================================================================================
+FILE: Memoire Bassine DIALLO2.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’Innovation  Direction   de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de   stage   de fin de cycle pour   l’obtention de la licence  professionnelle en G énie Logiciel  Présenté et soutenu par   :   Sous la direction de  M ll e Bassine DIALLO   M. THIOYE Matar  Spécialité   :   Sénior développeur  Année Académique   : 202 3   - 202 4  ISI  Conception et réalisation d’une   application   Desktop   pour la  gestion des   congés ,   des absences   et du télétravail   des employés  de   l’entreprise   STAM
+--- PAGE 2 ---
+Conception et réalisation d’une   application Desktop   pour la gestion des   congés , des absences et du télé travail   des employés  REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’Innovation  Direction   de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de stage   de fin de cycle pour   l’obtention de la licence  professionnelle en G énie Logiciel  Présenté et soutenu par   :   Sous la direction de  M ll e Bassine DIALLO   M. THIOYE Matar  Spécialité   :   Sénior développeur  Année Académique   : 202 3   - 202 4  ISI  Conception et réalisation d’une   application   Desktop   pour la  gestion des   congés ,   des absences   et du télétravail   des employés  de   l’entreprise   STAM
+--- PAGE 3 ---
+Conception et réalisation d’une   application Desktop   pour la gestion des   congés , des absences et du télé travail   des employés  I  A LA MEMOIRE DE  Toutes les personnes   qui ,   ont joué un rôle essentiel ,   de près ou de loin dans  notre éducation, notre formation et notre réussite, mais malheureusement qui ne sont  plus parmi nous .   Leur impact sur nos vies, leur enseignement précieux et leur soutien  inestimable restent gravés dans nos cœurs. Nous exprimons notre gratitude et notre  reconnaissance éternelle envers ces personnes qui ont contribué à façonner notre  parcours académique et   professionnel.   Nous leur rendons hommage et exprimons notre  gratitude infinie pour tout ce qu ’elle s o nt apporté à nos vies.  Paix à leur âme et que   Dieu   les accueille au paradis   ! Ameen.
+
+
+================================================================================
+FILE: Memoire MAMA AICHATOU SAKHO L3.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de stage   pour l’obtention de la licence professionnelle  en Génie Logiciel   (G.L)  ETUDE ET REALISATION D’UNE PLATEFORME WEB  DE LOCATION ET DE VENTE DE BIEN IMMOBILIER   POUR L’ENTREPRISE  DJIBRIL SAKHO IMMOBILIER (DSI)  Présenté et soutenu par :   Sous la direction de  Mme. Mama Aichatou SAKHO   M . Mata r   THIOYE  Spécialité : Développeur Sénior  et Formateur en informatique  Année Académique : 202 3   -   202 4
+--- PAGE 2 ---
+REPUBLIQUE DU   SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de stage   pour l’obtention de la licence professionnelle  en Génie Logiciel   (G.L)  ETUDE ET REALISATION D’UNE PLATEFORME WEB  DE LOCATION ET DE VENTE DE BIEN IMMOBILIER   POUR L’ENTREPRISE  DJIBRIL SAKHO IMMOBILIER (DSI)  Présenté et soutenu par :   Sous la direction de  Mme. Mama Aichatou SAKHO   M. Matar THIOYE  Spécialité : Développeur Sénior  et Formateur en informatique  Année Académique : 202 3   -   202 4
+--- PAGE 3 ---
+Etude et réalisation d’une plateforme web de vente et de location immobilière  I  A LA M E MOIRE DE  Tous ceux qui ont contribué à notre éducation, à notre formation et à notre réussite et qui ne  sont malheureusement plus là.   Que   Dieu leur   accorde   sa   miséricorde   et les   accueillent dans son  paradis céleste Amine .
+
+
+================================================================================
+FILE: Memoire-Reco4i(1).pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE   DU   SENEGAL  Un   peuple-Un   but-Une   foi  Minist è re   de   l ’ Enseignement   Sup é rieur   et   de   la   Recherche  Direction   G é n é rale   de   l ’ Enseignement   Sup é rieur   Priv é  Institut   Sup é rieur   d ’ Informatique  D é partement   :  M é moire   de   fin   de   cycle   pour   l ’ obtention   de   Licence   professionnel  Option   :   Genie   Logiciel  Sujet   :  Pr é sent é   par   :  Kissima   Tandia  Sous   la   direction   de   :  Moussa   Wade  Sp é cialit é   :   Ing é nieur   DevOps   &   Cloud  Ann é e   acad é mique   :   2024-2025  Conception   et   r é alisation   d ’ un   site   e-commerce   &   un  syst è me   de   recommandation   Bas é   sur   IA   Cas   de   Souq
+--- PAGE 2 ---
+
+--- PAGE 3 ---
+REPUBLIQUE   DU   SENEGAL  Un   peuple-Un   but-Une   foi  Minist è re   de   l ’ Enseignement   Sup é rieur   et   de   la   Recherche  Direction   G é n é rale   de   l ’ Enseignement   Sup é rieur   Priv é  Institut   Sup é rieur   d ’ Informatique  D é partement   :  M é moire   de   fin   de   cycle   pour   l ’ obtention   de   Licence   professionnel  Option   :  Sujet   :  Pr é sent é   par   :  Kissima   Tandia  Sous   la   direction   de   :  Moussa   Wade  Sp é cialit é   :   Ing é nieur   DevOps   &   Cloud  Ann é e   acad é mique   :  Conception   et   r é alisation   d ’ un   site   e-commerce   &   un  syst è me   de   recommandation   Bas é   sur   IA   Cas   de   Souq
+
+
+================================================================================
+FILE: MemoireSokhnaDieye.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de stage   pour l’obtention de la licence professionnelle   en   Génie Logiciel  Présenté et soutenu par   :   Sous la direction:  M. Matar THIOYE  Spécialité   :   Développeur   Sénior  et Formateur en informatique  Mme.   Sokhna Dieye  Année Académique   : 2023 - 2024  Développement d’une application de gestion de la  facturation pour une entreprise de services Numériques
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la   Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de stage pour l’obtention de la licence professionnelle en Génie Logiciel  Présenté et soutenu par   :   Sous la   direction:  M. Matar THIOYE  Spécialité   :   Développeur Sénior  et Formateur en informatique  Mme.   Sokhna Dieye  Année Académique   : 2023 - 2024  Développement d’une application de gestion de la  facturation pour une entreprise de services Numériques
+--- PAGE 3 ---
+Développement d’une application de gestion de la   facturation pour une entreprise de services  Numériques  I  A LA MEMOIRE   DE  Tous ceux qui ont contribué à notre éducation, à notre formation et à notre   réussite et qui ne  sont plus là malheureusement.  Que Dieu leur accorde Son pardon, Sa miséricorde et leur accueille au paradis. Amine.
+
+
+================================================================================
+FILE: MEMOIRE_CHEIKH_HOULEYMATOU.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un peuple - Un but - Une foi  Ministère de l’Enseignement Supérieur de la Recherche et de l’Innovation  Direction Générale de l’Enseignement Supérieur Privé  Institut   Supérieur d’Informatique  Département   : Génie Informatique  Mémoire de fin de cycle pour l’obtention de   la   Licence professionnel le  Option : Génie Logiciel  Sujet   :  Présenté par   :  Mme Houleymatou   DIALLO  M. Cheikh Tidiane   TRAORE  Sous la direction de   : M. Abdoulaye   LY  Spécialité :   Architecte Logiciel  Soutenu à ISI Dakar le,  Membres du Jury  Président  Superviseur de mémoire  Examinateur 1 :  Examinateur 2 :  Directeur de mémoire  Année académique   : 2024 - 2025  Conception et réalisation d’une Application mobile de  covoiturage pour la ville de Dakar
+--- PAGE 2 ---
+
+--- PAGE 3 ---
+REPUBLIQUE DU SENEGAL  Un peuple - Un but - Une foi  Ministère de l’Enseignement Supérieur de la   Recherche et de l’Innovation  Direction Générale de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Département   : Génie Informatique  Mémoire de fin de cycle pour l’obtention de   la   Licence professionnel le  Option : Génie Logiciel  Sujet   :  Présenté par   :  Mme Houleymatou   DIALLO  M. Cheikh Tidiane   TRAORE  Sous la direction de   : M. Abdoulaye   LY  Spécialité :   Architecte Logiciel  Soutenu à ISI Dakar le,  Membres du Jury  Président  Superviseur de mémoire  Examinateur 1 :  Examinateur 2 :  Directeur de mémoire  Année académique   : 2024 - 2025  Conception et réalisation d’une Application mobile de  covoiturage pour la ville de Dakar
+
+
+================================================================================
+FILE: memoire_licence.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de Stage   pour l’obtention de la licence professionnelle en Génie  Logiciel  Présenté et soutenu par   :   Sous la   direction :  Etude et   R éalisation d’une   A pplication de   G estion  D’Immobilisation de ISI  M. Matar THIOYE  Spécialité   :   Développeur Sénior  et Formateur en   informatique  Mme.   N’diaye Amy  Année Académique   : 202 3 - 202 4
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la   Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de Stage pour l’obtention de la licence professionnelle en Génie  Logiciel  Présenté et soutenu par   :   Sous la direction :  Etude et Réalisation d’une Application de   Gestion  D’Immobilisation de ISI  M. Matar THIOYE  Spécialité   :   Développeur Sénior  et Formateur en informatique  Mme. N’diaye Amy  Année Académique   : 2023 - 2024
+--- PAGE 3 ---
+I  Dédicace  Je dédie ce mémoire à ma mère, pour son soutien constant, ses sacrifices et sa  patience tout au long de mes études. Son amour et son encouragement m’ont  donné la force de poursuivre mes rêves.
+
+
+================================================================================
+FILE: my_memory_final.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - u n but - un e   foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’I nnovation  Direction de   l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de stage   pour l’o btention de la licence professionnelle   en   Génie  Logiciel  Présenté et soutenu   par   :   Sous la   direction de  CONCEPTION   ET IMPLEMENTATION   D'UNE   APPLICATION DE  GESTION SCOLAIRE   : CAS DE L' ECOLE COMMUNAUTAIRE DE  NIOUMAMILIMA MBOINKOU   ( ECNM )  M. A noir IBNIYAMINE   M. Matar THIOYE  Spécialité   : Senior développeur  Année Académique   : 202 3   - 202 4  ISI
+--- PAGE 2 ---
+CONCEPTION ET   IMPLEMENTATION D'UNE APPLICATION DE GESTION SCOLAIRE : CAS DE L'ECOLE  COMMUNAUTAIRE DE NIOUMAMILIMA MBOINKOU (ECNM)  i  REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de stage   pour l’obtention de la licence professionnelle en Génie  Logiciel  Présenté et soutenu par   :   Sous la direction de  CONCEPTION ET IMPLEMENTATION D'UNE APPLICATION DE  GESTION SCOLAIRE : CAS DE L'ECOLE   COMMUNAUTAIRE DE  NIOUMAMILIMA MBOINKOU (ECNM)  M. A noir IBNIYAMINE   M. Matar THIOYE  Spécialité   : Senior développeur  Année Académique   : 202 3   - 202 4  ISI
+--- PAGE 3 ---
+CONCEPTION ET   IMPLEMENTATION D'UNE APPLICATION DE GESTION SCOLAIRE : CAS DE L'ECOLE  COMMUNAUTAIRE DE NIOUMAMILIMA MBOINKOU (ECNM)  ii  A L A MEMOIRE  Toutes les personnes qui de loin ou de près ont contribué à notre réussite qui  malheureusement ne sont plus de ce monde.  •   Mze Assoumani  •   Mche Mkaya  Que leur âme repose en paix et qu’Allah les   pardonne et les   accueille dans son paradis éternel.  Am i n e .
+
+
+================================================================================
+FILE: ndeye ngoundje og (4).pdf
+================================================================================
+
+--- PAGE 1 ---
+République du Sénégal  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de stage   de fin de cycle pour l’obtention de la licence professionnelle  en Génie Logiciel  Présenté et soutenu par :   Sous la direction   de   :  M me .   Ndeye Ngoundje   MBAYE   M.   Matar THIOYE  Spécialité   :   Développeur Senior  et Formateur en informatique  Année   a cadémique   :   2023 - 2024  Développement d'une application de gestion de la relation  client pour les entreprises de service de l’immobilier
+--- PAGE 2 ---
+République du Sénégal  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport   de fin de cycle pour l’obtention de la licence professionnelle en  Génie Logiciel  Présenté et soutenu par :   Sous la direction   de   :  M me .   Ndeye Ngoundje   MBAYE   M.   Matar THIOYE  Spécialité   :   Développeur Senior  et Formateur en informatique  Année   a cadémique   :   2023 - 2024  Développement d'une application de gestion de la relation  client pour les entreprises de service de l’immobilier
+--- PAGE 3 ---
+I  A LA MEMOIRE DE  A   tous   ce   qui   ont   contribué   de   près   ou   de   loin   à   notre   éducation   qui   ne   sont   plus  malheureusement avec nous.  Que leurs âmes reposent en paix.   Puisse Dieu, dans Sa miséricorde infinie, les accueillir au  paradis.
+
+
+================================================================================
+FILE: PFE-MoussaAbakar.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DUSENEGAL  Un peuple-Un but-Une foi  Ministèr e de l’Enseignement Supérieur,   de la Recherche et de l’Innovation  Direction Générale de l’Enseignement Supérieur Privé  Institut   Supérieur d’Informatique  Département : Génie Logiciel  Rapport de p rojet de fin d’étude s   pour l’obtention de   la licence professionnelle  Option :   Génie Logiciel  Sujet   :  Année académique : 2024   –   2025  Présenté par   :  M. Moussa ABAKAR HASSANE  Sous la direction de   :   M. Ma tar THIOYE  Spécialité   :   Orbus Digital   Service  Conception et réalisation d’une application permettant   la diffusion  des notifications   pédagogiques et administratives, destinée aux  personnels et aux étudiants de l’ISI.
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un peuple-Un but-Une foi  Ministèr e de l’Enseignement Supérieur,   de la Recherche et de l’Innovation  Direction Générale de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Département : Génie Logiciel  Rapport de p rojet de fin d’étude s   pour l’obtention de la   licence professionnelle  Option :   Génie Logiciel  Sujet   :  Année académique : 2024   –   2025  Présenté par   :  M. Moussa ABAKAR HASSANE  Sous la direction de   :   M. Matar THIOYE  Spécialité   :   Orbus Digital   Service  Conception et réalisation d’une application permettant   la diffusion  des notifications pédagogiques et administratives, destinée aux  personnels et aux étudiants   de l’ISI.
+--- PAGE 3 ---
+Conception et réalisation d’une application permettant la diffusion des notifications pédagogiques et administratives, destin ée aux personnels  et aux étudiants de l’ISI.  I I  À la mémoire de     ma mère Hawa Abakar     mon oncle Hassane     mon cheikh Adam  Leur   amour,   leurs   conseils   et   leurs   bénédictions   ont   profondément   marqué   ma   vie.  Même si leur absence reste une douleur immense, leur souvenir continue d’éclairer mon chemin et d’inspirer chacun de mes efforts .  Qu’Allah, dans Son in finie bonté et Sa miséricorde, leur pardonne, les combles de Sa lumière et leur accorde une place éternelle dans Son paradis. Amine.
+
+
+================================================================================
+FILE: Rapport de Harsy Barry.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’Innovation  Direction   de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de fin de cycle pour l’obtention de la licence professionnelle en  Informatique appliquée à la gestion des entreprises  Présenté et soutenu par   :   Sous la direction   de  Conception et réal isation d'une   application de ge stion des  notes d'informations sur un tableau numérique interactif :  Cas de l'ISI  Mme Barry Harsy   M.   Gaye Abdoulaye  Spécialité   :   :   Ingénieur en  développement  web/mobile   et   DevOps  Année   Académique   : 2024   - 2025  ISI
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’Innovation  Direction   de   l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de fin de cycle pour l’obtention de la licence professionnelle en  informatique appliquée à la gestion des entreprises  Présenté et soutenu   par   :   Sous la direction   de  Conception et réal isation d'une application de ge stion des  notes d'informations sur un tableau numérique interactif :  Cas de l'ISI  Mme Barry Harsy   M.   Gaye Abdoulaye  Spécialité   :   Ingénieur en  développement  web/mobile   et   DevOps  Année   Académique   : 2024   - 2025  ISI
+--- PAGE 3 ---
+A la mémoire de  Tous ceux qui ont contribué à notre éducation, à notre formation et à   notre réussite et  qui ne sont plus là malheureusement   :     Samba Diallo , mon enseignant et mentor depuis mon enfance, qui m’a soutenu et  encouragé comme un grand - père, semant en moi l’envie de réussir.     Sanou Barry , mon grand - père bien - aimé, dont l’amour et la bienveillance  m’accompagnent encore chaque jour.  Paix à leur âme et que Dieu les accueille au paradis. Amine .  I
+
+
+================================================================================
+FILE: Rapport final Cheikh Djidere DIAO.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - u n but - un e   foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’I nnovation  Direction   de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport   de fin de c ycle pour l’o btention de la licence professionnelle   en  Géomatique et Développement d’Application  Présenté et   soutenu   par   :   Sous la direction de  Développement d’une plateforme   Web SIG   pour la  gestion et l’analyse des données géospatiales avec  Laravel et PostGIS  M.   Cheikh Djidere DIAO   M.   Makhmadane L O  Spécialité   :   Développeur Sénior et  Formateur en Informatique  Année   Académique   : 20 2 4   - 202 5
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur ,   de la Recherche   et de l’Innovation  Direction   de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Rapport de fin de cycle pour l’obtention de la licence professionnelle en  Géomatique et Développement   d’Application  Présenté et soutenu par   :   Sous la direction de  Développement d’une plateforme   Web SIG   pour la  gestion et l’analyse des données géospatiales avec  Laravel et PostGIS  M. Cheikh Djidere DIAO   M.   Makhmadane L O  Spécialité   :   Développeur Sénior et  Formateur en Informatique  Année Académique   : 2024   - 2025
+--- PAGE 3 ---
+I  A la mémoire de  A celui   qui   a   contribué à   mon   éducation, à   ma   formation et à   ma   réussite et  qui n ’est   malheureusement   plus parmi nous   :  •   Mon père Younoussa DIAO  Paix à   son   âme et que Dieu l ’ accueille au paradis. Amine.
+
+
+================================================================================
+FILE: rapport_de_stage _baye_bara_diop.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de stage   pour   l’obtention de la licence professionnelle en G énie  Logiciel  Présenté et soutenu par   :   Sous la   direction :  Etude et réalisation d’une application de déclaration  et de suivi de pièce perdue.  M. Matar THIOYE  Spécialité   :   Développeur Sénior  et Formateur en   informatique  M .Baye Bara Diop  Année Académique   : 202 3 - 202 4
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un   peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  ISI  Rapport de stage pour   l’obtention de la licence professionnelle en G énie  Logiciel  Présenté et soutenu par   :   Sous la   direction :  Etude et réalisation d’une application de déclaration  et de suivi de pièce   perdue.  M. Matar THIOYE  Spécialité   :   Développeur Sénior  et Formateur en informatique  M.   Baye Bara Diop  Année Académique   : 202 3 - 202 4
+--- PAGE 3 ---
+Etude et Réalisation d’une Application d e déclaration et de suivi de   pièce perdue  I  A la mémoire de  je dédie ce travail à la mémoire de tous les musulmans et musulmanes qui ont quitté ce  monde. Que leur âme repose en paix et que leur souvenir continue d'inspirer et de guider ceux  qui restent.
+
+
+================================================================================
+FILE: REPUBLIQUE DU SENEGAL.pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Projet de fin de cycle   de la licence professionnelle en Génie Logiciel  Présenté et soutenu par   :   Sous la direction de  M.   GUEYE Samba  Etude et   Réalisation d’une plateforme de gestion de s   mé moires   :  Cas d e l’Institut Supérieur d’Informatique  M.   Abdoulaye GAYE  Spécialité :   Ingénieur  Logiciel  Année Académique   : 202 4   - 202 5  ISI
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Projet de fin de cycle   de la licence professionnelle en Génie Logiciel  Présenté et soutenu par   :   Sous la direction de  M.   GUEYE Samba  Etude et Réalisation d’une plateforme de gestion des mémoires   :  Cas de l’Institut Supérieur d’Informatique  M.   Abdoulaye GAYE  Spécialité :   Ingénieur  Logiciel  Année Académique   : 202 4   - 202 5  ISI
+--- PAGE 3 ---
+Etude et Réalisation d’une plateforme de gestion de s mé mo ires   : Cas d e l’Institut Supé r ieur d’Informatique  I  A LA   MEMOIRE DE  T ous ceux qui ont contribué à notre éducation, à notre formation et à notre réussite et qui ne  sont plus là malheureusement :  ➢   Mbayang SEYE  Paix à   son   âme. Puisse Dieu le Miséricordieux l’accueillir dans son paradis.
+
+
+================================================================================
+FILE: Samba_Gueye (1).pdf
+================================================================================
+
+--- PAGE 1 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur   d’Informatique  Projet de fin de cycle   de la licence professionnelle en Génie Logiciel  Présenté et soutenu par   :   Sous la direction de  M.   GUEYE Samba  Etude et   Réalisation d’une plateforme de gestion de s   mé moires   :  Cas d e l’Institut Supérieur d’Informatique  M.   Abdoulaye GAYE  Spécialité :   Ingénieur  Logiciel  Année Académique   : 202 4   - 202 5  ISI
+--- PAGE 2 ---
+REPUBLIQUE DU SENEGAL  Un peuple - un but - une foi  Ministère de l’Enseignement Supérieur, de   la Recherche et de l’Innovation  Direction de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Projet de fin de cycle   de la licence professionnelle en Génie Logiciel  Présenté et soutenu par   :   Sous la direction de  M.   GUEYE Samba  Etude et Réalisation d’une plateforme de gestion des mémoires   :  Cas de l’Institut Supérieur d’Informatique  M.   Abdoulaye GAYE  Spécialité :   Ingénieur  Logiciel  Année Académique   : 202 4   - 202 5  ISI
+--- PAGE 3 ---
+Etude et Réalisation d’une plateforme de gestion de s mé mo ires   : Cas d e l’Institut Supé r ieu r d’Informatique  I  A LA   MEMOIRE DE  T ous ceux qui ont contribué à notre éducation, à notre formation et à notre réussite et qui ne  sont plus là malheureusement :     Mbayang SEYE  Paix à   son   âme. Puisse Dieu le Misér icordieux l’accueillir dans son paradis.
+
+
+================================================================================
+FILE: Soudaiss-ELFAYADINE-Memoire-L3GL  (Récupération automatique).pdf
+================================================================================
+
+--- PAGE 1 ---
+1  REPUBLIQUE DU SENEGAL  Un peuple - Un but - Une foi  Ministère de l’Enseignement Supérieur et de la Recherche  Direction Générale de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Département   :   Génie Informatique  Mémoire de fin de cycle pour l’obtention de Licence professionnel  Option :   GÉNIE LOGICIEL  Sujet   :  Présenté par   :  M. Soudaiss ELFAYADINE  Sous la direction de   :  M.   Ibrahima L O  Spécialité :   Ingénieure Logiciel  Année académique   :   2024 - 2025  Conception et réalisation d’ u n   site web de réservation  d e voyage pour une agence de voyage .
+--- PAGE 2 ---
+2
+--- PAGE 3 ---
+3  PUBLIQUE DU SENEGAL  Un peuple - Un but - Une foi  Ministère de l’Enseignement Supérieur et de la Recherche  Direction Générale de l’Enseignement Supérieur Privé  Institut Supérieur d’Informatique  Département   :   Génie Informatique  Mémoire de fin de cycle pour l’obtention de   Licence   professionnel  Option :   GÉNIE LOGICIEL  Sujet   :  Présenté par   :  M. Soudaiss ELFAYADINE  Sous la direction de   :  M.   Ibrahima L O  Spécialité :   Ingénieure Logiciel  Année académique   :   2024 - 202 5  Conception et réalisation d’ u n   site web de réservation  d e voyage pour une agence de voyage
+

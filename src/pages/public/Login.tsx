@@ -176,125 +176,19 @@ const Login = () => {
           </Card>
           
           <div className="mt-8 text-center text-sm text-gray-400">
-            <p className="mb-2">Utiliser un compte test :</p>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {mockUsers.map((user: any, idx: number) => (
-                <div key={user.email} className="flex items-center justify-between bg-white/10 rounded p-2">
-                  <div>
-                    <span className="font-semibold text-white text-xs">{getRoles(user)}</span>
-                    <span className="ml-2 text-xs text-gray-300">{user.email} / {user.password}</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="ml-2 px-2 py-1 text-xs bg-primary text-white rounded hover:bg-primary-700"
-                    onClick={() => fillUser(user)}
-                  >
-                    Remplir
-                  </button>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4">© 2025 ISIMemo. Tous droits réservés.</p>
+            <p>© 2025 ISIMemo. Tous droits réservés.</p>
           </div>
         </motion.div>
       </div>
       
-      {/* Partie informative à droite */}
+      {/* Image à droite */}
       <div className="hidden lg:block w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-navy-900/80 z-10"></div>
+        <div className="absolute inset-0 bg-navy-900/40 z-10"></div>
         <img 
           src="/images/etudiante.png" 
           alt="Diplômée" 
           className="absolute h-full w-full object-cover object-center" 
         />
-        
-        <motion.div 
-          className="absolute inset-0 z-20 flex items-center p-16"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          <div className="max-w-md">
-            <motion.div 
-              className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 shadow-2xl"
-              initial={{ y: 20 }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-            >
-              <motion.div
-                className="w-14 h-14 bg-primary-500/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-              >
-                <span className="material-icons text-2xl text-primary-300">auto_stories</span>
-              </motion.div>
-              
-              <motion.h2 
-                className="text-3xl font-bold text-white mb-4"
-                initial={{ x: -20 }}
-                animate={{ x: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-              >
-                Gérez vos mémoires académiques
-              </motion.h2>
-              <motion.p 
-                className="text-gray-300 text-lg leading-relaxed"
-                initial={{ x: -20 }}
-                animate={{ x: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-              >
-                Accédez à notre plateforme innovante pour soumettre, consulter et gérer vos mémoires universitaires avec facilité.
-              </motion.p>
-              
-              <motion.div 
-                className="mt-6 space-y-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 1 }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center shadow-lg shadow-primary-600/30">
-                    <span className="material-icons text-white">verified</span>
-                  </div>
-                  <span className="text-white font-medium">Solution approuvée par les académiciens</span>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-600/80 flex items-center justify-center shadow-lg shadow-primary-600/30">
-                    <span className="material-icons text-white">security</span>
-                  </div>
-                  <span className="text-white font-medium">Sécurité et confidentialité garanties</span>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-600/60 flex items-center justify-center shadow-lg shadow-primary-600/30">
-                    <span className="material-icons text-white">devices</span>
-                  </div>
-                  <span className="text-white font-medium">Accessible sur tous vos appareils</span>
-                </div>
-              </motion.div>
-              
-              <motion.div
-                className="mt-8"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 1.2 }}
-              >
-                <div className="flex items-center gap-2 border-t border-white/10 pt-4">
-                  <div className="flex -space-x-2">
-                    <img className="w-8 h-8 rounded-full ring-2 ring-navy-900" src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80" alt="User" />
-                    <img className="w-8 h-8 rounded-full ring-2 ring-navy-900" src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80" alt="User" />
-                    <img className="w-8 h-8 rounded-full ring-2 ring-navy-900" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80" alt="User" />
-                  </div>
-                  <div className="text-sm text-gray-300">
-                    <span className="font-bold text-white">500+</span> étudiants ont déjà rejoint la plateforme
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </motion.div>
       </div>
     </div>
   );

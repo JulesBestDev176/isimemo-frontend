@@ -101,7 +101,7 @@ const ProcessusPipeline: React.FC<ProcessusPipelineProps> = ({ dossier, estSuive
   
   // Initialiser l'étape en prenant la plus avancée entre le backend et localStorage
   const getInitialEtape = (): EtapePipeline => {
-    const savedEtape = localStorage.getItem(getLocalStorageKey(dossier.idDossierMemoire));
+    const savedEtape = localStorage.getItem(getLocalStorageKey(dossier.id));
     if (savedEtape) {
       const parsedEtape = parseInt(savedEtape) as EtapePipeline;
       // Prendre l'étape la plus avancée entre le backend et localStorage
@@ -115,8 +115,8 @@ const ProcessusPipeline: React.FC<ProcessusPipelineProps> = ({ dossier, estSuive
 
   // Sauvegarder l'étape dans localStorage à chaque changement
   useEffect(() => {
-    localStorage.setItem(getLocalStorageKey(dossier.idDossierMemoire), etapeCourante.toString());
-  }, [etapeCourante, dossier.idDossierMemoire]);
+    localStorage.setItem(getLocalStorageKey(dossier.id), etapeCourante.toString());
+  }, [etapeCourante, dossier.id]);
 
   // Synchroniser avec le dossier si l'étape change en externe (ex: backend update)
   useEffect(() => {
@@ -173,7 +173,7 @@ const ProcessusPipeline: React.FC<ProcessusPipelineProps> = ({ dossier, estSuive
         setIsSavingStep(true);
         // Appel API pour persister l'étape dans le backend
         const etapeDossier = getEtapeDossierFromPipeline(nextEtape);
-        await dossierService.changerEtape(dossier.idDossierMemoire, etapeDossier);
+        await dossierService.changerEtape(dossier.id, etapeDossier);
         
         // Mettre à jour l'état local après succès de l'API
         setEtapeCourante(nextEtape);
